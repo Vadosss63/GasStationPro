@@ -1,0 +1,17 @@
+[Unit]
+
+Description=pay_server
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/GasStationPro/pay_server
+ExecReload=/opt/GasStationPro/pay_server
+WorkingDirectory=/opt/GasStationPro/
+User=Vadosss63
+Group=Vadosss63
+TimeoutSec=300
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

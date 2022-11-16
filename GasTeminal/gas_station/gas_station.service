@@ -1,0 +1,13 @@
+[Unit]
+
+Description=gas_station
+After=network.target
+
+[Service]
+ExecStart=/opt/GasStationPro/gas_station
+ExecReload=/opt/GasStationPro/pay_server
+WorkingDirectory=/opt/GasStationPro/
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target

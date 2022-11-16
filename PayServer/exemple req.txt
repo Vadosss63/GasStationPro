@@ -1,0 +1,7 @@
+curl "http://93.100.147.203:8080/api/wash?action=3&session=d44cd921-ceea-4bb4-acae-84c406243105&postNumber=4&sum=1500"
+curl "http://93.100.147.203:8080/api/wash?action=3&session=d44cd921-ceea-4bb4-acae-84c406243105&postNumber=1&sum=50"
+sudo systemctl status car_wash
+
+93.100.147.203:8081/api/wash?action=1
+
+

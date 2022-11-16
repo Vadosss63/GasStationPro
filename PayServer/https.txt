@@ -1,0 +1,3 @@
+https://kodazm.ru/articles/https-i-go/#.X33kC3VS_IV
+unux sock
+https://github.com/devlights/go-unix-domain-socket-example
