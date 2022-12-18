@@ -19,7 +19,7 @@ Settings::SettingsPrametrs &Settings::getSettingsPrametrs() {
 
 QStringList Settings::readLogFile() {
 #ifdef QT_DEBUG
-  QFile file("C:/MyProject/Gas_Station/logs.log");
+  QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/logs.log");
 #else
   QFile file(logsName);
 #endif
@@ -35,7 +35,7 @@ QStringList Settings::readLogFile() {
 
 void Settings::addTextToLogFile(const QString &text) {
 #ifdef QT_DEBUG
-  QFile file("C:/MyProject/Gas_Station/logs.log");
+  QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/logs.log");
 #else
   QFile file(logsName);
 #endif

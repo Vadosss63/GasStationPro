@@ -7,9 +7,7 @@ After=network.target
 Type=forking
 ExecStart=/opt/GasStationPro/pay_server
 ExecReload=/opt/GasStationPro/pay_server
-WorkingDirectory=/opt/GasStationPro/
-User=Vadosss63
-Group=Vadosss63
+WorkingDirectory=/home/vadosss63/.GasStationPro/
 TimeoutSec=300
 Restart=always
 

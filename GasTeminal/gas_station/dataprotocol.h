@@ -24,6 +24,8 @@ struct ReceiveData {
   // 0xFF – вход в сервисный режим
   uint8_t isClickedBtn{0};
   uint8_t isActiveBtn{0};
+  //Сумма оплаты онлайн, дискрет – 1 руб.
+  uint16_t onlineSum{0};
   //Внесенная сумма, дискрет – 1 руб.
   uint16_t balance{0};
   //Купюры, общий счётчик, дискрет – 1 руб
@@ -39,6 +41,12 @@ struct ReceiveData {
   uint32_t commonSumCashless{0};
   //Безнал, суточный счётчик, дискрет – 1 руб
   uint32_t dailySumCashless{0};
+
+  //Онлайн, общий счётчик, дискрет – 1 руб
+  uint32_t commonOnlineSum{0};
+  //Онлайн, суточный счётчик, дискрет – 1 руб
+  uint32_t dailyOnlineSum{0};
+
   //Колонка n общий счётчик литров, дискрет – 0,01 л.
   //Колонка n суточный счётчик литров, дискрет – 0,01 л.
 
@@ -90,6 +98,10 @@ struct SendData {
     resetCounters = 0xFF
   };
   StateEnum state{0};
+
+  //Сумма оплаты онлайн, дискрет – 1 руб.
+  uint16_t onlineSum{0};
+
   //Тип топлива, колонка 1
   // 0x01 – Бензин АИ-92
   // 0x02 – Бензин АИ-95
@@ -97,7 +109,6 @@ struct SendData {
   // 0x04 – ДТ
   // 0x05 – Метан
   // 0x06 – Пропан
-
   enum GasType : uint8_t {
     Gas92 = 0x01,
     Gas95 = 0x02,
@@ -162,22 +173,24 @@ inline QString getGasTypeString(SendData::GasType gasType) {
 }
 
 inline QString getTextReport(const ReceiveData &info) {
-  QString infoText = QString("Нал.руб             общ-%1          инкас-%2")
-                         .arg(info.commonSumCash + info.commonSumCoins)
-                         .arg(info.dailySumCash + info.dailySumCoins);
-  infoText.append("\n");
-  infoText += QString("Безнал.руб        общ-%1          инкас-%2")
-                  .arg(info.commonSumCashless)
-                  .arg(info.dailySumCashless);
-  infoText.append("\n");
+  QString infoText =
+          QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
+                  "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
+                  "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
+          .arg(info.commonSumCash + info.commonSumCoins)
+          .arg(info.dailySumCash + info.dailySumCoins)
+          .arg(info.commonSumCashless)
+          .arg(info.dailySumCashless)
+          .arg(info.commonOnlineSum)
+          .arg(info.dailySumCashless);
+
   for (int i = 0; i < countColum; ++i) {
-    infoText += QString("%1-Литры           общ-%2      инкас-%3")
+    infoText += QString("%1-Литры\t\tобщ-%2\tинкас-%3\n")
                     .arg(i + 1)
                     .arg(static_cast<double>(info.columLiters[i].common) / 100.,
                          0, 'f', 2)
                     .arg(static_cast<double>(info.columLiters[i].daily) / 100.,
                          0, 'f', 2);
-    infoText.append("\n");
   }
   return infoText;
 }

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -47,8 +48,8 @@ type StatusSend struct {
 }
 
 type StatusStatSend struct {
-	Status    string `json:"status"`
-	Statistic string `json:"statistic"`
+	Status    string   `json:"status"`
+	Statistic []string `json:"statistic"`
 }
 
 type AnswerToken struct {
@@ -175,7 +176,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 func handleStatisticRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	statusStatSend := StatusStatSend{Status: "wrong", Statistic: "empty"}
+	statusStatSend := StatusSend{Status: "Error statistic"}
 
 	// http://127.0.0.1:8081/api/statistic?user=t_cash&password=cash
 	user := r.FormValue("user")
@@ -184,7 +185,9 @@ func handleStatisticRequest(w http.ResponseWriter, r *http.Request) {
 	if user == "t_cash" && password == "cash" {
 		stat, ok := getStat()
 		if ok {
-			statusStatSend = StatusStatSend{Status: "successful", Statistic: stat}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(stat)
+			return
 		}
 	}
 
@@ -213,16 +216,20 @@ func getToken(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(answerToken)
 }
 
-func getStat() (string, bool) {
+func getStat() (StatusStatSend, bool) {
 	mux.Lock()
 	defer mux.Unlock()
+
+	errorStat := StatusStatSend{
+		Statistic: []string{"Ошибка получения статистики!"},
+		Status:    "error"}
 
 	conn, err := net.Dial(protocol, sockAddr)
 	//defer conn.Close()
 
 	if err != nil {
 		log.Fatal(err)
-		return "", false
+		return errorStat, false
 	}
 
 	msg := fmt.Sprintf("cmd:%d,post:%d,sum:%d", 1, 0, 0)
@@ -230,21 +237,31 @@ func getStat() (string, bool) {
 	_, err = conn.Write([]byte(msg))
 	if err != nil {
 		log.Fatal(err)
-		return "", false
+		return errorStat, false
 	}
 
 	err = conn.(*net.UnixConn).CloseWrite()
 	if err != nil {
 		log.Fatal(err)
-		return "", false
+		return errorStat, false
 	}
 
 	b, err := ioutil.ReadAll(conn)
 	if err != nil {
 		log.Fatal(err)
-		return "", false
+		return errorStat, false
 	}
-	return string(b), true
+	s := strings.Split(string(b), "\n")
+
+	statusStatSend := StatusStatSend{
+		Statistic: []string{},
+		Status:    "ready"}
+
+	for i := 0; i < len(s); i++ {
+		statusStatSend.Statistic = append(statusStatSend.Statistic, strings.ReplaceAll(s[i], "\t", "    "))
+	}
+
+	return statusStatSend, true
 }
 
 func sendSum(post int, sum int) bool {

@@ -8,12 +8,14 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QWidget>
+#include <thread>
+#include <condition_variable>
 
 #include "dataprotocol.h"
 #include "port.h"
 #include "servicemenudialog.h"
 #include "settingwindows.h"
-#include "smtp.h"
+#include "serversock.h"
 
 class Label : public QLabel {
   Q_OBJECT
@@ -29,15 +31,6 @@ protected:
   virtual void mousePressEvent(QMouseEvent *) Q_DECL_OVERRIDE {
     emit clicked();
   }
-};
-
-struct SmtpSetting {
-  QString smtpServer = "smtp.mail.ru";
-  int serverPort = 465;
-  QString email = "";
-  QString password = "";
-  int sendInHours = 0;
-  bool isSend = false;
 };
 
 class DialogMain : public QWidget {
@@ -58,15 +51,6 @@ public slots:
 
   void getCounters();
   void resetCounters();
-
-  void sendReport();
-
-  void mailSent(QString status);
-  void sendMail(QString msg);
-  void showStatusMail(bool isOk);
-
-signals:
-  void sendReportToMail(QString msg);
 
 protected:
   // действия при нажажатии клавиш
@@ -94,19 +78,14 @@ private:
   void setEnableStart(const ReceiveData &showData);
   void saveReceiptBtn(int numCol);
 
-  void settingTimerSend();
+  void sendToPort(const QString &data);
+  void sendToPort(const QByteArray &data);
+  void sendToPort(const std::string &data);
 
-  void sendToPort(const QString &data) { m_port->writeToPort(data); }
-
-  void sendToPort(const QByteArray &data) {
-    m_port->writeToPort(data);
-    printLog(data);
-  }
-
-  void sendToPort(const std::string &data) {
-    sendToPort(QString::fromStdString(data));
-  }
   void settingTouch();
+  void startWorkInAThread();
+  void startServerSock();
+  std::array<char, ServerSock::sizeOutBuff> parseDataSock(std::array<char, ServerSock::sizeInBuff>& in);
 
   SettingWindows *m_settingWindows;
   ServiceMenuDialog m_serviceMenuDialog;
@@ -126,22 +105,19 @@ private:
   bool m_isActiveBtn2 = true;
   Port *m_port;
 
-  bool isShowMsgMailStatus = false;
-
-  int m_sendReportInHours = 0;
-
-  SmtpSetting m_smtpSetting;
-
-  QTimer *m_timer;
-  Smtp *smtp = nullptr;
-  bool m_isSendToMail = false;
-  bool m_isSendTestMail = true;
   double m_balance = 0;
   ReceiveData receiveData;
   SendData sendData;
 
-  QMutex receiveDataMutex;
-  QMutex sendDataMutex;
+  std::mutex receiveDataMutex;
+  std::mutex sendDataMutex;
+
+  ServerSock serverSock = ServerSock([this](std::array<char, ServerSock::sizeInBuff>& in){
+       return this->parseDataSock(in);
+  });
+  std::thread sockThread;
+  std::condition_variable cv;
+
 };
 
 #endif // DIALOGMAIN_H

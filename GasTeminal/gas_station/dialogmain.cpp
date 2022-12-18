@@ -2,6 +2,7 @@
 #include "settings.h"
 #include <QApplication>
 #include <QBoxLayout>
+#include <QDate>
 #include <QErrorMessage>
 #include <QFile>
 #include <QKeyEvent>
@@ -12,24 +13,20 @@
 #include <qmap.h>
 
 DialogMain::DialogMain() {
-  m_timer = new QTimer(this);
-  connect(m_timer, SIGNAL(timeout()), this, SLOT(sendReport()));
-  connect(this, SIGNAL(sendReportToMail(QString)), SLOT(sendMail(QString)));
   readSettings();
   m_port = new Port();
   connect(m_port, SIGNAL(error_(QString)), this, SLOT(printLog(QString)));
   connect(m_port, SIGNAL(readyData()), this, SLOT(readDataFromPort()));
 
   // Слот - ввод настроек!
-  m_port->writeSettingsPort(QString("COM1"), 115200);
+  ///TODO: linux
+  /// grep -i 'tty' /var/log/dmesg
+  m_port->writeSettingsPort(QString("/dev/ttyUSB0"), 115200);
   m_port->connectPort();
 
   m_settingWindows = new SettingWindows();
   createWidget();
   settingTouch();
-#ifndef QT_DEBUG
-  settingTimerSend();
-#endif
 
   ReceiveData data;
   data.balance = 0;
@@ -38,13 +35,80 @@ DialogMain::DialogMain() {
   setShowData(data);
   m_phoneOfSupportLable->setText(m_phoneOfSupport);
   setVisibleBtn2(m_isActiveBtn2);
+
+  sockThread = std::thread(&DialogMain::startServerSock, this);
+
 }
 
 DialogMain::~DialogMain() {
   delete m_settingWindows;
   m_port->disconnectPort();
   delete m_port;
-  delete smtp;
+  cv.notify_all();
+
+  serverSock.stopServer();
+  if(sockThread.joinable())
+      sockThread.join();
+}
+
+void DialogMain::startServerSock(){
+    serverSock.startServerSock();
+}
+
+std::array<char, ServerSock::sizeOutBuff> DialogMain::parseDataSock(std::array<char, ServerSock::sizeInBuff> &in)
+{
+
+    QString listData(in.data());
+    QStringList data = listData.split(",");
+    if(data.size()!= 3)
+    {
+        return {"error"};
+    }
+
+    QStringList cmd = data[0].split(":");
+    if(data.size() != 3 && cmd.at(0) != "cmd")
+    {
+        return {"error"};
+    }
+
+    if(cmd.at(1) == "1")
+    {
+        std::lock_guard<std::mutex> ml(receiveDataMutex);
+        std::string answer = getTextReport(getReceiveData()).toStdString();
+        std::array<char, ServerSock::sizeOutBuff> res;
+        std::copy(answer.c_str(), answer.c_str() + answer.size(), res.begin());
+        return res;
+    }
+
+    if(cmd.at(1) == "0")
+    {
+        // cmd:0,post:1,sum:50
+        QStringList post = data[1].split(":");
+        QStringList sum = data[2].split(":");
+        if(post.at(0) == "post" && sum.at(0) == "sum")
+        {
+           int postNum = post.at(1).toInt();
+           (void)postNum;
+           uint32_t onlineSum = sum.at(1).toInt();
+           {
+               std::lock_guard<std::mutex> ml(sendDataMutex);
+               getSendData().onlineSum = onlineSum;
+           }
+
+           static std::mutex mtx;
+           std::unique_lock<std::mutex> lck(mtx);
+           if (cv.wait_for(lck,std::chrono::seconds(3))==std::cv_status::timeout) {
+               return {"timeout"};
+               //return {"ok"};
+           }
+
+           std::lock_guard<std::mutex> ml(receiveDataMutex);
+           if(getReceiveData().commonOnlineSum == onlineSum)
+               return {"ok"};
+        }
+    }
+
+    return {"error"};
 }
 
 QMap<QString, QString> parsingSetting(QString setting) {
@@ -71,7 +135,7 @@ void DialogMain::settingTouch() {
 #ifndef QT_DEBUG
   QFile file("settings.ini");
 #else
-  QFile file("C:\\MyProject\\Gas_Station\\settings.ini");
+  QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/settings.ini");
 #endif
 
   file.open(QFile::ReadOnly);
@@ -83,9 +147,7 @@ void DialogMain::settingTouch() {
   QString setting = QString::fromUtf8(file.readAll());
   file.close();
 
-  QStringList listFields{"Name",        "SmtpServer", "ServerPort",
-                         "Email",       "Password",   "PhoneOfSupport",
-                         "SendInHours", "ActiveBtn2"};
+  QStringList listFields{"Name", "PhoneOfSupport", "ActiveBtn2"};
 
   QMap fields = parsingSetting(setting);
 
@@ -111,23 +173,8 @@ void DialogMain::settingTouch() {
   m_nameGasStation = fields.value(listFields.at(iter++));
   okRes &= !m_nameGasStation.isEmpty();
 
-  m_smtpSetting.smtpServer = fields.value(listFields.at(iter++));
-  okRes &= !m_smtpSetting.smtpServer.isEmpty();
-
-  m_smtpSetting.serverPort = fields.value(listFields.at(iter++)).toInt(&ok);
-  okRes &= ok;
-
-  m_smtpSetting.email = fields.value(listFields.at(iter++));
-  okRes &= !m_smtpSetting.email.isEmpty();
-
-  m_smtpSetting.password = fields.value(listFields.at(iter++));
-  okRes &= !m_smtpSetting.password.isEmpty();
-
   m_phoneOfSupport = fields.value(listFields.at(iter++));
   okRes &= !m_phoneOfSupport.isEmpty();
-
-  m_smtpSetting.sendInHours = fields.value(listFields.at(iter++)).toInt(&ok);
-  okRes &= ok;
 
   m_isActiveBtn2 = fields.value(listFields.at(iter++)).toInt(&ok);
   okRes &= ok;
@@ -135,20 +182,15 @@ void DialogMain::settingTouch() {
   if (!okRes) {
     (new QErrorMessage(this))
         ->showMessage("The setting.ini contains invalid fields!");
-    m_smtpSetting.isSend = false;
     return;
   }
-
-  m_smtpSetting.isSend = true;
 }
 
 ReceiveData &DialogMain::getReceiveData() {
-  QMutexLocker ml(&receiveDataMutex);
   return receiveData;
 }
 
-SendData &DialogMain::getSendData() {
-  QMutexLocker ml(&sendDataMutex);
+SendData &DialogMain::getSendData() {  
   return sendData;
 }
 
@@ -164,12 +206,18 @@ void DialogMain::showSettings() {
 
 void DialogMain::startStation1() {
   saveReceiptBtn(1);
-  getSendData().state = SendData::isPressedBtn1;
+  {
+      std::lock_guard<std::mutex> ml(sendDataMutex);
+      getSendData().state = SendData::isPressedBtn1;
+  }
 }
 
 void DialogMain::startStation2() {
   saveReceiptBtn(2);
-  getSendData().state = SendData::isPressedBtn2;
+  {
+      std::lock_guard<std::mutex> ml(sendDataMutex);
+      getSendData().state = SendData::isPressedBtn2;
+  }
 }
 
 void DialogMain::saveReceiptBtn(int numCol) {
@@ -177,37 +225,54 @@ void DialogMain::saveReceiptBtn(int numCol) {
   Settings::instance().addTextToLogFile(receipt);
 }
 
+void DialogMain::sendToPort(const QString &data) { m_port->writeToPort(data); }
+
+void DialogMain::sendToPort(const QByteArray &data) {
+    m_port->writeToPort(data);
+    printLog(data);
+}
+
+void DialogMain::sendToPort(const std::string &data) {
+    sendToPort(QString::fromStdString(data));
+}
+
 void DialogMain::setupPrice() {
-  setGasType(m_settingWindows->getGasType());
-  setPriceLitres(m_settingWindows->getPrices());
+    setGasType(m_settingWindows->getGasType());
+    setPriceLitres(m_settingWindows->getPrices());
   writeSettings();
 }
 
 void DialogMain::setShowData(const ReceiveData &data) {
-  setBalance(data.balance);
+  setBalance(data.balance + data.onlineSum);
   setEnableStart(data);
   setCountLitres();
 }
 
 void DialogMain::setPriceLitres(std::array<float, countColum> prices) {
   assert(prices.size() == countColum);
-  for (size_t i = 0; i < prices.size(); ++i) {
-    double price = prices[i];
-    getSendData().prices[i] = static_cast<uint16_t>(price * 100);
-    m_currentPrices[i] = price;
-    m_priceLitresLable[i]->setText(m_gasTypeLables[i] +
-                                   QString(" %1").arg(price, 0, 'f', 2) +
-                                   pubChar + "/Л");
+  {
+      std::lock_guard<std::mutex> ml(sendDataMutex);
+      for (size_t i = 0; i < prices.size(); ++i) {
+        double price = prices[i];
+        getSendData().prices[i] = static_cast<uint16_t>(price * 100);
+        m_currentPrices[i] = price;
+        m_priceLitresLable[i]->setText(m_gasTypeLables[i] +
+                                       QString(" %1").arg(price, 0, 'f', 2) +
+                                       pubChar + "/Л");
+      }
   }
 }
 
 void DialogMain::setGasType(std::array<SendData::GasType, countColum> gasType) {
   assert(gasType.size() == countColum);
-  for (size_t i = 0; i < gasType.size(); ++i) {
-    auto type = gasType[i];
-    m_gasTypes[i] = type;
-    getSendData().gasTypes[i] = type;
-    m_gasTypeLables[i] = getGasTypeString(type);
+  {
+      std::lock_guard<std::mutex> ml(sendDataMutex);
+      for (size_t i = 0; i < gasType.size(); ++i) {
+        auto type = gasType[i];
+        m_gasTypes[i] = type;
+        getSendData().gasTypes[i] = type;
+        m_gasTypeLables[i] = getGasTypeString(type);
+      }
   }
 }
 
@@ -249,7 +314,12 @@ void DialogMain::readDataFromPort() {
     printLog(QString("ReceiveData is nullptr"));
     return;
   }
-  getReceiveData() = *tmp;
+  {
+      std::lock_guard<std::mutex> ml(receiveDataMutex);
+      getReceiveData() = *tmp;
+  }
+
+  cv.notify_all();
   if (getReceiveData().isClickedBtn == 0xFF) {
     showSettings();
   } else if (getReceiveData().isClickedBtn == 0xFE) {
@@ -261,38 +331,12 @@ void DialogMain::readDataFromPort() {
       }
     }
   }
-  setShowData(getReceiveData());
-  // QThread::msleep(20);
-  sendToPort(getSendData().getQByteArray());
-  getSendData().state = SendData::defaultVal;
-}
-
-void DialogMain::sendMail(QString msg) {
-  delete smtp;
-
-  smtp = new Smtp(m_smtpSetting.email, m_smtpSetting.password,
-                  m_smtpSetting.smtpServer, m_smtpSetting.serverPort);
-
-  connect(smtp, SIGNAL(status(QString)), this, SLOT(mailSent(QString)));
-  connect(smtp, SIGNAL(isReady(bool)), this, SLOT(showStatusMail(bool)));
-
-  smtp->sendMail(m_smtpSetting.email, m_smtpSetting.email,
-                 "Статистика АЗС - " + m_nameGasStation, msg);
-}
-
-void DialogMain::showStatusMail(bool isOk) {
-  if (!isShowMsgMailStatus) {
-    return;
+  {
+      std::lock_guard<std::mutex> ml(sendDataMutex);
+      setShowData(getReceiveData());
+      sendToPort(getSendData().getQByteArray());
+      getSendData().state = SendData::defaultVal;
   }
-  if (isOk) {
-    (new QErrorMessage(this))->showMessage("Тестовое сообщение отправлено!");
-
-  } else {
-    (new QErrorMessage(this))
-        ->showMessage("Ошибка отправки тестого сообщения!");
-  }
-
-  isShowMsgMailStatus = false;
 }
 
 void DialogMain::keyPressEvent(QKeyEvent *event) {
@@ -309,16 +353,6 @@ void DialogMain::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_Escape:
     qApp->exit(0);
     break;
-  case Qt::Key_9: {
-    if (!m_smtpSetting.isSend) {
-      (new QErrorMessage(this))
-          ->showMessage("The setting.ini contains invalid fields!");
-      return;
-    }
-    isShowMsgMailStatus = true;
-    settingTimerSend();
-    break;
-  }
   default:
     break;
   }
@@ -338,37 +372,17 @@ void DialogMain::printLog(QByteArray data) {
 }
 
 void DialogMain::getCounters() {
-  ReceiveData tmp = getReceiveData();
-  if (m_isSendToMail) {
-    emit sendMail(getTextReport(tmp));
-  } else {
-    m_settingWindows->setupInfo(tmp);
-  }
-  m_isSendToMail = false;
+
+  std::lock_guard<std::mutex> ml(receiveDataMutex);
+  m_settingWindows->setupInfo(getReceiveData());
 }
 
 void DialogMain::resetCounters() {
-  getSendData().state = SendData::resetCounters;
-  //(new QErrorMessage(this))->showMessage("Выполняется инкассация!");
-}
-
-void DialogMain::sendReport() {
-  if (--m_sendReportInHours <= 0) {
-    m_sendReportInHours = m_smtpSetting.sendInHours;
-    m_isSendToMail = true;
-    getCounters();
-    // static int test = 0;
-    // emit sendMail("Test " + QString::number(test++));
-  }
-}
-
-void DialogMain::mailSent(QString status) {
-  if (status != "Message sent") {
-    if (m_isSendTestMail) {
-      m_isSendTestMail = false;
-      (new QErrorMessage(this))->showMessage(status);
+    {
+        std::lock_guard<std::mutex> ml(sendDataMutex);
+        getSendData().state = SendData::resetCounters;
     }
-  }
+  //(new QErrorMessage(this))->showMessage("Выполняется инкассация!");
 }
 
 void DialogMain::createWidget() {
@@ -485,24 +499,6 @@ void DialogMain::readSettings() {
 void DialogMain::setEnableStart(const ReceiveData &showData) {
   for (int i = 0; i < countColum; ++i) {
     m_startPBs[i]->setEnabled(showData.getIsActiveBtn(i));
-  }
-}
-
-void DialogMain::settingTimerSend() {
-  if (m_smtpSetting.isSend) {
-    constexpr int msecPerSec = 1000;
-    constexpr int secPerMin = 60;
-    constexpr int minPerHour = 60;
-    //        constexpr int minPerHour = 1;
-    constexpr int msec = minPerHour * secPerMin * msecPerSec;
-    // Срабатываем каждый час
-    m_timer->start(msec);
-    m_sendReportInHours = m_smtpSetting.sendInHours;
-
-    sendMail("Тестовое сообщение от АЗС");
-  } else {
-    m_sendReportInHours = 0;
-    m_timer->stop();
   }
 }
 

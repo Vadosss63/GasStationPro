@@ -1,14 +1,8 @@
 #include "dialogmain.h"
 
 #include <QApplication>
-#include <QFile>
-#include <QFileInfo>
-#include <QFontDatabase>
-#include <QProcess>
-#include <iostream>
 
 void loadQSS() {
-
     qApp->setStyleSheet("SettingWindows{background:"
                         "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 "
                         "#4287ff, stop: 1 #351ccc);"

@@ -4,9 +4,10 @@ Description=gas_station
 After=network.target
 
 [Service]
+Type=forking
 ExecStart=/opt/GasStationPro/gas_station
 ExecReload=/opt/GasStationPro/gas_station
-WorkingDirectory=/home/${USER}/.GasStationPro/
+WorkingDirectory=/home/vadosss63/.GasStationPro/
 Restart=always
 
 [Install]

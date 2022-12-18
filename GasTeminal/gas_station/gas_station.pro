@@ -1,8 +1,11 @@
 QT       += core gui network
 QT       += serialport
+QT       += testlib
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
+CONFIG += testcase
+CONFIG += no_testcase_installs
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -19,19 +22,19 @@ SOURCES += \
     dialogmain.cpp \
     main.cpp \
     port.cpp \
+    serversock.cpp \
     servicemenudialog.cpp \
     settings.cpp \
-    settingwindows.cpp \
-    smtp.cpp
+    settingwindows.cpp
 
 HEADERS += \
     dataprotocol.h \
     dialogmain.h \
     port.h \
+    serversock.h \
     servicemenudialog.h \
     settings.h \
-    settingwindows.h \
-    smtp.h
+    settingwindows.h
 
 FORMS +=
 
