@@ -5,18 +5,19 @@
 #include <QPushButton>
 #include <QWidget>
 
-class ServiceMenuDialog : public QWidget {
-  Q_OBJECT
+class ServiceMenuDialog : public QWidget
+{
+    Q_OBJECT
 public:
-  explicit ServiceMenuDialog(QWidget *parent = nullptr);
-  void readLogFile();
+    explicit ServiceMenuDialog(QWidget* parent = nullptr);
+    void readLogFile();
 
 public slots:
-  void showDialog();
+    void showDialog();
 
 private:
-  void createWidget();
-  void showSum(int sum_);
-  QLabel *sum = nullptr;
-  QListWidget *chequeList = nullptr;
+    void         createWidget();
+    void         showSum(int sum_);
+    QLabel*      sum        = nullptr;
+    QListWidget* chequeList = nullptr;
 };

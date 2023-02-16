@@ -1,0 +1,1 @@
+../run_clang-format.sh sct/ test/ src/

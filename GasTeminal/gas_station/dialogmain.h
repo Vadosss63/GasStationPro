@@ -8,116 +8,116 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QWidget>
-#include <thread>
 #include <condition_variable>
+#include <thread>
 
 #include "dataprotocol.h"
 #include "port.h"
+#include "serversock.h"
 #include "servicemenudialog.h"
 #include "settingwindows.h"
-#include "serversock.h"
 
-class Label : public QLabel {
-  Q_OBJECT
+class Label : public QLabel
+{
+    Q_OBJECT
 public:
-  explicit Label(QWidget *parent = nullptr) : QLabel(parent) {}
+    explicit Label(QWidget* parent = nullptr) : QLabel(parent) {}
 
 signals:
-  void clicked();
+    void clicked();
 
 public slots:
 
 protected:
-  virtual void mousePressEvent(QMouseEvent *) Q_DECL_OVERRIDE {
-    emit clicked();
-  }
+    virtual void mousePressEvent(QMouseEvent*) Q_DECL_OVERRIDE { emit clicked(); }
 };
 
-class DialogMain : public QWidget {
-  Q_OBJECT
+class DialogMain : public QWidget
+{
+    Q_OBJECT
 public:
-  DialogMain();
-  ~DialogMain();
+    DialogMain();
+    ~DialogMain();
 
 public slots:
-  void showSettings();
-  void startStation1();
-  void startStation2();
-  void setupPrice();
+    void showSettings();
+    void startStation1();
+    void startStation2();
+    void setupPrice();
 
-  void readDataFromPort();
-  void printLog(QString log);
-  void printLog(QByteArray data);
+    void readDataFromPort();
+    void printLog(QString log);
+    void printLog(QByteArray data);
 
-  void getCounters();
-  void resetCounters();
+    void getCounters();
+    void resetCounters();
 
 protected:
-  // действия при нажажатии клавиш
-  void keyPressEvent(QKeyEvent *event) override;
+    // действия при нажажатии клавиш
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
-  SendData &getSendData();
+    SendData& getSendData();
 
-  ReceiveData &getReceiveData();
+    ReceiveData& getReceiveData();
 
-  void writeSettings();
-  void readSettings();
-  QString getReceipt(int numCol);
+    void    writeSettings();
+    void    readSettings();
+    QString getReceipt(int numCol);
 
-  void setShowData(const ReceiveData &data);
+    void setShowData(const ReceiveData& data);
 
-  void setPriceLitres(std::array<float, countColum> prices);
-  void setGasType(std::array<SendData::GasType, countColum> gasType);
-  void setBalance(double price);
-  void setCountLitres();
+    void setPriceLitres(std::array<float, countColum> prices);
+    void setGasType(std::array<SendData::GasType, countColum> gasType);
+    void setBalance(double price);
+    void setCountLitres();
 
-  void setVisibleBtn2(bool isVisible);
+    void setVisibleBtn2(bool isVisible);
 
-  void createWidget();
-  void setEnableStart(const ReceiveData &showData);
-  void saveReceiptBtn(int numCol);
+    void createWidget();
+    void setEnableStart(const ReceiveData& showData);
+    void saveReceiptBtn(int numCol);
 
-  void sendToPort(const QString &data);
-  void sendToPort(const QByteArray &data);
-  void sendToPort(const std::string &data);
+    void sendToPort(const QString& data);
+    void sendToPort(const QByteArray& data);
+    void sendToPort(const std::string& data);
 
-  void settingTouch();
-  void startWorkInAThread();
-  void startServerSock();
-  std::array<char, ServerSock::sizeOutBuff> parseDataSock(std::array<char, ServerSock::sizeInBuff>& in);
+    void                                      settingTouch();
+    void                                      startWorkInAThread();
+    void                                      startServerSock();
+    std::array<char, ServerSock::sizeOutBuff> parseDataSock(std::array<char, ServerSock::sizeInBuff>& in);
 
-  SettingWindows *m_settingWindows;
-  ServiceMenuDialog m_serviceMenuDialog;
-  Label *m_balanceLable;
-  Label *m_phoneOfSupportLable;
+    SettingWindows*   m_settingWindows;
+    ServiceMenuDialog m_serviceMenuDialog;
+    Label*            m_balanceLable;
+    Label*            m_phoneOfSupportLable;
 
-  std::array<SendData::GasType, countColum> m_gasTypes{
-      SendData::GasType::Gas92};
-  std::array<QString, countColum> m_gasTypeLables{nullptr};
-  std::array<Label *, countColum> m_priceLitresLable{nullptr};
-  std::array<QPushButton *, countColum> m_startPBs{nullptr};
-  std::array<Label *, countColum> m_countLitresLables{nullptr};
-  std::array<float, countColum> m_currentPrices = {0};
+    std::array<SendData::GasType, countColum> m_gasTypes{SendData::GasType::Gas92};
+    std::array<QString, countColum>           m_gasTypeLables{nullptr};
+    std::array<Label*, countColum>            m_priceLitresLable{nullptr};
+    std::array<QPushButton*, countColum>      m_startPBs{nullptr};
+    std::array<Label*, countColum>            m_countLitresLables{nullptr};
+    std::array<float, countColum>             m_currentPrices = {0};
 
-  QString m_nameGasStation = "";
-  QString m_phoneOfSupport = "8(999)000-00-00";
-  bool m_isActiveBtn2 = true;
-  Port *m_port;
+    QString m_nameGasStation = "";
+    QString m_phoneOfSupport = "8(999)000-00-00";
+    bool    m_isActiveBtn2   = true;
+    QString m_comPortName    = "/dev/ttyS4";
+    int     m_baudRate       = 115200;
 
-  double m_balance = 0;
-  ReceiveData receiveData;
-  SendData sendData;
+    Port* m_port;
 
-  std::mutex receiveDataMutex;
-  std::mutex sendDataMutex;
+    double      m_balance = 0;
+    ReceiveData receiveData;
+    SendData    sendData;
 
-  ServerSock serverSock = ServerSock([this](std::array<char, ServerSock::sizeInBuff>& in){
-       return this->parseDataSock(in);
-  });
-  std::thread sockThread;
-  std::condition_variable cv;
+    std::mutex receiveDataMutex;
+    std::mutex sendDataMutex;
 
+    ServerSock serverSock =
+        ServerSock([this](std::array<char, ServerSock::sizeInBuff>& in) { return this->parseDataSock(in); });
+    std::thread             sockThread;
+    std::condition_variable cv;
 };
 
 #endif // DIALOGMAIN_H

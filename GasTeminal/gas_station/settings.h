@@ -1,21 +1,23 @@
 #pragma once
 #include <QString>
 
-class Settings {
+class Settings
+{
 public:
-  struct SettingsPrametrs {
-    int sum = 0;
-  };
+    struct SettingsPrametrs
+    {
+        int sum = 0;
+    };
 
-  static Settings &instance();
+    static Settings& instance();
 
-  SettingsPrametrs &getSettingsPrametrs();
+    SettingsPrametrs& getSettingsPrametrs();
 
-  QStringList readLogFile();
-  void addTextToLogFile(const QString &text);
+    QStringList readLogFile();
+    void        addTextToLogFile(const QString& text);
 
 private:
-  Settings();
-  SettingsPrametrs settingsParameters;
-  const QString logsName = "logs.log";
+    Settings();
+    SettingsPrametrs settingsParameters;
+    const QString    logsName = "logs.log";
 };
