@@ -1,0 +1,11 @@
+{
+    "Id": "10111992",
+    "Name": "Автозаправка-1",
+    "Address": "СПб, Петроградка 28",
+    "Token": "ef4cfcf144999ed560e9f9ad2be18101",
+    "Host": "http://t-azs.ru:8080",
+    "PhoneOfSupport": "8(904)609-21-27",
+    "ActiveBtn2": 1,
+    "ComPort": "/dev/ttyS4",
+    "BaudRate": 115200
+}

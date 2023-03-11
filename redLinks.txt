@@ -1,4 +1,0 @@
-PostgreSQL:
-https://selectel.ru/blog/tutorials/how-to-install-and-use-postgresql-on-ubuntu-20-04/
-password
-https://chartio.com/resources/tutorials/how-to-set-the-default-user-password-in-postgresql/

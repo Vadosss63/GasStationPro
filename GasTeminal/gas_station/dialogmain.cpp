@@ -15,10 +15,11 @@
 
 #include "settings.h"
 
+
 DialogMain::DialogMain()
 {
     readSettings();
-    settingTouch();
+    readConfig();
 
     m_port = new Port();
     connect(m_port, SIGNAL(error_(QString)), this, SLOT(printLog(QString)));
@@ -27,7 +28,7 @@ DialogMain::DialogMain()
     // Слот - ввод настроек!
     /// TODO: linux
     ///  grep -i 'tty' /var/log/dmesg
-    m_port->writeSettingsPort(QString(m_comPortName), m_baudRate);
+    m_port->writeSettingsPort(QString(m_configure.comPort), m_configure.baudRate);
     m_port->connectPort();
 
     m_settingWindows = new SettingWindows();
@@ -38,10 +39,9 @@ DialogMain::DialogMain()
     data.isActiveBtn = 0;
 
     setShowData(data);
-    m_phoneOfSupportLable->setText(m_phoneOfSupport);
-    setVisibleBtn2(m_isActiveBtn2);
+    m_phoneOfSupportLable->setText(m_configure.phoneOfSupport);
+    setVisibleBtn2(m_configure.activeBtn2);
 
-    sockThread = std::thread(&DialogMain::startServerSock, this);
 }
 
 DialogMain::~DialogMain()
@@ -51,68 +51,7 @@ DialogMain::~DialogMain()
     delete m_port;
     cv.notify_all();
 
-    serverSock.stopServer();
     if (sockThread.joinable()) sockThread.join();
-}
-
-void DialogMain::startServerSock()
-{
-    serverSock.startServerSock();
-}
-
-std::array<char, ServerSock::sizeOutBuff> DialogMain::parseDataSock(std::array<char, ServerSock::sizeInBuff>& in)
-{
-    QString     listData(in.data());
-    QStringList data = listData.split(",");
-    if (data.size() != 3)
-    {
-        return {"error"};
-    }
-
-    QStringList cmd = data[0].split(":");
-    if (data.size() != 3 && cmd.at(0) != "cmd")
-    {
-        return {"error"};
-    }
-
-    if (cmd.at(1) == "1")
-    {
-        std::lock_guard<std::mutex>               ml(receiveDataMutex);
-        std::string                               answer = getTextReport(getReceiveData()).toStdString();
-        std::array<char, ServerSock::sizeOutBuff> res;
-        std::copy(answer.c_str(), answer.c_str() + answer.size(), res.begin());
-        return res;
-    }
-
-    if (cmd.at(1) == "0")
-    {
-        // cmd:0,post:1,sum:50
-        QStringList post = data[1].split(":");
-        QStringList sum  = data[2].split(":");
-        if (post.at(0) == "post" && sum.at(0) == "sum")
-        {
-            int postNum = post.at(1).toInt();
-            (void)postNum;
-            uint32_t onlineSum = sum.at(1).toInt();
-            {
-                std::lock_guard<std::mutex> ml(sendDataMutex);
-                getSendData().onlineSum = onlineSum;
-            }
-
-            static std::mutex            mtx;
-            std::unique_lock<std::mutex> lck(mtx);
-            if (cv.wait_for(lck, std::chrono::seconds(3)) == std::cv_status::timeout)
-            {
-                return {"timeout"};
-                // return {"ok"};
-            }
-
-            std::lock_guard<std::mutex> ml(receiveDataMutex);
-            if (getReceiveData().commonOnlineSum == onlineSum) return {"ok"};
-        }
-    }
-
-    return {"error"};
 }
 
 QMap<QString, QString> parsingSetting(QString setting)
@@ -135,68 +74,19 @@ QMap<QString, QString> parsingSetting(QString setting)
     return settingMap;
 }
 
-void DialogMain::settingTouch()
+void DialogMain::readConfig()
 {
-#ifndef QT_DEBUG
-    QFile file("settings.ini");
-#else
-    QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
-               "settings/settings.ini");
-#endif
-
-    file.open(QFile::ReadOnly);
-    if (!file.isOpen())
-    {
-        (new QErrorMessage(this))->showMessage("The setting.ini is not accessible");
-        return;
-    }
-
-    QString setting = QString::fromUtf8(file.readAll());
-    file.close();
-
-    QStringList listFields{"Name", "PhoneOfSupport", "ActiveBtn2", "ComPort", "BaudRate"};
-
-    QMap fields = parsingSetting(setting);
-
-    if (fields.size() != listFields.size())
-    {
-        (new QErrorMessage(this))->showMessage("Setting.ini file contains incorrect number of fields!");
-        return;
-    }
-
-    for (int i = 0; i < listFields.size(); ++i)
-    {
-        if (!fields.contains(listFields[i]))
-        {
-            (new QErrorMessage(this))->showMessage("The setting.ini doesn't contain " + listFields[i] + " field!");
-            return;
-        }
-    }
-
-    bool ok    = false;
-    bool okRes = true;
-    int  iter  = 0;
-
-    m_nameGasStation = fields.value(listFields.at(iter++));
-    okRes &= !m_nameGasStation.isEmpty();
-
-    m_phoneOfSupport = fields.value(listFields.at(iter++));
-    okRes &= !m_phoneOfSupport.isEmpty();
-
-    m_isActiveBtn2 = fields.value(listFields.at(iter++)).toInt(&ok);
-    okRes &= ok;
-
-    m_comPortName = fields.value(listFields.at(iter++));
-    okRes &= !m_comPortName.isEmpty();
-
-    m_baudRate = fields.value(listFields.at(iter++)).toInt(&ok);
-    okRes &= ok;
-
-    if (!okRes)
-    {
+    #ifndef QT_DEBUG
+        QString filePath("settings.json");
+    #else
+        QString filePath("/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
+                   "settings/settings.json");
+    #endif
+    Configure configure;
+    if (!readConfigure(filePath, configure)) {
         (new QErrorMessage(this))->showMessage("The setting.ini contains invalid fields!");
-        return;
     }
+    m_configure = configure;
 }
 
 ReceiveData& DialogMain::getReceiveData()
@@ -269,7 +159,7 @@ void DialogMain::setupPrice()
 
 void DialogMain::setShowData(const ReceiveData& data)
 {
-    setBalance(data.balance + data.onlineSum);
+    setBalance(data.balance);
     setEnableStart(data);
     setCountLitres();
 }

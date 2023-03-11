@@ -19,19 +19,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    configure.cpp \
     dialogmain.cpp \
+    httprequest.cpp \
     main.cpp \
     port.cpp \
-    serversock.cpp \
     servicemenudialog.cpp \
     settings.cpp \
     settingwindows.cpp
 
 HEADERS += \
+    configure.h \
     dataprotocol.h \
     dialogmain.h \
+    httprequest.h \
     port.h \
-    serversock.h \
     servicemenudialog.h \
     settings.h \
     settingwindows.h

@@ -13,9 +13,9 @@
 
 #include "dataprotocol.h"
 #include "port.h"
-#include "serversock.h"
 #include "servicemenudialog.h"
 #include "settingwindows.h"
+#include "configure.h"
 
 class Label : public QLabel
 {
@@ -82,10 +82,8 @@ private:
     void sendToPort(const QByteArray& data);
     void sendToPort(const std::string& data);
 
-    void                                      settingTouch();
-    void                                      startWorkInAThread();
-    void                                      startServerSock();
-    std::array<char, ServerSock::sizeOutBuff> parseDataSock(std::array<char, ServerSock::sizeInBuff>& in);
+    void readConfig();
+
 
     SettingWindows*   m_settingWindows;
     ServiceMenuDialog m_serviceMenuDialog;
@@ -99,11 +97,13 @@ private:
     std::array<Label*, countColum>            m_countLitresLables{nullptr};
     std::array<float, countColum>             m_currentPrices = {0};
 
-    QString m_nameGasStation = "";
-    QString m_phoneOfSupport = "8(999)000-00-00";
-    bool    m_isActiveBtn2   = true;
-    QString m_comPortName    = "/dev/ttyS4";
-    int     m_baudRate       = 115200;
+//    QString m_nameGasStation = "";
+//    QString m_phoneOfSupport = "8(999)000-00-00";
+//    bool    m_isActiveBtn2   = true;
+//    QString m_comPortName    = "/dev/ttyS4";
+//    int     m_baudRate       = 115200;
+
+    Configure m_configure{};
 
     Port* m_port;
 
@@ -113,9 +113,6 @@ private:
 
     std::mutex receiveDataMutex;
     std::mutex sendDataMutex;
-
-    ServerSock serverSock =
-        ServerSock([this](std::array<char, ServerSock::sizeInBuff>& in) { return this->parseDataSock(in); });
     std::thread             sockThread;
     std::condition_variable cv;
 };
