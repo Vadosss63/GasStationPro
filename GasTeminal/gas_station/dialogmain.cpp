@@ -15,7 +15,6 @@
 
 #include "settings.h"
 
-
 DialogMain::DialogMain()
 {
     readSettings();
@@ -41,7 +40,6 @@ DialogMain::DialogMain()
     setShowData(data);
     m_phoneOfSupportLable->setText(m_configure.phoneOfSupport);
     setVisibleBtn2(m_configure.activeBtn2);
-
 }
 
 DialogMain::~DialogMain()
@@ -49,9 +47,6 @@ DialogMain::~DialogMain()
     delete m_settingWindows;
     m_port->disconnectPort();
     delete m_port;
-    cv.notify_all();
-
-    if (sockThread.joinable()) sockThread.join();
 }
 
 QMap<QString, QString> parsingSetting(QString setting)
@@ -76,14 +71,15 @@ QMap<QString, QString> parsingSetting(QString setting)
 
 void DialogMain::readConfig()
 {
-    #ifndef QT_DEBUG
-        QString filePath("settings.json");
-    #else
-        QString filePath("/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
-                   "settings/settings.json");
-    #endif
+#ifndef QT_DEBUG
+    QString filePath("settings.json");
+#else
+    QString filePath("/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
+                     "settings/settings.json");
+#endif
     Configure configure;
-    if (!readConfigure(filePath, configure)) {
+    if (!readConfigure(filePath, configure))
+    {
         (new QErrorMessage(this))->showMessage("The setting.ini contains invalid fields!");
     }
     m_configure = configure;
@@ -113,19 +109,12 @@ void DialogMain::showSettings()
 void DialogMain::startStation1()
 {
     saveReceiptBtn(1);
-    {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        getSendData().state = SendData::isPressedBtn1;
-    }
+    getSendData().state = SendData::isPressedBtn1;
 }
 
 void DialogMain::startStation2()
 {
-    saveReceiptBtn(2);
-    {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        getSendData().state = SendData::isPressedBtn2;
-    }
+    getSendData().state = SendData::isPressedBtn2;
 }
 
 void DialogMain::saveReceiptBtn(int numCol)
@@ -167,30 +156,24 @@ void DialogMain::setShowData(const ReceiveData& data)
 void DialogMain::setPriceLitres(std::array<float, countColum> prices)
 {
     assert(prices.size() == countColum);
+    for (size_t i = 0; i < prices.size(); ++i)
     {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        for (size_t i = 0; i < prices.size(); ++i)
-        {
-            double price            = prices[i];
-            getSendData().prices[i] = static_cast<uint16_t>(price * 100);
-            m_currentPrices[i]      = price;
-            m_priceLitresLable[i]->setText(m_gasTypeLables[i] + QString(" %1").arg(price, 0, 'f', 2) + pubChar + "/Л");
-        }
+        double price            = prices[i];
+        getSendData().prices[i] = static_cast<uint16_t>(price * 100);
+        m_currentPrices[i]      = price;
+        m_priceLitresLable[i]->setText(m_gasTypeLables[i] + QString(" %1").arg(price, 0, 'f', 2) + pubChar + "/Л");
     }
 }
 
 void DialogMain::setGasType(std::array<SendData::GasType, countColum> gasType)
 {
     assert(gasType.size() == countColum);
+    for (size_t i = 0; i < gasType.size(); ++i)
     {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        for (size_t i = 0; i < gasType.size(); ++i)
-        {
-            auto type                 = gasType[i];
-            m_gasTypes[i]             = type;
-            getSendData().gasTypes[i] = type;
-            m_gasTypeLables[i]        = getGasTypeString(type);
-        }
+        auto type                 = gasType[i];
+        m_gasTypes[i]             = type;
+        getSendData().gasTypes[i] = type;
+        m_gasTypeLables[i]        = getGasTypeString(type);
     }
 }
 
@@ -237,12 +220,9 @@ void DialogMain::readDataFromPort()
         printLog(QString("ReceiveData is nullptr"));
         return;
     }
-    {
-        std::lock_guard<std::mutex> ml(receiveDataMutex);
-        getReceiveData() = *tmp;
-    }
 
-    cv.notify_all();
+    getReceiveData() = *tmp;
+
     if (getReceiveData().isClickedBtn == 0xFF)
     {
         showSettings();
@@ -261,12 +241,9 @@ void DialogMain::readDataFromPort()
             }
         }
     }
-    {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        setShowData(getReceiveData());
-        sendToPort(getSendData().getQByteArray());
-        getSendData().state = SendData::defaultVal;
-    }
+    setShowData(getReceiveData());
+    sendToPort(getSendData().getQByteArray());
+    getSendData().state = SendData::defaultVal;
 }
 
 void DialogMain::keyPressEvent(QKeyEvent* event)
@@ -308,16 +285,12 @@ void DialogMain::printLog(QByteArray data)
 
 void DialogMain::getCounters()
 {
-    std::lock_guard<std::mutex> ml(receiveDataMutex);
     m_settingWindows->setupInfo(getReceiveData());
 }
 
 void DialogMain::resetCounters()
 {
-    {
-        std::lock_guard<std::mutex> ml(sendDataMutex);
-        getSendData().state = SendData::resetCounters;
-    }
+    getSendData().state = SendData::resetCounters;
     //(new QErrorMessage(this))->showMessage("Выполняется инкассация!");
 }
 

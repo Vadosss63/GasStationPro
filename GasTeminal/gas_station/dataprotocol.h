@@ -1,12 +1,11 @@
 #pragma once
 
 #include <QByteArray>
-#include <QString>
 #include <QDateTime>
 #include <QDebug>
-#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QString>
 #include <array>
 #include <stdint.h>
@@ -74,10 +73,9 @@ struct ReceiveData
         float density{0};
         //Колонка n средняя температура, °C, тип - float
         float averageTemperature{0};
-
     };
     std::array<AzsNode, countColumMax> columLiters;
-    uint8_t                          checksum{0};
+    uint8_t                            checksum{0};
 
     bool getIsActiveBtn(uint8_t indexBtn) const
     {
@@ -120,15 +118,15 @@ struct SendData
     //0xFF – сброс суточных счетчиков
     enum StateEnum : uint8_t
     {
-        defaultVal    = 0x00,
-        isPressedBtn1 = 0x01,
-        isPressedBtn2 = 0x02,
-        resetAzsNode1 = 0x11,
-        resetAzsNode2 = 0x12,
+        defaultVal           = 0x00,
+        isPressedBtn1        = 0x01,
+        isPressedBtn2        = 0x02,
+        resetAzsNode1        = 0x11,
+        resetAzsNode2        = 0x12,
         isPressedServiceBtn1 = 0x21,
         isPressedServiceBtn2 = 0x22,
         isPressedServiceBtn3 = 0x23,
-        resetCounters = 0xFF
+        resetCounters        = 0xFF
     };
     StateEnum state{0};
 
@@ -217,9 +215,12 @@ inline QString getTextReport(const ReceiveData& info)
     QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
                                "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
                                "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
-                           .arg(info.commonSumCash + info.commonSumCoins).arg(info.dailySumCash + info.dailySumCoins)
-                           .arg(info.commonSumCashless).arg(info.dailySumCashless)
-                           .arg(info.commonOnlineSum).arg(info.dailyOnlineSum);
+                           .arg(info.commonSumCash + info.commonSumCoins)
+                           .arg(info.dailySumCash + info.dailySumCoins)
+                           .arg(info.commonSumCashless)
+                           .arg(info.dailySumCashless)
+                           .arg(info.commonOnlineSum)
+                           .arg(info.dailyOnlineSum);
 
     for (int i = 0; i < countColum; ++i)
     {
@@ -231,7 +232,8 @@ inline QString getTextReport(const ReceiveData& info)
     return infoText;
 }
 
-inline QString getJsonTextReport(const ReceiveData &info) {
+inline QString getJsonTextReport(const ReceiveData& info)
+{
     QJsonObject mainInfo;
     mainInfo.insert("commonSumCash", static_cast<int>(info.commonSumCash + info.commonSumCoins));
     mainInfo.insert("dailySumCash", static_cast<int>(info.dailySumCash + info.dailySumCoins));
@@ -243,17 +245,21 @@ inline QString getJsonTextReport(const ReceiveData &info) {
     mainInfo.insert("dailyOnlineSum", static_cast<int>(info.dailyOnlineSum));
 
     QJsonArray columns;
-    for (int i = 0; i < countColum; ++i) {
+    for (int i = 0; i < countColum; ++i)
+    {
         QJsonObject column;
-        column.insert("commonLiters", QString("%1").arg(static_cast<double>(info.columLiters[i].common + 5000 * (i+1)) / 100., 0, 'f', 2));
-        column.insert("dailyLiters", QString("%1").arg(static_cast<double>(info.columLiters[i].daily + 250 * (i+1)) / 100., 0, 'f', 2));
+        column.insert(
+            "commonLiters",
+            QString("%1").arg(static_cast<double>(info.columLiters[i].common + 5000 * (i + 1)) / 100., 0, 'f', 2));
+        column.insert(
+            "dailyLiters",
+            QString("%1").arg(static_cast<double>(info.columLiters[i].daily + 250 * (i + 1)) / 100., 0, 'f', 2));
         column.insert("remainingFuelLiters", QString("%1").arg(1000));
         columns.append(column);
     }
     QJsonObject infoJson;
     infoJson.insert("columns", columns);
     infoJson.insert("info", mainInfo);
-
 
     // Convert the JSON object to a string
     QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());

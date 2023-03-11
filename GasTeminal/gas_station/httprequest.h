@@ -5,8 +5,8 @@
 
 struct Answer
 {
-    QString msg = "";
-    bool isOk = false;
+    QString msg  = "";
+    bool    isOk = false;
 };
 
 Answer sendGet(const QString& urlStr);

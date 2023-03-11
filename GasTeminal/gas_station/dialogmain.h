@@ -11,11 +11,11 @@
 #include <condition_variable>
 #include <thread>
 
+#include "configure.h"
 #include "dataprotocol.h"
 #include "port.h"
 #include "servicemenudialog.h"
 #include "settingwindows.h"
-#include "configure.h"
 
 class Label : public QLabel
 {
@@ -84,7 +84,6 @@ private:
 
     void readConfig();
 
-
     SettingWindows*   m_settingWindows;
     ServiceMenuDialog m_serviceMenuDialog;
     Label*            m_balanceLable;
@@ -97,12 +96,6 @@ private:
     std::array<Label*, countColum>            m_countLitresLables{nullptr};
     std::array<float, countColum>             m_currentPrices = {0};
 
-//    QString m_nameGasStation = "";
-//    QString m_phoneOfSupport = "8(999)000-00-00";
-//    bool    m_isActiveBtn2   = true;
-//    QString m_comPortName    = "/dev/ttyS4";
-//    int     m_baudRate       = 115200;
-
     Configure m_configure{};
 
     Port* m_port;
@@ -110,11 +103,6 @@ private:
     double      m_balance = 0;
     ReceiveData receiveData;
     SendData    sendData;
-
-    std::mutex receiveDataMutex;
-    std::mutex sendDataMutex;
-    std::thread             sockThread;
-    std::condition_variable cv;
 };
 
 #endif // DIALOGMAIN_H
