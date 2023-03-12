@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "appsettings.h"
 
 #include <QErrorMessage>
 #include <QFile>
@@ -6,20 +6,20 @@
 #include <QTextCodec>
 #include <QTextStream>
 
-Settings::Settings() {}
+AppSettings::AppSettings() {}
 
-Settings& Settings::instance()
+AppSettings& AppSettings::instance()
 {
-    static Settings settings;
+    static AppSettings settings;
     return settings;
 }
 
-Settings::SettingsPrametrs& Settings::getSettingsPrametrs()
+AppSettings::Settings& AppSettings::getSettings()
 {
-    return settingsParameters;
+    return settings;
 }
 
-QStringList Settings::readLogFile()
+QStringList AppSettings::readLogFile()
 {
 #ifdef QT_DEBUG
     QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
@@ -38,7 +38,7 @@ QStringList Settings::readLogFile()
     return setting.split("####");
 }
 
-void Settings::addTextToLogFile(const QString& text)
+void AppSettings::addTextToLogFile(const QString& text)
 {
 #ifdef QT_DEBUG
     QFile file("/home/vadosss63/MyProject/GasStationPro/GasTeminal/logs.log");
@@ -55,5 +55,5 @@ void Settings::addTextToLogFile(const QString& text)
     writeStream.setCodec(QTextCodec::codecForName("UTF-8"));
     writeStream << "\n" << text << "\n####";
     file.close();
-    settingsParameters.sum = 0;
+    settings.sum = 0;
 }

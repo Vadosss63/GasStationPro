@@ -10,17 +10,17 @@
 #include <array>
 #include <stdint.h>
 
-constexpr uint8_t countColumMax = 2;
-constexpr uint8_t countColum    = 2;
+constexpr uint8_t countAzsNodeMax = 2;
+constexpr uint8_t countAzsNode    = 2;
 
-constexpr char HEADER           = 0x7F;
-constexpr char RECEIVE_DATA_CMD = 0x81;
+constexpr char HEADER_DATA       = 0x7F;
+constexpr char RECEIVED_DATA_CMD = 0x81;
 
-// inline QChar pubChar = QChar(0x20BD);
-inline QChar pubChar = QString("Р").at(0);
+// inline QChar rubChar = QChar(0x20BD);
+inline QChar rubChar = QString("Р").at(0);
 
 #pragma pack(push, 1)
-struct ReceiveData
+struct ReceivedData
 {
     uint8_t head{0};    // 0x7F
     uint8_t command{0}; // 0x81
@@ -40,19 +40,19 @@ struct ReceiveData
     uint16_t balance{0};
 
     //Купюры, общий счётчик, дискрет – 1 руб
-    uint32_t commonSumCash{0};
+    uint32_t commonCashSum{0};
     //Купюры, суточный счётчик, дискрет – 1 руб
-    uint32_t dailySumCash{0};
+    uint32_t dailyCashSum{0};
 
     //Монеты, общий счётчик, дискрет – 1 руб
-    uint32_t commonSumCoins{0};
+    uint32_t commonCoinsSum{0};
     //Монеты, суточный счётчик, дискрет – 1 руб
-    uint32_t dailySumCoins{0};
+    uint32_t dailyCoinsSum{0};
 
     //Безнал, общий счётчик, дискрет – 1 руб
-    uint32_t commonSumCashless{0};
+    uint32_t commonCashlessSum{0};
     //Безнал, суточный счётчик, дискрет – 1 руб
-    uint32_t dailySumCashless{0};
+    uint32_t dailyCashlessSum{0};
 
     //Онлайн, общий счётчик, дискрет – 1 руб
     uint32_t commonOnlineSum{0};
@@ -74,36 +74,34 @@ struct ReceiveData
         //Колонка n средняя температура, °C, тип - float
         float averageTemperature{0};
     };
-    std::array<AzsNode, countColumMax> columLiters;
-    uint8_t                            checksum{0};
+    std::array<AzsNode, countAzsNodeMax> azsNodes;
+
+    uint8_t checksum{0};
 
     bool getIsActiveBtn(uint8_t indexBtn) const
     {
-        if (indexBtn < countColumMax)
-        {
-            return isActiveBtn & (1 << indexBtn);
-        }
-        return false;
+        return indexBtn < countAzsNodeMax ? isActiveBtn & (1 << indexBtn) : false;
     }
-    static ReceiveData* getReceiveData(QByteArray& data)
+
+    static ReceivedData* getReceivedData(QByteArray& data)
     {
-        ReceiveData* receiveData{nullptr};
+        ReceivedData* receivedData{nullptr};
 
-        if (data.size() != sizeof(ReceiveData))
+        if ((data[0] != HEADER_DATA) or (data[1] != RECEIVED_DATA_CMD) or (data.size() != sizeof(ReceivedData)))
         {
-            return receiveData;
+            return receivedData;
         }
-        receiveData = reinterpret_cast<ReceiveData*>(data.data());
+        receivedData = reinterpret_cast<ReceivedData*>(data.data());
 
-        return receiveData;
+        return receivedData;
     }
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct SendData
+struct ResponseData
 {
-    uint8_t head{0x7F};    // 0x7F
+    uint8_t header{0x7F};  // 0x7F
     uint8_t command{0x01}; // 0x01
 
     //Состояние
@@ -116,24 +114,20 @@ struct SendData
     //0x22 – сервисная кнопка 2 (зарезервировано на будущее)
     //0x23 – сервисная кнопка 3 (зарезервировано на будущее)
     //0xFF – сброс суточных счетчиков
-    enum StateEnum : uint8_t
+    enum State : uint8_t
     {
         defaultVal           = 0x00,
-        isPressedBtn1        = 0x01,
-        isPressedBtn2        = 0x02,
-        resetAzsNode1        = 0x11,
-        resetAzsNode2        = 0x12,
+        isPressedFirstBtn    = 0x01,
+        isPressedSecondBtn   = 0x02,
+        resetFirstAzsNode    = 0x11,
+        resetSecondAzsNode   = 0x12,
         isPressedServiceBtn1 = 0x21,
         isPressedServiceBtn2 = 0x22,
         isPressedServiceBtn3 = 0x23,
         resetCounters        = 0xFF
     };
-    StateEnum state{0};
+    State state{0};
 
-    //Сумма оплаты онлайн, дискрет – 1 руб.
-    uint16_t onlineSum{0};
-
-    //Тип топлива, колонка 1
     // 0x01 – Бензин АИ-92
     // 0x02 – Бензин АИ-95
     // 0x03 – Бензин АИ-98
@@ -149,28 +143,34 @@ struct SendData
         Methane = 0x05,
         Propane = 0x06
     };
-    std::array<GasType, countColumMax> gasTypes;
 
-    //Цена, колонка n, дискрет 0,01 руб
-    std::array<uint16_t, countColumMax> prices;
+    struct AzsNode
+    {
+        //Тип топлива, колонка
+        GasType gasType;
+        //Цена, колонка n, дискрет 0,01 руб
+        uint16_t price;
+    };
+
+    std::array<AzsNode, countAzsNodeMax> azsNodes;
 
     uint8_t checksum{0};
 
     void addChecksum()
     {
-        uint8_t            sum  = 0;
-        constexpr uint16_t size = sizeof(SendData);
-        uint8_t*           ptr  = (uint8_t*)this;
+        constexpr uint16_t size = sizeof(ResponseData);
+
+        checksum     = 0;
+        uint8_t* ptr = (uint8_t*)this;
         for (int i = 0; i < size - 1; ++i)
         {
-            sum += ptr[i];
+            checksum += ptr[i];
         }
-        checksum = sum;
     }
 
     QByteArray getQByteArray()
     {
-        constexpr uint16_t size = sizeof(SendData);
+        constexpr uint16_t size = sizeof(ResponseData);
         addChecksum();
         QByteArray res;
         uint8_t*   ptr = (uint8_t*)this;
@@ -183,83 +183,86 @@ struct SendData
 };
 #pragma pack(pop)
 
-inline QString getGasTypeString(SendData::GasType gasType)
+inline QString getGasTypeString(ResponseData::GasType gasType)
 {
     QString result;
     switch (gasType)
     {
-        case SendData::Gas92:
+        case ResponseData::Gas92:
             result = "АИ-92";
             break;
-        case SendData::Gas95:
+        case ResponseData::Gas95:
             result = "АИ-95";
             break;
-        case SendData::Gas98:
+        case ResponseData::Gas98:
             result = "АИ-98";
             break;
-        case SendData::DT:
+        case ResponseData::DT:
             result = "ДТ";
             break;
-        case SendData::Methane:
+        case ResponseData::Methane:
             result = "Метан";
             break;
-        case SendData::Propane:
+        case ResponseData::Propane:
             result = "Пропан";
             break;
     }
     return result;
 }
 
-inline QString getTextReport(const ReceiveData& info)
+inline QString getTextReport(const ReceivedData& info)
 {
     QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
                                "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
                                "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
-                           .arg(info.commonSumCash + info.commonSumCoins)
-                           .arg(info.dailySumCash + info.dailySumCoins)
-                           .arg(info.commonSumCashless)
-                           .arg(info.dailySumCashless)
+                           .arg(info.commonCashSum + info.commonCoinsSum)
+                           .arg(info.dailyCashSum + info.dailyCoinsSum)
+                           .arg(info.commonCashlessSum)
+                           .arg(info.dailyCashlessSum)
                            .arg(info.commonOnlineSum)
                            .arg(info.dailyOnlineSum);
 
-    for (int i = 0; i < countColum; ++i)
+    for (int i = 0; i < countAzsNode; ++i)
     {
         infoText += QString("%1-Литры\t\tобщ-%2\tинкас-%3\n")
                         .arg(i + 1)
-                        .arg(static_cast<double>(info.columLiters[i].common) / 100., 0, 'f', 2)
-                        .arg(static_cast<double>(info.columLiters[i].daily) / 100., 0, 'f', 2);
+                        .arg(static_cast<double>(info.azsNodes[i].common) / 100., 0, 'f', 2)
+                        .arg(static_cast<double>(info.azsNodes[i].daily) / 100., 0, 'f', 2);
     }
     return infoText;
 }
 
-inline QString getJsonTextReport(const ReceiveData& info)
+inline QString getJsonReport(const ReceivedData& info, int countNode)
 {
     QJsonObject mainInfo;
-    mainInfo.insert("commonSumCash", static_cast<int>(info.commonSumCash + info.commonSumCoins));
-    mainInfo.insert("dailySumCash", static_cast<int>(info.dailySumCash + info.dailySumCoins));
+    mainInfo.insert("commonCash", static_cast<int>(info.commonCashSum + info.commonCoinsSum));
+    mainInfo.insert("dailyCash", static_cast<int>(info.dailyCashSum + info.dailyCoinsSum));
 
-    mainInfo.insert("commonSumCashless", static_cast<int>(info.commonSumCashless));
-    mainInfo.insert("dailySumCashless", static_cast<int>(info.dailySumCashless));
+    mainInfo.insert("commonCashless", static_cast<int>(info.commonCashlessSum));
+    mainInfo.insert("dailyCashless", static_cast<int>(info.dailyCashlessSum));
 
-    mainInfo.insert("commonOnlineSum", static_cast<int>(info.commonOnlineSum));
-    mainInfo.insert("dailyOnlineSum", static_cast<int>(info.dailyOnlineSum));
+    mainInfo.insert("commonOnline", static_cast<int>(info.commonOnlineSum));
+    mainInfo.insert("dailyOnline", static_cast<int>(info.dailyOnlineSum));
 
-    QJsonArray columns;
-    for (int i = 0; i < countColum; ++i)
+    mainInfo.insert("countAzsNode", countNode);
+
+    QJsonArray azsNodes;
+    for (int i = 0; i < countNode; ++i)
     {
-        QJsonObject column;
-        column.insert(
-            "commonLiters",
-            QString("%1").arg(static_cast<double>(info.columLiters[i].common + 5000 * (i + 1)) / 100., 0, 'f', 2));
-        column.insert(
-            "dailyLiters",
-            QString("%1").arg(static_cast<double>(info.columLiters[i].daily + 250 * (i + 1)) / 100., 0, 'f', 2));
-        column.insert("remainingFuelLiters", QString("%1").arg(1000));
-        columns.append(column);
+        QJsonObject azsNode;
+        azsNode.insert("commonLiters",
+                       QString("%1").arg(static_cast<double>(info.azsNodes[i].common) / 100., 0, 'f', 2));
+        azsNode.insert("dailyLiters", QString("%1").arg(static_cast<double>(info.azsNodes[i].daily) / 100., 0, 'f', 2));
+
+        azsNode.insert("fuelVolume", QString("%1").arg(info.azsNodes[i].fuelVolume, 0, 'f', 2));
+        azsNode.insert("fuelVolumePerc", QString("%1").arg(info.azsNodes[i].fuelVolumePerc, 0, 'f', 2));
+        azsNode.insert("density", QString("%1").arg(info.azsNodes[i].density, 0, 'f', 2));
+        azsNode.insert("averageTemperature", QString("%1").arg(info.azsNodes[i].averageTemperature, 0, 'f', 2));
+        azsNodes.append(azsNode);
     }
     QJsonObject infoJson;
-    infoJson.insert("columns", columns);
-    infoJson.insert("info", mainInfo);
+    infoJson.insert("azsNode", azsNodes);
+    infoJson.insert("mainInfo", mainInfo);
 
     // Convert the JSON object to a string
     QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());

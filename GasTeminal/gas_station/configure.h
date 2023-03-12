@@ -1,5 +1,4 @@
-#ifndef CONFIGURE_H
-#define CONFIGURE_H
+#pragma once
 
 #include <QDebug>
 #include <QFile>
@@ -20,5 +19,3 @@ struct Configure
 };
 
 bool readConfigure(const QString& fileName, Configure& settings);
-
-#endif // CONFIGURE_H

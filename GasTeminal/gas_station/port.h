@@ -1,5 +1,4 @@
-#ifndef PORT_H
-#define PORT_H
+#pragma once
 
 #include <QObject>
 #include <QtSerialPort/QSerialPort>
@@ -19,8 +18,9 @@ public:
     Port(QObject* parent = nullptr);
     ~Port() override;
 
-    void       writeToPort(const QString& data);
-    void       writeToPort(const QByteArray& data);
+    void writeToPort(const QString& data);
+    void writeToPort(const QByteArray& data);
+
     QByteArray getData();
 
 signals:
@@ -33,15 +33,13 @@ public slots:
 
     void disconnectPort();
 
-    void writeSettingsPort(QString name, int baudrate);
+    void writeSettingsPort(const QString& name, int baudRate);
 
     void readData();
 
 private:
     void        checkErrors();
-    QByteArray  m_data;
-    Settings    m_settingsPort;
-    QSerialPort m_serialPort;
+    QByteArray  data;
+    Settings    settingsPort;
+    QSerialPort serialPort;
 };
-
-#endif // PORT_H

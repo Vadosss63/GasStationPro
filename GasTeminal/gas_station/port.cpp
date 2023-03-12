@@ -6,100 +6,94 @@
 
 Port::Port(QObject* parent) : QObject(parent)
 {
-    connect(&m_serialPort, SIGNAL(readyRead()), this, SLOT(readData()));
+    connect(&serialPort, SIGNAL(readyRead()), this, SLOT(readData()));
 }
 
 Port::~Port()
 {
-    if (m_serialPort.isOpen())
+    if (serialPort.isOpen())
     {
-        m_serialPort.close();
+        serialPort.close();
     }
 }
 
 void Port::writeToPort(const QByteArray& data)
 {
-    if (!m_serialPort.isOpen())
+    if (!serialPort.isOpen())
     {
         checkErrors();
         return;
     }
-    if (!m_serialPort.write(data))
+    if (!serialPort.write(data))
     {
         checkErrors();
         return;
     }
-    m_serialPort.waitForBytesWritten(10); // ждем пока дойдет
-    m_serialPort.flush();
+    serialPort.waitForBytesWritten(10);
+    serialPort.flush();
 }
 
 void Port::writeToPort(const QString& data)
 {
-    if (!m_serialPort.isOpen())
+    if (!serialPort.isOpen())
     {
         checkErrors();
         return;
     }
-    if (!m_serialPort.write(data.toStdString().c_str()))
+    if (!serialPort.write(data.toStdString().c_str()))
     {
         checkErrors();
         return;
     }
-    m_serialPort.waitForBytesWritten(10); // ждем пока дойдет
-    m_serialPort.flush();
+    serialPort.waitForBytesWritten(10);
+    serialPort.flush();
 }
 
 QByteArray Port::getData()
 {
-    QByteArray data(qMove(m_data));
-    return data;
+    QByteArray d(qMove(data));
+    return d;
 }
 
-void Port::writeSettingsPort(QString name, int baudrate)
+void Port::writeSettingsPort(const QString& name, int baudRate)
 {
-    qDebug("writeSettingsPort");
-    m_settingsPort.name     = std::move(name);
-    m_settingsPort.baudRate = static_cast<QSerialPort::BaudRate>(baudrate);
+    settingsPort.name     = name;
+    settingsPort.baudRate = static_cast<QSerialPort::BaudRate>(baudRate);
 }
 
 void Port::readData()
 {
-    while (m_serialPort.bytesAvailable() || m_serialPort.waitForReadyRead(100))
+    while (serialPort.bytesAvailable() || serialPort.waitForReadyRead(100))
     {
-        m_data.append(m_serialPort.readAll());
+        data.append(serialPort.readAll());
     }
     emit readyData();
 }
 
 void Port::checkErrors()
 {
-    QString errorMsg = "Error potr: " + m_serialPort.errorString();
-    error_(errorMsg);
+    QString errorMsg = "Error port: " + serialPort.errorString();
+    emit    error_(errorMsg);
 }
 
 void Port::connectPort()
 {
-    // создали экземпляр для общения по последовательному порту
-    // указали имя к какому порту будем подключаться
-    m_serialPort.setPortName(m_settingsPort.name);
-    // указали скорость
-    m_serialPort.setBaudRate(m_settingsPort.baudRate);
+    serialPort.setPortName(settingsPort.name);
+    serialPort.setBaudRate(settingsPort.baudRate);
 
-    // пробуем подключится
-    if (!m_serialPort.open(QIODevice::ReadWrite))
+    if (!serialPort.open(QIODevice::ReadWrite))
     {
-        // если подключится не получится, то покажем сообщение с ошибкой
         emit error_("No connect to port");
         return;
     }
-    error_((m_settingsPort.name + " >> Open!\r"));
+    emit error_((settingsPort.name + " >> Open!\r"));
 }
 
 void Port::disconnectPort()
 {
-    if (m_serialPort.isOpen())
+    if (serialPort.isOpen())
     {
-        m_serialPort.close();
-        error_(m_settingsPort.name.toLocal8Bit() + " >> Close!\r");
+        serialPort.close();
+        emit error_(settingsPort.name.toLocal8Bit() + " >> Close!\r");
     }
 }

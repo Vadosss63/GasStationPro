@@ -1,5 +1,4 @@
-#ifndef HTTPREQUEST_H
-#define HTTPREQUEST_H
+#pragma once
 
 #include <QUrlQuery>
 
@@ -12,5 +11,3 @@ struct Answer
 Answer sendGet(const QString& urlStr);
 
 Answer sendPost(const QString& urlStr, const QUrlQuery& params);
-
-#endif // HTTPREQUEST_H

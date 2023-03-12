@@ -1,6 +1,5 @@
 QT       += core gui network
 QT       += serialport
-QT       += testlib
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -19,26 +18,24 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    appsettings.cpp \
     configure.cpp \
-    dialogmain.cpp \
+    historyreceiptsdialog.cpp \
     httprequest.cpp \
     main.cpp \
+    mainwindow.cpp \
     port.cpp \
-    servicemenudialog.cpp \
-    settings.cpp \
-    settingwindows.cpp
+    servicemenuwindow.cpp
 
 HEADERS += \
+    appsettings.h \
     configure.h \
     dataprotocol.h \
-    dialogmain.h \
+    historyreceiptsdialog.h \
     httprequest.h \
+    mainwindow.h \
     port.h \
-    servicemenudialog.h \
-    settings.h \
-    settingwindows.h
-
-FORMS +=
+    servicemenuwindow.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

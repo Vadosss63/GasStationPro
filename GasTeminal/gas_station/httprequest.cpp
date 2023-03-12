@@ -20,8 +20,8 @@ Answer sendReq(const QString& urlStr, std::function<QNetworkReply*(QNetworkAcces
     QNetworkRequest req(url);
 
     QNetworkReply* reply = funcReq(mgr, req);
-
-    eventLoop.exec(); // blocks stack until "finished()" has been called
+    // blocks stack until "finished()" has been called
+    eventLoop.exec();
 
     Answer answer{reply->readAll(), reply->error() == QNetworkReply::NoError};
     delete reply;

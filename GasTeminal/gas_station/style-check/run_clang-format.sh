@@ -21,11 +21,12 @@ for i in "${!FILE_LIST_ARRAY[@]}"; do
 done
 echo ""
 
-format_files="false"
-read -p "Do you wish to auto-format all of these files [y/N] " user_response
-case "$user_response" in
-    [Yy]* ) format_files="true"
-esac
+#format_files="false"
+#read -p "Do you wish to auto-format all of these files [y/N] " user_response
+#case "$user_response" in
+#    [Yy]* ) format_files="true"
+#esac
+format_files="true"
 
 if [ "$format_files" = "false" ]; then
     echo "Aborting."
