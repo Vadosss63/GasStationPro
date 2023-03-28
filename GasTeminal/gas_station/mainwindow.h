@@ -68,7 +68,7 @@ private:
 
     void setShowData(const ReceivedData& data);
 
-    void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode>& azsNodes);
+    void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
     void setBalance(double price);
     void setCountOfLitres();
 
@@ -88,7 +88,7 @@ private:
     Label*                 balanceLable{nullptr};
     Label*                 phoneOfSupportLable{nullptr};
 
-    std::array<ResponseData::AzsNode, countAzsNode> currentAzsNodes{};
+    std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
 
     struct AzsNodeWidget
     {
@@ -98,13 +98,14 @@ private:
         Label*       countLitresLable{nullptr};
     };
 
-    std::array<AzsNodeWidget, countAzsNode> azsNodeWidgets{};
+    std::array<AzsNodeWidget, countAzsNodeMax> azsNodeWidgets{};
 
     Configure configure{};
 
     Port* port{nullptr};
 
     double       balance{0};
+    uint8_t      countAzsNode{2};
     ReceivedData receiveData{};
     ResponseData sendData{};
 };

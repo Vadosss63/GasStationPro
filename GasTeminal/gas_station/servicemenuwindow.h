@@ -17,11 +17,11 @@ public:
     explicit ServiceMenuWindow(QWidget* parent = nullptr);
     ~ServiceMenuWindow() override;
 
-    void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNode>& azsNodes);
+    void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
 
-    void setupInfo(const ReceivedData& info);
+    void setupInfo(const ReceivedData& info, uint8_t countAzsNode);
 
-    std::array<ResponseData::AzsNode, countAzsNode> getAzsNodes() const;
+    std::array<ResponseData::AzsNode, countAzsNodeMax> getAzsNodes() const;
 
 signals:
     void setPrice();
@@ -35,6 +35,7 @@ public slots:
 
 private:
     void createWidget();
+    void setVisibleSecondBtn(bool isVisible);
 
     QPushButton* setupBtn;
     QPushButton* countersBtn;
@@ -42,9 +43,10 @@ private:
     QPushButton* statisticsBtn;
     QLabel*      infoLable;
 
-    std::array<QComboBox*, countAzsNode> gasTypeCBs;
-    std::array<QSpinBox*, countAzsNode>  currentPriceRub;
-    std::array<QSpinBox*, countAzsNode>  currentPriceKop;
+    std::array<QComboBox*, countAzsNodeMax> gasTypeCBs;
+    std::array<QSpinBox*, countAzsNodeMax>  currentPriceRub;
+    std::array<QSpinBox*, countAzsNodeMax>  currentPriceKop;
+    std::array<QLabel*, countAzsNodeMax>    idLabel;
 
-    std::array<ResponseData::AzsNode, countAzsNode> azsNodes;
+    std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
 };

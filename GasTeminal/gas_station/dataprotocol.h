@@ -11,7 +11,6 @@
 #include <stdint.h>
 
 constexpr uint8_t countAzsNodeMax = 2;
-constexpr uint8_t countAzsNode    = 2;
 
 constexpr char HEADER_DATA       = 0x7F;
 constexpr char RECEIVED_DATA_CMD = 0x81;
@@ -83,7 +82,7 @@ struct ReceivedData
         return indexBtn < countAzsNodeMax ? isActiveBtn & (1 << indexBtn) : false;
     }
 
-    QString getTextReport() const
+    QString getTextReport(uint8_t countAzsNode) const
     {
         QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
                                    "Безнал.руб\tобщ-%3\t\tинкас-%4\n"

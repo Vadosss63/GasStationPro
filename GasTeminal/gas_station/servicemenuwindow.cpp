@@ -27,9 +27,9 @@ ServiceMenuWindow::ServiceMenuWindow(QWidget* parent) : QWidget(parent, Qt::Tool
 
 ServiceMenuWindow::~ServiceMenuWindow() {}
 
-void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNode>& azsNodes)
+void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
 {
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         int priceInt = azsNodes[i].price;
         int rub      = (priceInt / 100) % 100;
@@ -41,14 +41,16 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
     }
 }
 
-void ServiceMenuWindow::setupInfo(const ReceivedData& info)
+void ServiceMenuWindow::setupInfo(const ReceivedData& info, uint8_t countAzsNode)
 {
-    infoLable->setText("\n\n" + info.getTextReport());
+    infoLable->setText("\n\n" + info.getTextReport(countAzsNode));
+    bool isVisible = countAzsNode == 2;
+    setVisibleSecondBtn(isVisible);
 }
 
 void ServiceMenuWindow::setupPrice()
 {
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         uint16_t rub        = currentPriceRub[i]->value();
         uint16_t kop        = currentPriceKop[i]->value();
@@ -62,7 +64,7 @@ void ServiceMenuWindow::setupPrice()
 
 void ServiceMenuWindow::createWidget()
 {
-    std::array<QHBoxLayout*, countAzsNode> hb;
+    std::array<QHBoxLayout*, countAzsNodeMax> hb;
 
     QGridLayout* gl = new QGridLayout;
 
@@ -74,7 +76,7 @@ void ServiceMenuWindow::createWidget()
                        ResponseData::GasType::Propane};
 
     gl->addWidget(new QLabel("Цена за литр"), 0, 0, 1, 3, Qt::AlignCenter);
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         gasTypeCBs[i] = new QComboBox;
         gasTypeCBs[i]->setModel(new QStandardItemModel);
@@ -87,8 +89,9 @@ void ServiceMenuWindow::createWidget()
         currentPriceRub[i]->setRange(0, 250);
         currentPriceKop[i] = new QSpinBox;
         currentPriceKop[i]->setRange(0, 100);
-        hb[i] = new QHBoxLayout;
-        hb[i]->addWidget(new QLabel(QString::number(i + 1) + ":"));
+        hb[i]      = new QHBoxLayout;
+        idLabel[i] = new QLabel(QString::number(i + 1) + ":");
+        hb[i]->addWidget(idLabel[i]);
         hb[i]->addWidget(gasTypeCBs[i]);
         hb[i]->addWidget(currentPriceRub[i]);
         hb[i]->addWidget(currentPriceKop[i]);
@@ -115,7 +118,7 @@ void ServiceMenuWindow::createWidget()
     infoLable = new QLabel;
     gl->addWidget(infoLable, 4, 0, Qt::AlignCenter);
 
-    setupInfo(ReceivedData());
+    setupInfo(ReceivedData(), 2);
     setLayout(gl);
     setWindowTitle("Сервисное меню");
 
@@ -125,7 +128,16 @@ void ServiceMenuWindow::createWidget()
     connect(statisticsBtn, SIGNAL(clicked()), this, SIGNAL(showStatistics()));
 }
 
-std::array<ResponseData::AzsNode, countAzsNode> ServiceMenuWindow::getAzsNodes() const
+void ServiceMenuWindow::setVisibleSecondBtn(bool isVisible)
+{
+    constexpr size_t i = 1;
+    gasTypeCBs[i]->setVisible(isVisible);
+    currentPriceRub[i]->setVisible(isVisible);
+    currentPriceKop[i]->setVisible(isVisible);
+    idLabel[i]->setVisible(isVisible);
+}
+
+std::array<ResponseData::AzsNode, countAzsNodeMax> ServiceMenuWindow::getAzsNodes() const
 {
     return azsNodes;
 }

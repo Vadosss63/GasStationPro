@@ -145,7 +145,7 @@ void MainWindow::setShowData(const ReceivedData& data)
     setCountOfLitres();
 }
 
-void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode>& azsNodes)
+void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
 {
     currentAzsNodes = azsNodes;
     for (size_t i = 0; i < azsNodes.size(); ++i)
@@ -170,7 +170,7 @@ void MainWindow::setBalance(double price)
 
 void MainWindow::setCountOfLitres()
 {
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         double count = azsNodeWidgets[i].startBtn->isEnabled() ? balance / currentAzsNodes[i].price : 0;
         azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(count, 0, 'f', 2));
@@ -183,6 +183,7 @@ void MainWindow::setVisibleSecondBtn(bool isVisible)
     azsNodeWidgets[index].pricePerLitreLable->setVisible(isVisible);
     azsNodeWidgets[index].startBtn->setVisible(isVisible);
     azsNodeWidgets[index].countLitresLable->setVisible(isVisible);
+    countAzsNode = isVisible ? 2 : 1;
 }
 
 void MainWindow::closeServiceMenu()
@@ -270,7 +271,7 @@ void MainWindow::printLog(const QByteArray& data)
 
 void MainWindow::getCounters()
 {
-    serviceMenuWindow->setupInfo(getReceivedData());
+    serviceMenuWindow->setupInfo(getReceivedData(), countAzsNode);
 }
 
 void MainWindow::resetCounters()
@@ -280,7 +281,7 @@ void MainWindow::resetCounters()
 
 void MainWindow::createWidget()
 {
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         azsNodeWidgets[i].pricePerLitreLable = new Label(this);
         azsNodeWidgets[i].countLitresLable   = new Label(this);
@@ -344,7 +345,7 @@ void MainWindow::writeSettings()
 {
     QSettings settings("Gas Station");
     settings.beginGroup("parms");
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         settings.setValue("currentPrice" + QString::number(i), currentAzsNodes[i].price);
         settings.setValue("gasTypes" + QString::number(i), currentAzsNodes[i].gasType);
@@ -357,7 +358,7 @@ void MainWindow::readSettings()
     QSettings settings("Gas Station");
     settings.beginGroup("parms");
     bool ok = false;
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         currentAzsNodes[i].price = settings.value("currentPrice" + QString::number(i)).toFloat();
         currentAzsNodes[i].gasType =
@@ -368,7 +369,7 @@ void MainWindow::readSettings()
 
 void MainWindow::setEnabledStart(const ReceivedData& showData)
 {
-    for (int i = 0; i < countAzsNode; ++i)
+    for (int i = 0; i < countAzsNodeMax; ++i)
     {
         azsNodeWidgets[i].startBtn->setEnabled(showData.getIsActiveBtn(i));
     }
