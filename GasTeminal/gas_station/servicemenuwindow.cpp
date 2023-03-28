@@ -5,14 +5,18 @@
 ServiceMenuWindow::ServiceMenuWindow(QWidget* parent) : QWidget(parent, Qt::Tool)
 {
     createWidget();
-    QString style = "QPushButton, QSpinBox, QComboBox{"
-                    "color: #ddd;"
+    QString style = "QPushButton, QSpinBox{"
+                    "color: #111;"
                     "font-size: 20px;"
                     "background-color: qlineargradient( x1: 0, y1: 0, x2: 0, y2: 1,"
                     "stop: 0 #4287ff, stop: 1 #356ccc);}"
                     "QPushButton:pressed {"
                     "color: #111;"
                     "background: #fff;"
+                    "}"
+                    "QComboBox{"
+                    "color: #111;"
+                    "background-color: #356ccc;"
                     "}"
                     "QLabel {"
                     "color: #ddd;"
@@ -27,7 +31,7 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
 {
     for (int i = 0; i < countAzsNode; ++i)
     {
-        int priceInt = azsNodes[i].price * 100;
+        int priceInt = azsNodes[i].price;
         int rub      = (priceInt / 100) % 100;
         int kop      = priceInt % 100;
         currentPriceRub[i]->setValue(rub);
@@ -39,17 +43,16 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
 
 void ServiceMenuWindow::setupInfo(const ReceivedData& info)
 {
-    infoLable->setText("\n\n" + getTextReport(info));
+    infoLable->setText("\n\n" + info.getTextReport());
 }
 
 void ServiceMenuWindow::setupPrice()
 {
     for (int i = 0; i < countAzsNode; ++i)
     {
-        double rub        = currentPriceRub[i]->value();
-        double kop        = currentPriceKop[i]->value();
-        azsNodes[i].price = rub + kop / 100;
-
+        uint16_t rub        = currentPriceRub[i]->value();
+        uint16_t kop        = currentPriceKop[i]->value();
+        azsNodes[i].price   = rub * 100 + kop;
         int type            = gasTypeCBs[i]->currentData().toInt();
         azsNodes[i].gasType = static_cast<ResponseData::GasType>(type);
     }

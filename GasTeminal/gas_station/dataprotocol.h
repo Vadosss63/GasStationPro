@@ -83,6 +83,66 @@ struct ReceivedData
         return indexBtn < countAzsNodeMax ? isActiveBtn & (1 << indexBtn) : false;
     }
 
+    QString getTextReport() const
+    {
+        QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
+                                   "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
+                                   "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
+                               .arg(commonCashSum + commonCoinsSum)
+                               .arg(dailyCashSum + dailyCoinsSum)
+                               .arg(commonCashlessSum)
+                               .arg(dailyCashlessSum)
+                               .arg(commonOnlineSum)
+                               .arg(dailyOnlineSum);
+
+        for (int i = 0; i < countAzsNode; ++i)
+        {
+            infoText += QString("%1-Литры\t\tобщ-%2\tинкас-%3\n")
+                            .arg(i + 1)
+                            .arg(static_cast<double>(azsNodes[i].common) / 100., 0, 'f', 2)
+                            .arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2);
+        }
+        return infoText;
+    }
+
+    QString getJsonReport(int countNode)
+    {
+        QJsonObject mainInfo;
+        mainInfo.insert("commonCash", static_cast<int>(commonCashSum + commonCoinsSum));
+        mainInfo.insert("dailyCash", static_cast<int>(dailyCashSum + dailyCoinsSum));
+
+        mainInfo.insert("commonCashless", static_cast<int>(commonCashlessSum));
+        mainInfo.insert("dailyCashless", static_cast<int>(dailyCashlessSum));
+
+        mainInfo.insert("commonOnline", static_cast<int>(commonOnlineSum));
+        mainInfo.insert("dailyOnline", static_cast<int>(dailyOnlineSum));
+
+        mainInfo.insert("countAzsNode", countNode);
+
+        QJsonArray jsonAzsNodes;
+        for (int i = 0; i < countNode; ++i)
+        {
+            QJsonObject jsonAzsNode;
+            jsonAzsNode.insert("commonLiters",
+                               QString("%1").arg(static_cast<double>(azsNodes[i].common) / 100., 0, 'f', 2));
+            jsonAzsNode.insert("dailyLiters",
+                               QString("%1").arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2));
+
+            jsonAzsNode.insert("fuelVolume", QString("%1").arg(azsNodes[i].fuelVolume, 0, 'f', 2));
+            jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(azsNodes[i].fuelVolumePerc, 0, 'f', 2));
+            jsonAzsNode.insert("density", QString("%1").arg(azsNodes[i].density, 0, 'f', 2));
+            jsonAzsNode.insert("averageTemperature", QString("%1").arg(azsNodes[i].averageTemperature, 0, 'f', 2));
+            jsonAzsNodes.append(jsonAzsNode);
+        }
+        QJsonObject infoJson;
+        infoJson.insert("azs_nodes", jsonAzsNodes);
+        infoJson.insert("main_info", mainInfo);
+
+        // Convert the JSON object to a string
+        QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());
+        return infoText;
+    }
+
     static ReceivedData* getReceivedData(QByteArray& data)
     {
         ReceivedData* receivedData{nullptr};
@@ -210,61 +270,35 @@ inline QString getGasTypeString(ResponseData::GasType gasType)
     return result;
 }
 
-inline QString getTextReport(const ReceivedData& info)
+struct Receipt
 {
-    QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
-                               "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
-                               "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
-                           .arg(info.commonCashSum + info.commonCoinsSum)
-                           .arg(info.dailyCashSum + info.dailyCoinsSum)
-                           .arg(info.commonCashlessSum)
-                           .arg(info.dailyCashlessSum)
-                           .arg(info.commonOnlineSum)
-                           .arg(info.dailyOnlineSum);
+    int     time;
+    QString data;
+    int     numOfAzsNode;
+    QString gasType;
+    QString countLitres;
+    QString sum;
 
-    for (int i = 0; i < countAzsNode; ++i)
+    QString getReceipt()
     {
-        infoText += QString("%1-Литры\t\tобщ-%2\tинкас-%3\n")
-                        .arg(i + 1)
-                        .arg(static_cast<double>(info.azsNodes[i].common) / 100., 0, 'f', 2)
-                        .arg(static_cast<double>(info.azsNodes[i].daily) / 100., 0, 'f', 2);
+        return QString("Дата: %1\n"
+                       "Колонка: %2\n"
+                       "Топливо: %3\n"
+                       "Литры: %4\n"
+                       "Сумма: %5 руб")
+            .arg(data, QString::number(numOfAzsNode), gasType, countLitres, sum);
     }
-    return infoText;
-}
-
-inline QString getJsonReport(const ReceivedData& info, int countNode)
-{
-    QJsonObject mainInfo;
-    mainInfo.insert("commonCash", static_cast<int>(info.commonCashSum + info.commonCoinsSum));
-    mainInfo.insert("dailyCash", static_cast<int>(info.dailyCashSum + info.dailyCoinsSum));
-
-    mainInfo.insert("commonCashless", static_cast<int>(info.commonCashlessSum));
-    mainInfo.insert("dailyCashless", static_cast<int>(info.dailyCashlessSum));
-
-    mainInfo.insert("commonOnline", static_cast<int>(info.commonOnlineSum));
-    mainInfo.insert("dailyOnline", static_cast<int>(info.dailyOnlineSum));
-
-    mainInfo.insert("countAzsNode", countNode);
-
-    QJsonArray azsNodes;
-    for (int i = 0; i < countNode; ++i)
+    QString getReceiptJson()
     {
-        QJsonObject azsNode;
-        azsNode.insert("commonLiters",
-                       QString("%1").arg(static_cast<double>(info.azsNodes[i].common) / 100., 0, 'f', 2));
-        azsNode.insert("dailyLiters", QString("%1").arg(static_cast<double>(info.azsNodes[i].daily) / 100., 0, 'f', 2));
+        QJsonObject receipt;
+        receipt.insert("time", time);
+        receipt.insert("data", data);
+        receipt.insert("num_azs_node", numOfAzsNode);
+        receipt.insert("gas_type", gasType);
+        receipt.insert("count_litres", countLitres);
+        receipt.insert("sum", sum);
 
-        azsNode.insert("fuelVolume", QString("%1").arg(info.azsNodes[i].fuelVolume, 0, 'f', 2));
-        azsNode.insert("fuelVolumePerc", QString("%1").arg(info.azsNodes[i].fuelVolumePerc, 0, 'f', 2));
-        azsNode.insert("density", QString("%1").arg(info.azsNodes[i].density, 0, 'f', 2));
-        azsNode.insert("averageTemperature", QString("%1").arg(info.azsNodes[i].averageTemperature, 0, 'f', 2));
-        azsNodes.append(azsNode);
+        QString receiptJson = QString::fromUtf8(QJsonDocument(receipt).toJson());
+        return receiptJson;
     }
-    QJsonObject infoJson;
-    infoJson.insert("azsNode", azsNodes);
-    infoJson.insert("mainInfo", mainInfo);
-
-    // Convert the JSON object to a string
-    QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());
-    return infoText;
-}
+};

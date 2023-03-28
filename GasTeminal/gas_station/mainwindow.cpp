@@ -150,13 +150,14 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
     currentAzsNodes = azsNodes;
     for (size_t i = 0; i < azsNodes.size(); ++i)
     {
-        double price                        = azsNodes[i].price;
-        getResponseData().azsNodes[i].price = static_cast<uint16_t>(price * 100);
-        azsNodeWidgets[i].pricePerLitreLable->setText(azsNodeWidgets[i].gasTypeLable +
-                                                      QString(" %1").arg(price, 0, 'f', 2) + rubChar + "/Л");
-
+        getResponseData().azsNodes[i].price   = azsNodes[i].price;
         getResponseData().azsNodes[i].gasType = azsNodes[i].gasType;
         azsNodeWidgets[i].gasTypeLable        = getGasTypeString(azsNodes[i].gasType);
+
+        double price = static_cast<double>(azsNodes[i].price) / 100;
+
+        azsNodeWidgets[i].pricePerLitreLable->setText(azsNodeWidgets[i].gasTypeLable +
+                                                      QString(" %1").arg(price, 0, 'f', 2) + rubChar + "/Л");
     }
 }
 
