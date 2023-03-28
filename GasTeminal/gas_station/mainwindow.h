@@ -52,7 +52,11 @@ public slots:
 protected:
     void keyPressEvent(QKeyEvent* event) override;
 
+private slots:
+    void sendReport();
+
 private:
+    void sendReceipt(const Receipt& receipt);
     void createWidget();
     void writeSettings();
     void readSettings();
@@ -77,7 +81,7 @@ private:
     void setEnabledStart(const ReceivedData& showData);
 
     void    saveReceipt(int numOfAzsNode);
-    QString getReceipt(int numOfAzsNode);
+    Receipt getReceipt(int numOfAzsNode);
 
     void sendToPort(const QString& data);
     void sendToPort(const QByteArray& data);
@@ -102,7 +106,8 @@ private:
 
     Configure configure{};
 
-    Port* port{nullptr};
+    Port*   port{nullptr};
+    QTimer* timer;
 
     double       balance{0};
     uint8_t      countAzsNode{2};

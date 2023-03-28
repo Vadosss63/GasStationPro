@@ -272,26 +272,27 @@ inline QString getGasTypeString(ResponseData::GasType gasType)
 struct Receipt
 {
     int     time;
-    QString data;
+    QString date;
     int     numOfAzsNode;
     QString gasType;
     QString countLitres;
     QString sum;
 
-    QString getReceipt()
+    QString getReceipt() const
     {
         return QString("Дата: %1\n"
                        "Колонка: %2\n"
                        "Топливо: %3\n"
                        "Литры: %4\n"
                        "Сумма: %5 руб")
-            .arg(data, QString::number(numOfAzsNode), gasType, countLitres, sum);
+            .arg(date, QString::number(numOfAzsNode), gasType, countLitres, sum);
     }
-    QString getReceiptJson()
+
+    QString getReceiptJson() const
     {
         QJsonObject receipt;
         receipt.insert("time", time);
-        receipt.insert("data", data);
+        receipt.insert("data", date);
         receipt.insert("num_azs_node", numOfAzsNode);
         receipt.insert("gas_type", gasType);
         receipt.insert("count_litres", countLitres);

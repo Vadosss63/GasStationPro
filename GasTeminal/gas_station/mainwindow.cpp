@@ -3,17 +3,24 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDate>
+#include <QDateTime>
+#include <QDebug>
 #include <QErrorMessage>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QSettings>
 #include <QSpacerItem>
+#include <QString>
 #include <QThread>
 #include <iostream>
 
 #include <qmap.h>
 
 #include "appsettings.h"
+#include "httprequest.h"
 
 MainWindow::MainWindow()
 {
@@ -35,15 +42,19 @@ MainWindow::MainWindow()
 
     ReceivedData data{};
     data.balance     = 0;
-    data.isActiveBtn = 0;
+    data.isActiveBtn = 1;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
     setVisibleSecondBtn(configure.activeBtn2);
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(sendReport()));
+    timer->start(10000);
 }
 
 MainWindow::~MainWindow()
 {
+    timer->stop();
     delete historyReceiptsDialog;
     delete serviceMenuWindow;
     port->disconnectPort();
@@ -112,8 +123,10 @@ void MainWindow::clickedSecondHWBtn()
 
 void MainWindow::saveReceipt(int numOfAzsNode)
 {
-    QString receipt = getReceipt(numOfAzsNode);
-    AppSettings::instance().addTextToLogFile(receipt);
+    Receipt receipt = getReceipt(numOfAzsNode);
+
+    AppSettings::instance().addTextToLogFile(receipt.getReceipt());
+    sendReceipt(receipt);
 }
 
 void MainWindow::sendToPort(const QString& data)
@@ -145,6 +158,30 @@ void MainWindow::setShowData(const ReceivedData& data)
     setCountOfLitres();
 }
 
+void MainWindow::sendReport()
+{
+    QUrlQuery params;
+    params.addQueryItem("id", configure.id);
+    params.addQueryItem("name", configure.name);
+    params.addQueryItem("address", configure.address);
+    params.addQueryItem("token", configure.token);
+    params.addQueryItem("count_colum", QString("%1").arg((int)(countAzsNode)));
+
+    ReceivedData receivedData = getReceivedData();
+    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode));
+    std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
+}
+
+void MainWindow::sendReceipt(const Receipt& receipt)
+{
+    QUrlQuery params;
+    params.addQueryItem("id", configure.id);
+    params.addQueryItem("token", configure.token);
+    params.addQueryItem("receipt", receipt.getReceiptJson());
+    QString answer = sendPost(configure.host + "/azs_receipt", params).msg;
+    std::cout << answer.toStdString() << std::endl;
+}
+
 void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
 {
     currentAzsNodes = azsNodes;
@@ -172,7 +209,8 @@ void MainWindow::setCountOfLitres()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        double count = azsNodeWidgets[i].startBtn->isEnabled() ? balance / currentAzsNodes[i].price : 0;
+        double price = static_cast<double>(currentAzsNodes[i].price) / 100.f;
+        double count = azsNodeWidgets[i].startBtn->isEnabled() ? balance / price : 0;
         azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(count, 0, 'f', 2));
     }
 }
@@ -375,29 +413,17 @@ void MainWindow::setEnabledStart(const ReceivedData& showData)
     }
 }
 
-QString MainWindow::getReceipt(int numOfAzsNode)
+Receipt MainWindow::getReceipt(int numOfAzsNode)
 {
-    int   azsNodeIndex = numOfAzsNode - 1;
-    QDate currentDate  = QDate::currentDate(); // возвращаем текущую дату
-    QTime currentTime  = QTime::currentTime(); // возвращаем текущее время
+    const int azsNodeIndex = numOfAzsNode - 1;
 
-    QString date = currentDate.toString("dd.MM.yyyy");
-    QString time = currentTime.toString("hh:mm");
-    QString text = "Дата: ";
-    text.append(date);
-    text.append(' ');
-    text.append(time);
-    text.append('\n');
-    text.append("Колонка: ");
-    text.append(QString::number(numOfAzsNode));
-    text.append('\n');
-    text.append("Бензин: ");
-    text.append(azsNodeWidgets[azsNodeIndex].gasTypeLable);
-    text.append('\n');
-    text.append("Литры: ");
-    text.append(azsNodeWidgets[azsNodeIndex].countLitresLable->text());
-    text.append('\n');
-    text.append("Сумма: ");
-    text.append(balanceLable->text() + " руб");
-    return text;
+    Receipt receipt{};
+
+    receipt.time         = (int)QDateTime::currentSecsSinceEpoch();
+    receipt.date         = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm");
+    receipt.numOfAzsNode = numOfAzsNode;
+    receipt.gasType      = azsNodeWidgets[azsNodeIndex].gasTypeLable;
+    receipt.countLitres  = azsNodeWidgets[azsNodeIndex].countLitresLable->text();
+    receipt.sum          = balanceLable->text();
+    return receipt;
 }
