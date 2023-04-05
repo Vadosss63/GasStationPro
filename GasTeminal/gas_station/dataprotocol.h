@@ -104,7 +104,7 @@ struct ReceivedData
         return infoText;
     }
 
-    QString getJsonReport(int countNode)
+    QString getJsonReport(int countNode, const QStringList& typeFuel)
     {
         QJsonObject mainInfo;
         mainInfo.insert("commonCash", static_cast<int>(commonCashSum + commonCoinsSum));
@@ -127,6 +127,7 @@ struct ReceivedData
             jsonAzsNode.insert("dailyLiters",
                                QString("%1").arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2));
 
+            jsonAzsNode.insert("typeFuel", typeFuel[i]);
             jsonAzsNode.insert("fuelVolume", QString("%1").arg(azsNodes[i].fuelVolume, 0, 'f', 2));
             jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(azsNodes[i].fuelVolumePerc, 0, 'f', 2));
             jsonAzsNode.insert("density", QString("%1").arg(azsNodes[i].density, 0, 'f', 2));
@@ -300,5 +301,40 @@ struct Receipt
 
         QString receiptJson = QString::fromUtf8(QJsonDocument(receipt).toJson());
         return receiptJson;
+    }
+};
+
+struct AzsButton
+{
+    int idAzs{};
+    int price1{};
+    int price2{};
+    int button{};
+
+    bool readAzsButton(const QString& jsonText)
+    {
+        const QByteArray jsonData = QByteArray::fromStdString(jsonText.toStdString());
+        QJsonDocument    document = QJsonDocument::fromJson(jsonData);
+
+        if (document.isNull())
+        {
+            qDebug() << "Failed to parse JSON!";
+            return false;
+        }
+
+        QJsonObject object = document.object();
+
+        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("price1") ||
+            !object.contains("price1") || !object.contains("button"))
+        {
+            qDebug() << "Missing or invalid field(s)!";
+            return false;
+        }
+
+        idAzs  = object["id_azs"].toInt();
+        price1 = object["price1"].toInt();
+        price2 = object["price2"].toInt();
+        button = object["button"].toInt();
+        return true;
     }
 };

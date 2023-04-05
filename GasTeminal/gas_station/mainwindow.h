@@ -53,14 +53,18 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
-    void sendReport();
+    void sendToServer();
 
 private:
-    void sendReceipt(const Receipt& receipt);
-    void createWidget();
-    void writeSettings();
-    void readSettings();
-    void readConfig();
+    void      sendReport();
+    void      sendReceipt(const Receipt& receipt);
+    AzsButton getServerBtn() const;
+    bool      resetServerBtn() const;
+    void      setBtnFromServer(const AzsButton& azsButton);
+    void      createWidget();
+    void      writeSettings();
+    void      readSettings();
+    void      readConfig();
 
     void clickedFirstHWBtn();
     void clickedSecondHWBtn();

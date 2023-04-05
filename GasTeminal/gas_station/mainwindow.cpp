@@ -42,13 +42,13 @@ MainWindow::MainWindow()
 
     ReceivedData data{};
     data.balance     = 0;
-    data.isActiveBtn = 1;
+    data.isActiveBtn = 0;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
     setVisibleSecondBtn(configure.activeBtn2);
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(sendReport()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(sendToServer()));
     timer->start(10000);
 }
 
@@ -168,7 +168,13 @@ void MainWindow::sendReport()
     params.addQueryItem("count_colum", QString("%1").arg((int)(countAzsNode)));
 
     ReceivedData receivedData = getReceivedData();
-    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode));
+    QStringList  typeFuel;
+    for (const auto& azsNodeWidget : azsNodeWidgets)
+    {
+        typeFuel.append(azsNodeWidget.pricePerLitreLable->text());
+    }
+
+    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, typeFuel));
     std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
 }
 
@@ -180,6 +186,36 @@ void MainWindow::sendReceipt(const Receipt& receipt)
     params.addQueryItem("receipt", receipt.getReceiptJson());
     QString answer = sendPost(configure.host + "/azs_receipt", params).msg;
     std::cout << answer.toStdString() << std::endl;
+}
+
+AzsButton MainWindow::getServerBtn() const
+{
+    QUrlQuery params;
+    params.addQueryItem("id", configure.id);
+    params.addQueryItem("token", configure.token);
+    Answer    answer = sendPost(configure.host + "/get_azs_button", params);
+    AzsButton azsButton;
+    if (!answer.isOk)
+    {
+        std::cerr << answer.msg.toStdString() << std::endl;
+    }
+    azsButton.readAzsButton(answer.msg);
+
+    return azsButton;
+}
+
+bool MainWindow::resetServerBtn() const
+{
+    QUrlQuery params;
+    params.addQueryItem("id", configure.id);
+    params.addQueryItem("token", configure.token);
+
+    Answer answer = sendPost(configure.host + "/reset_azs_button", params);
+    if (!answer.isOk)
+    {
+        std::cerr << answer.msg.toStdString() << std::endl;
+    }
+    return answer.isOk;
 }
 
 void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
@@ -292,6 +328,35 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     QWidget::keyPressEvent(event);
 }
 
+void MainWindow::setBtnFromServer(const AzsButton& azsButton)
+{
+    getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
+    if (azsButton.price1)
+    {
+        currentAzsNodes[0].price = azsButton.price1;
+    }
+    if (azsButton.price2)
+    {
+        currentAzsNodes[1].price = azsButton.price2;
+    }
+    if (azsButton.price1 || azsButton.price2)
+    {
+        setAzsNode(currentAzsNodes);
+        writeSettings();
+    }
+}
+
+void MainWindow::sendToServer()
+{
+    const AzsButton azsButton = getServerBtn();
+    if (azsButton.idAzs & (azsButton.price1 || azsButton.price2 || azsButton.button))
+    {
+        setBtnFromServer(azsButton);
+        resetServerBtn();
+    }
+    sendReport();
+}
+
 void MainWindow::printLog(const QString& log)
 {
     std::cout << log.toStdString() << std::endl;
@@ -398,7 +463,7 @@ void MainWindow::readSettings()
     bool ok = false;
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        currentAzsNodes[i].price = settings.value("currentPrice" + QString::number(i)).toFloat();
+        currentAzsNodes[i].price = settings.value("currentPrice" + QString::number(i)).toInt();
         currentAzsNodes[i].gasType =
             static_cast<ResponseData::GasType>(settings.value("gasTypes" + QString::number(i)).toUInt(&ok));
     }
