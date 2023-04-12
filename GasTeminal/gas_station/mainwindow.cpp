@@ -5,6 +5,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QDebug>
+#include <QDir>
 #include <QErrorMessage>
 #include <QFile>
 #include <QJsonArray>
@@ -121,14 +122,6 @@ void MainWindow::clickedSecondHWBtn()
     saveReceipt(idexBtn);
 }
 
-void MainWindow::saveReceipt(int numOfAzsNode)
-{
-    Receipt receipt = getReceipt(numOfAzsNode);
-
-    AppSettings::instance().addTextToLogFile(receipt.getReceipt());
-    sendReceipt(receipt);
-}
-
 void MainWindow::sendToPort(const QString& data)
 {
     port->writeToPort(data);
@@ -178,14 +171,82 @@ void MainWindow::sendReport()
     std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
 }
 
-void MainWindow::sendReceipt(const Receipt& receipt)
+bool MainWindow::sendReceipt(const Receipt& receipt)
 {
     QUrlQuery params;
     params.addQueryItem("id", configure.id);
     params.addQueryItem("token", configure.token);
     params.addQueryItem("receipt", receipt.getReceiptJson());
-    QString answer = sendPost(configure.host + "/azs_receipt", params).msg;
-    std::cout << answer.toStdString() << std::endl;
+    Answer answer = sendPost(configure.host + "/azs_receipt", params);
+    std::cout << answer.msg.toStdString() << std::endl;
+
+    return answer.isOk;
+}
+
+void MainWindow::saveReceipt(int numOfAzsNode)
+{
+    sendReceiptFiles();
+
+    Receipt receipt = getReceipt(numOfAzsNode);
+
+    AppSettings::instance().addTextToLogFile(receipt.getReceipt());
+
+    if (!sendReceipt(receipt))
+    {
+        writeReceiptToFile(receipt);
+    }
+}
+
+void MainWindow::sendReceiptFiles()
+{
+    QString folderName = AppSettings::instance().getReceiptFolderName();
+    QRegExp expr("\\d+\\.json");
+    QDir    dir(folderName);
+
+    if (dir.exists())
+    {
+        QStringList allFiles = dir.entryList(QDir::Files | QDir::NoSymLinks);
+        QStringList matchingFiles;
+
+        foreach(const QString& file, allFiles)
+        {
+            if (expr.exactMatch(file))
+            {
+                if (sendReciptFromFile(folderName + file))
+                {
+                    dir.remove(file);
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+    }
+}
+
+bool MainWindow::sendReciptFromFile(QFile file)
+{
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "Can not open json file: " << file.fileName();
+        return false;
+    }
+
+    QString data = file.readAll();
+    file.close();
+
+    Receipt       receipt;
+    QJsonDocument doc    = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject   json   = doc.object();
+    receipt.time         = json["time"].toInt();
+    receipt.date         = json["data"].toString();
+    receipt.numOfAzsNode = json["num_azs_node"].toInt();
+    receipt.gasType      = json["gas_type"].toString();
+    receipt.countLitres  = json["count_litres"].toString();
+    receipt.sum          = json["sum"].toString();
+
+    return sendReceipt(receipt);
 }
 
 AzsButton MainWindow::getServerBtn() const

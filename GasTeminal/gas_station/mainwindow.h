@@ -13,6 +13,7 @@
 #include "dataprotocol.h"
 #include "historyreceiptsdialog.h"
 #include "port.h"
+#include "receipt.h"
 #include "servicemenuwindow.h"
 
 class Label : public QLabel
@@ -57,7 +58,7 @@ private slots:
 
 private:
     void      sendReport();
-    void      sendReceipt(const Receipt& receipt);
+    bool      sendReceipt(const Receipt& receipt);
     AzsButton getServerBtn() const;
     bool      resetServerBtn() const;
     void      setBtnFromServer(const AzsButton& azsButton);
@@ -86,6 +87,8 @@ private:
 
     void    saveReceipt(int numOfAzsNode);
     Receipt getReceipt(int numOfAzsNode);
+    bool    sendReciptFromFile(QFile file);
+    void    sendReceiptFiles();
 
     void sendToPort(const QString& data);
     void sendToPort(const QByteArray& data);

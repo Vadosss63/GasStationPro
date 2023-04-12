@@ -8,6 +8,11 @@
 
 AppSettings::AppSettings() {}
 
+const QString& AppSettings::getReceiptFolderName() const
+{
+    return receiptFolderName;
+}
+
 AppSettings& AppSettings::instance()
 {
     static AppSettings settings;

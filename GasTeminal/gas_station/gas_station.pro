@@ -25,7 +25,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     port.cpp \
-    servicemenuwindow.cpp
+    servicemenuwindow.cpp \
+    receipt.cpp
 
 HEADERS += \
     appsettings.h \
@@ -35,7 +36,8 @@ HEADERS += \
     httprequest.h \
     mainwindow.h \
     port.h \
-    servicemenuwindow.h
+    servicemenuwindow.h \
+    receipt.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
