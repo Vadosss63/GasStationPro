@@ -58,7 +58,7 @@ private slots:
 
 private:
     void      sendReport();
-    bool      sendReceipt(const Receipt& receipt);
+    bool      sendReceipt(const Receipt& receipt) const;
     AzsButton getServerBtn() const;
     bool      resetServerBtn() const;
     void      setBtnFromServer(const AzsButton& azsButton);
@@ -78,7 +78,7 @@ private:
     void setShowData(const ReceivedData& data);
 
     void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
-    void setBalance(double price);
+    void setBalance(double inputBalanceCash, double inputBalanceCashless);
     void setCountOfLitres();
 
     void setVisibleSecondBtn(bool isVisible);
@@ -87,7 +87,7 @@ private:
 
     void    saveReceipt(int numOfAzsNode);
     Receipt getReceipt(int numOfAzsNode);
-    bool    sendReciptFromFile(QFile file);
+    bool    sendReciptFromFile(QFile& fileReceipt) const;
     void    sendReceiptFiles();
 
     void sendToPort(const QString& data);
@@ -103,8 +103,9 @@ private:
 
     struct AzsNodeWidget
     {
-        QString      gasTypeLable;
-        Label*       pricePerLitreLable{nullptr};
+        Label*       gasTypeLable{nullptr};
+        Label*       pricePerLitreLableCash{nullptr};
+        Label*       pricePerLitreLableCashless{nullptr};
         QPushButton* startBtn{nullptr};
         Label*       countLitresLable{nullptr};
     };
@@ -116,7 +117,8 @@ private:
     Port*   port{nullptr};
     QTimer* timer;
 
-    double       balance{0};
+    double       balanceCashless{0};
+    double       balanceCash{0};
     uint8_t      countAzsNode{2};
     ReceivedData receiveData{};
     ResponseData sendData{};

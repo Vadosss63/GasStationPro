@@ -51,3 +51,42 @@ void writeReceiptToFile(const Receipt& receipt)
     file.write(receipt.getReceiptJson().toStdString().c_str());
     file.close();
 }
+
+bool readReceiptFromFile(QFile& fileReceipt, Receipt& receipt)
+{
+    if (!fileReceipt.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "Can not open json file: " << fileReceipt.fileName();
+        return false;
+    }
+
+    QString data = fileReceipt.readAll();
+    fileReceipt.close();
+
+    QJsonDocument doc    = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject   json   = doc.object();
+    receipt.time         = json["time"].toInt();
+    receipt.date         = json["data"].toString();
+    receipt.numOfAzsNode = json["num_azs_node"].toInt();
+    receipt.gasType      = json["gas_type"].toString();
+    receipt.countLitres  = json["count_litres"].toString();
+    receipt.sum          = json["sum"].toString();
+
+    return true;
+}
+
+QStringList getListReciptFiles()
+{
+    QString folderName = AppSettings::instance().getReceiptFolderName();
+    QDir    dir(folderName);
+
+    if (!dir.exists())
+    {
+        return QStringList{};
+    }
+
+    QRegExp     expr("^\\d*\\d+\\.json"); /// TODO: fix regexp
+    QStringList allFiles = dir.entryList(QDir::Files | QDir::NoSymLinks);
+
+    return allFiles.filter(expr);
+}

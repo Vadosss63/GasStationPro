@@ -5,8 +5,8 @@ working_irectory=".GasStationPro"
 sudo usermod -a -G dialout $USER
 
 if [ -d ${install_dir} ]; then
-sudo systemctl stop gas_station.service
-sudo systemctl disable gas_station
+sudo systemctl --user stop gas_station.service
+sudo systemctl --user disable gas_station
 sudo rm -rf ${install_dir}
 sudo rm -rf ~/${working_irectory}
 fi

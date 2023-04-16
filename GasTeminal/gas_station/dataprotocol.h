@@ -35,8 +35,10 @@ struct ReceivedData
     // 0 бит – колонка 1
     // 1 бит – колонка 2
     uint8_t isActiveBtn{0};
-    //Внесенная сумма, дискрет – 1 руб.
-    uint16_t balance{0};
+    //Внесенная сумма наличными, дискрет – 1 руб.
+    uint16_t balanceCash{0};
+    //Внесенная сумма безналичными, дискрет – 1 руб.
+    uint16_t balanceCashless{0};
 
     //Купюры, общий счётчик, дискрет – 1 руб
     uint32_t commonCashSum{0};
@@ -208,8 +210,10 @@ struct ResponseData
     {
         //Тип топлива, колонка
         GasType gasType;
-        //Цена, колонка n, дискрет 0,01 руб
-        uint16_t price;
+        //Цена за наличные, колонка n, дискрет 0,01 руб
+        uint16_t priceCash;
+        //Цена за безналичные, колонка n, дискрет 0,01 руб
+        uint16_t priceCashless;
     };
 
     std::array<AzsNode, countAzsNodeMax> azsNodes;
@@ -221,7 +225,8 @@ struct ResponseData
         constexpr uint16_t size = sizeof(ResponseData);
 
         checksum     = 0;
-        uint8_t* ptr = (uint8_t*)this;
+        uint8_t* ptr = reinterpret_cast<uint8_t*>(this);
+
         for (int i = 0; i < size - 1; ++i)
         {
             checksum += ptr[i];
@@ -232,12 +237,9 @@ struct ResponseData
     {
         constexpr uint16_t size = sizeof(ResponseData);
         addChecksum();
-        QByteArray res;
-        uint8_t*   ptr = (uint8_t*)this;
-        for (int i = 0; i < size; ++i)
-        {
-            res.append(ptr[i]);
-        }
+        char*      ptr = reinterpret_cast<char*>(this);
+        QByteArray res(ptr, size);
+
         return res;
     }
 };
@@ -290,8 +292,9 @@ struct AzsButton
 
         QJsonObject object = document.object();
 
-        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("price1") ||
-            !object.contains("price1") || !object.contains("button"))
+        if (object.isEmpty() || !object.contains("id_azs") ||
+            !object.contains("price1") || /// TODO: ADD second price need to refactor server part
+            !object.contains("price2") || !object.contains("button"))
         {
             qDebug() << "Missing or invalid field(s)!";
             return false;

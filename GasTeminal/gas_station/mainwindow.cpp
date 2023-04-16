@@ -42,8 +42,9 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-    data.balance     = 0;
-    data.isActiveBtn = 0;
+    data.balanceCash     = 100;
+    data.balanceCashless = 1000;
+    data.isActiveBtn     = 2;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
@@ -68,7 +69,7 @@ void MainWindow::readConfig()
 #ifndef QT_DEBUG
         "settings.json";
 #else
-        "/home/vadosss63/MyProject/GasStationPro/GasTeminal/gas_station/"
+        "/home/makarov/projects/GasStationPro/GasTeminal/gas_station/"
         "settings/settings.json";
 #endif
     Configure conf;
@@ -92,9 +93,8 @@ ResponseData& MainWindow::getResponseData()
 void MainWindow::showServiceMenu()
 {
     serviceMenuWindow->setAzsNodes(currentAzsNodes);
-    serviceMenuWindow->show();
-    serviceMenuWindow->setFocus();
     getCounters();
+    serviceMenuWindow->show();
     serviceMenuWindow->setFocus();
 }
 
@@ -146,7 +146,7 @@ void MainWindow::setupPrice()
 
 void MainWindow::setShowData(const ReceivedData& data)
 {
-    setBalance(data.balance);
+    setBalance(data.balanceCash, data.balanceCashless);
     setEnabledStart(data);
     setCountOfLitres();
 }
@@ -164,14 +164,19 @@ void MainWindow::sendReport()
     QStringList  typeFuel;
     for (const auto& azsNodeWidget : azsNodeWidgets)
     {
-        typeFuel.append(azsNodeWidget.pricePerLitreLable->text());
+        typeFuel.append(azsNodeWidget.pricePerLitreLableCash->text());
+
+        if (configure.showSecondPrice)
+        {
+            typeFuel.append(azsNodeWidget.pricePerLitreLableCashless->text());
+        }
     }
 
     params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, typeFuel));
     std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
 }
 
-bool MainWindow::sendReceipt(const Receipt& receipt)
+bool MainWindow::sendReceipt(const Receipt& receipt) const
 {
     QUrlQuery params;
     params.addQueryItem("id", configure.id);
@@ -199,54 +204,35 @@ void MainWindow::saveReceipt(int numOfAzsNode)
 
 void MainWindow::sendReceiptFiles()
 {
-    QString folderName = AppSettings::instance().getReceiptFolderName();
-    QRegExp expr("\\d+\\.json");
-    QDir    dir(folderName);
+    QString     folderName      = AppSettings::instance().getReceiptFolderName();
+    QStringList listReciptFiles = getListReciptFiles();
 
-    if (dir.exists())
+    for (const QString& fileName : listReciptFiles)
     {
-        QStringList allFiles = dir.entryList(QDir::Files | QDir::NoSymLinks);
-        QStringList matchingFiles;
-
-        foreach(const QString& file, allFiles)
+        QFile fileReceipt(folderName + fileName);
+        if (sendReciptFromFile(fileReceipt))
         {
-            if (expr.exactMatch(file))
-            {
-                if (sendReciptFromFile(folderName + file))
-                {
-                    dir.remove(file);
-                }
-                else
-                {
-                    return;
-                }
-            }
+            fileReceipt.remove();
+        }
+        else
+        {
+            return;
         }
     }
 }
 
-bool MainWindow::sendReciptFromFile(QFile file)
+bool MainWindow::sendReciptFromFile(QFile& fileReceipt) const
 {
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    Receipt receipt{};
+
+    if (readReceiptFromFile(fileReceipt, receipt))
     {
-        qDebug() << "Can not open json file: " << file.fileName();
-        return false;
+        return sendReceipt(receipt);
     }
 
-    QString data = file.readAll();
-    file.close();
+    fileReceipt.remove();
 
-    Receipt       receipt;
-    QJsonDocument doc    = QJsonDocument::fromJson(data.toUtf8());
-    QJsonObject   json   = doc.object();
-    receipt.time         = json["time"].toInt();
-    receipt.date         = json["data"].toString();
-    receipt.numOfAzsNode = json["num_azs_node"].toInt();
-    receipt.gasType      = json["gas_type"].toString();
-    receipt.countLitres  = json["count_litres"].toString();
-    receipt.sum          = json["sum"].toString();
-
-    return sendReceipt(receipt);
+    return false;
 }
 
 AzsButton MainWindow::getServerBtn() const
@@ -284,20 +270,34 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
     currentAzsNodes = azsNodes;
     for (size_t i = 0; i < azsNodes.size(); ++i)
     {
-        getResponseData().azsNodes[i].price   = azsNodes[i].price;
-        getResponseData().azsNodes[i].gasType = azsNodes[i].gasType;
-        azsNodeWidgets[i].gasTypeLable        = getGasTypeString(azsNodes[i].gasType);
+        getResponseData().azsNodes[i].priceCash     = azsNodes[i].priceCash;
+        getResponseData().azsNodes[i].priceCashless = azsNodes[i].priceCashless;
+        getResponseData().azsNodes[i].gasType       = azsNodes[i].gasType;
+        azsNodeWidgets[i].gasTypeLable->setText(getGasTypeString(azsNodes[i].gasType));
 
-        double price = static_cast<double>(azsNodes[i].price) / 100;
+        double priceCash     = static_cast<double>(azsNodes[i].priceCash) / 100;
+        double priceCashless = static_cast<double>(azsNodes[i].priceCashless) / 100;
 
-        azsNodeWidgets[i].pricePerLitreLable->setText(azsNodeWidgets[i].gasTypeLable +
-                                                      QString(" %1").arg(price, 0, 'f', 2) + rubChar + "/Л");
+        if (configure.showSecondPrice)
+        {
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(
+                QString("Налич: ") + QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar + "/Л");
+            azsNodeWidgets[i].pricePerLitreLableCashless->setText(
+                QString("Безнал: ") + QString("%1 ").arg(priceCashless, 0, 'f', 2) + rubChar + "/Л");
+        }
+        else
+        {
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar +
+                                                              "/Л");
+        }
     }
 }
 
-void MainWindow::setBalance(double price)
+void MainWindow::setBalance(double inputBalanceCash, double inputBalanceCashless)
 {
-    balance = price;
+    balanceCash     = inputBalanceCash;
+    balanceCashless = inputBalanceCashless;
+    double price    = inputBalanceCash + inputBalanceCashless;
     balanceLable->setText(QString("%1").arg(price, 0, 'f', 2) + rubChar);
     AppSettings::instance().getSettings().sum = price;
 }
@@ -306,18 +306,30 @@ void MainWindow::setCountOfLitres()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        double price = static_cast<double>(currentAzsNodes[i].price) / 100.f;
-        double count = azsNodeWidgets[i].startBtn->isEnabled() ? balance / price : 0;
-        azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(count, 0, 'f', 2));
+        double priceCash     = static_cast<double>(currentAzsNodes[i].priceCash) / 100.f;
+        double priceCashless = static_cast<double>(currentAzsNodes[i].priceCashless) / 100.f;
+
+        double countFuelCash     = azsNodeWidgets[i].startBtn->isEnabled() ? balanceCash / priceCash : 0;
+        double countFuelCashless = azsNodeWidgets[i].startBtn->isEnabled() ? balanceCashless / priceCashless : 0;
+
+        double countFuel = countFuelCash + countFuelCashless;
+        azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(countFuel, 0, 'f', 2));
     }
 }
 
 void MainWindow::setVisibleSecondBtn(bool isVisible)
 {
     constexpr int index = 1;
-    azsNodeWidgets[index].pricePerLitreLable->setVisible(isVisible);
+    azsNodeWidgets[index].gasTypeLable->setVisible(isVisible);
+    azsNodeWidgets[index].pricePerLitreLableCash->setVisible(isVisible);
     azsNodeWidgets[index].startBtn->setVisible(isVisible);
     azsNodeWidgets[index].countLitresLable->setVisible(isVisible);
+
+    if (configure.showSecondPrice)
+    {
+        azsNodeWidgets[index].pricePerLitreLableCashless->setVisible(isVisible);
+    }
+
     countAzsNode = isVisible ? 2 : 1;
 }
 
@@ -345,7 +357,7 @@ void MainWindow::updateStateOfBtn()
         default:
             break;
     }
-}
+} ///TODO: find price validation max price is 200
 
 void MainWindow::readDataFromPort()
 {
@@ -394,13 +406,13 @@ void MainWindow::setBtnFromServer(const AzsButton& azsButton)
     getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
     if (azsButton.price1)
     {
-        currentAzsNodes[0].price = azsButton.price1;
+        currentAzsNodes[0].priceCash = azsButton.price1; /// TODO: Add more case for priceCashless
     }
     if (azsButton.price2)
     {
-        currentAzsNodes[1].price = azsButton.price2;
+        currentAzsNodes[1].priceCash = azsButton.price2;
     }
-    if (azsButton.price1 || azsButton.price2)
+    if (azsButton.price1 || azsButton.price2) /// TODO: Have to be refactored need to modify server part
     {
         setAzsNode(currentAzsNodes);
         writeSettings();
@@ -428,7 +440,7 @@ void MainWindow::printLog(const QByteArray& data)
     QString print;
     foreach(auto b, data)
     {
-        print.append("0x" + QString::number((uint8_t)b, 16) + " ");
+        print.append("0x" + QString::number(static_cast<uint8_t>(b), 16) + " ");
     }
     printLog(print);
 }
@@ -447,17 +459,25 @@ void MainWindow::createWidget()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        azsNodeWidgets[i].pricePerLitreLable = new Label(this);
-        azsNodeWidgets[i].countLitresLable   = new Label(this);
-        azsNodeWidgets[i].pricePerLitreLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        azsNodeWidgets[i].gasTypeLable           = new Label(this);
+        azsNodeWidgets[i].pricePerLitreLableCash = new Label(this);
+        azsNodeWidgets[i].countLitresLable       = new Label(this);
+        azsNodeWidgets[i].gasTypeLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        azsNodeWidgets[i].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[i].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+
+        if (configure.showSecondPrice)
+        {
+            azsNodeWidgets[i].pricePerLitreLableCashless = new Label(this);
+            azsNodeWidgets[i].pricePerLitreLableCashless->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        }
 
         azsNodeWidgets[i].startBtn = new QPushButton(this);
     }
 
     int indexWidget = 0;
-    azsNodeWidgets[indexWidget].pricePerLitreLable->setGeometry(16, 664, 335, 36);
-    azsNodeWidgets[indexWidget].pricePerLitreLable->setAlignment(Qt::AlignCenter);
+    azsNodeWidgets[indexWidget].gasTypeLable->setAlignment(Qt::AlignCenter);
+    azsNodeWidgets[indexWidget].pricePerLitreLableCash->setAlignment(Qt::AlignCenter);
     azsNodeWidgets[indexWidget].countLitresLable->setGeometry(16, 664 + 36, 335, 36);
     azsNodeWidgets[indexWidget].countLitresLable->setAlignment(Qt::AlignCenter);
     azsNodeWidgets[indexWidget].startBtn->setGeometry(16, 720, 335, 299);
@@ -468,8 +488,8 @@ void MainWindow::createWidget()
         "}");
 
     indexWidget = 1;
-    azsNodeWidgets[indexWidget].pricePerLitreLable->setGeometry(918, 664, 335, 36);
-    azsNodeWidgets[indexWidget].pricePerLitreLable->setAlignment(Qt::AlignCenter);
+    azsNodeWidgets[indexWidget].gasTypeLable->setAlignment(Qt::AlignCenter);
+    azsNodeWidgets[indexWidget].pricePerLitreLableCash->setAlignment(Qt::AlignCenter);
     azsNodeWidgets[indexWidget].countLitresLable->setGeometry(918, 664 + 36, 335, 36);
     azsNodeWidgets[indexWidget].countLitresLable->setAlignment(Qt::AlignCenter);
     azsNodeWidgets[indexWidget].startBtn->setGeometry(918, 720, 335, 299);
@@ -478,6 +498,31 @@ void MainWindow::createWidget()
         "QPushButton:disabled{"
         "background: #00000000 url(:/images/image/btn2_disable.png);"
         "}");
+
+    if (configure.showSecondPrice)
+    {
+        indexWidget = 0;
+        azsNodeWidgets[indexWidget].gasTypeLable->setGeometry(16, 604, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(16, 634, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCashless->setGeometry(16, 664, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCashless->setAlignment(Qt::AlignCenter);
+
+        indexWidget = 1;
+        azsNodeWidgets[indexWidget].gasTypeLable->setGeometry(918, 604, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(918, 634, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCashless->setGeometry(918, 664, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCashless->setAlignment(Qt::AlignCenter);
+    }
+    else
+    {
+        indexWidget = 0;
+        azsNodeWidgets[indexWidget].gasTypeLable->setGeometry(16, 634, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(16, 664, 335, 36);
+
+        indexWidget = 1;
+        azsNodeWidgets[indexWidget].gasTypeLable->setGeometry(918, 634, 335, 36);
+        azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(918, 664, 335, 36);
+    }
 
     balanceLable = new Label(this);
     balanceLable->setStyleSheet("color: #003EC9; font: 210px 'Arial Black';");
@@ -491,7 +536,7 @@ void MainWindow::createWidget()
 
     setAzsNode(currentAzsNodes);
 
-    setBalance(0);
+    setBalance(0, 0);
     setCountOfLitres();
 
     connect(serviceMenuWindow, SIGNAL(setPrice()), this, SLOT(setupPrice()));
@@ -512,7 +557,8 @@ void MainWindow::writeSettings()
     settings.beginGroup("parms");
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        settings.setValue("currentPrice" + QString::number(i), currentAzsNodes[i].price);
+        settings.setValue("currentPriceCash" + QString::number(i), currentAzsNodes[i].priceCash);
+        settings.setValue("currentPriceCashless" + QString::number(i), currentAzsNodes[i].priceCashless);
         settings.setValue("gasTypes" + QString::number(i), currentAzsNodes[i].gasType);
     }
     settings.endGroup();
@@ -525,7 +571,8 @@ void MainWindow::readSettings()
     bool ok = false;
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        currentAzsNodes[i].price = settings.value("currentPrice" + QString::number(i)).toInt();
+        currentAzsNodes[i].priceCash     = settings.value("currentPriceCash" + QString::number(i)).toInt();
+        currentAzsNodes[i].priceCashless = settings.value("currentPriceCashless" + QString::number(i)).toInt();
         currentAzsNodes[i].gasType =
             static_cast<ResponseData::GasType>(settings.value("gasTypes" + QString::number(i)).toUInt(&ok));
     }
@@ -546,11 +593,11 @@ Receipt MainWindow::getReceipt(int numOfAzsNode)
 
     Receipt receipt{};
 
-    receipt.time         = (int)QDateTime::currentSecsSinceEpoch();
+    receipt.time         = static_cast<int>(QDateTime::currentSecsSinceEpoch());
     receipt.date         = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm");
     receipt.numOfAzsNode = numOfAzsNode;
-    receipt.gasType      = azsNodeWidgets[azsNodeIndex].gasTypeLable;
+    receipt.gasType      = azsNodeWidgets[azsNodeIndex].gasTypeLable->text();
     receipt.countLitres  = azsNodeWidgets[azsNodeIndex].countLitresLable->text();
-    receipt.sum          = balanceLable->text();
+    receipt.sum          = balanceLable->text().replace("Р", "");
     return receipt;
 }

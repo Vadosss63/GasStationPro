@@ -1,5 +1,5 @@
 {
-    "Id": "10111920",
+    "Id": "10111324",
     "Name": "Автозаправка-1",
     "Address": "СПб, Петроградка 28",
     "Token": "ef4cfcf144999ed560e9f9ad2be18101",
@@ -7,5 +7,6 @@
     "PhoneOfSupport": "8(904)609-21-27",
     "ActiveBtn2": 1,
     "ComPort": "/dev/ttyS4",
-    "BaudRate": 115200
+    "BaudRate": 115200,
+    "ShowSecondPrice": 0
 }

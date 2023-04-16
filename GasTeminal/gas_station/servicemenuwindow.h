@@ -37,16 +37,23 @@ private:
     void createWidget();
     void setVisibleSecondBtn(bool isVisible);
 
-    QPushButton* setupBtn;
-    QPushButton* countersBtn;
-    QPushButton* resetCountersBtn;
-    QPushButton* statisticsBtn;
-    QLabel*      infoLable;
+    QPushButton* setupBtn{nullptr};
+    QPushButton* countersBtn{nullptr};
+    QPushButton* resetCountersBtn{nullptr};
+    QPushButton* statisticsBtn{nullptr};
+    QLabel*      infoLable{nullptr};
 
-    std::array<QComboBox*, countAzsNodeMax> gasTypeCBs;
-    std::array<QSpinBox*, countAzsNodeMax>  currentPriceRub;
-    std::array<QSpinBox*, countAzsNodeMax>  currentPriceKop;
-    std::array<QLabel*, countAzsNodeMax>    idLabel;
+    struct AzsNodeSettings
+    {
+        QComboBox* gasTypeCBs{nullptr};
+        QSpinBox*  currentPriceCashRub{nullptr};
+        QSpinBox*  currentPriceCashKop{nullptr};
+        QSpinBox*  currentPriceCashlessRub{nullptr};
+        QSpinBox*  currentPriceCashlessKop{nullptr};
+        QLabel*    idLabel{nullptr};
+        QWidget*   azsLayout{nullptr};
+    };
 
+    std::array<AzsNodeSettings, countAzsNodeMax>       azsNodeSettings;
     std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
 };

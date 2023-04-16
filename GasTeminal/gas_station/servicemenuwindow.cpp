@@ -31,13 +31,19 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        int priceInt = azsNodes[i].price;
+        int priceInt = azsNodes[i].priceCash;
         int rub      = (priceInt / 100) % 100;
         int kop      = priceInt % 100;
-        currentPriceRub[i]->setValue(rub);
-        currentPriceKop[i]->setValue(kop);
+        azsNodeSettings[i].currentPriceCashRub->setValue(rub);
+        azsNodeSettings[i].currentPriceCashKop->setValue(kop);
 
-        gasTypeCBs[i]->setCurrentText(getGasTypeString(azsNodes[i].gasType));
+        priceInt = azsNodes[i].priceCashless;
+        rub      = (priceInt / 100) % 100;
+        kop      = priceInt % 100;
+        azsNodeSettings[i].currentPriceCashlessRub->setValue(rub);
+        azsNodeSettings[i].currentPriceCashlessKop->setValue(kop);
+
+        azsNodeSettings[i].gasTypeCBs->setCurrentText(getGasTypeString(azsNodes[i].gasType));
     }
 }
 
@@ -52,10 +58,15 @@ void ServiceMenuWindow::setupPrice()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        uint16_t rub        = currentPriceRub[i]->value();
-        uint16_t kop        = currentPriceKop[i]->value();
-        azsNodes[i].price   = rub * 100 + kop;
-        int type            = gasTypeCBs[i]->currentData().toInt();
+        uint16_t rub          = azsNodeSettings[i].currentPriceCashRub->value();
+        uint16_t kop          = azsNodeSettings[i].currentPriceCashKop->value();
+        azsNodes[i].priceCash = rub * 100 + kop;
+
+        rub                       = azsNodeSettings[i].currentPriceCashlessRub->value();
+        kop                       = azsNodeSettings[i].currentPriceCashlessKop->value();
+        azsNodes[i].priceCashless = rub * 100 + kop;
+
+        int type            = azsNodeSettings[i].gasTypeCBs->currentData().toInt();
         azsNodes[i].gasType = static_cast<ResponseData::GasType>(type);
     }
     emit setPrice();
@@ -64,8 +75,6 @@ void ServiceMenuWindow::setupPrice()
 
 void ServiceMenuWindow::createWidget()
 {
-    std::array<QHBoxLayout*, countAzsNodeMax> hb;
-
     QGridLayout* gl = new QGridLayout;
 
     auto gasTypeMas = {ResponseData::GasType::DT,
@@ -78,27 +87,37 @@ void ServiceMenuWindow::createWidget()
     gl->addWidget(new QLabel("Цена за литр"), 0, 0, 1, 3, Qt::AlignCenter);
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        gasTypeCBs[i] = new QComboBox;
-        gasTypeCBs[i]->setModel(new QStandardItemModel);
+        azsNodeSettings[i].gasTypeCBs = new QComboBox;
+        azsNodeSettings[i].gasTypeCBs->setModel(new QStandardItemModel);
 
         for (auto type : gasTypeMas)
         {
-            gasTypeCBs[i]->addItem(getGasTypeString(type), static_cast<int>(type));
+            azsNodeSettings[i].gasTypeCBs->addItem(getGasTypeString(type), static_cast<int>(type));
         }
-        currentPriceRub[i] = new QSpinBox;
-        currentPriceRub[i]->setRange(0, 250);
-        currentPriceKop[i] = new QSpinBox;
-        currentPriceKop[i]->setRange(0, 100);
-        hb[i]      = new QHBoxLayout;
-        idLabel[i] = new QLabel(QString::number(i + 1) + ":");
-        hb[i]->addWidget(idLabel[i]);
-        hb[i]->addWidget(gasTypeCBs[i]);
-        hb[i]->addWidget(currentPriceRub[i]);
-        hb[i]->addWidget(currentPriceKop[i]);
+        azsNodeSettings[i].currentPriceCashRub = new QSpinBox;
+        azsNodeSettings[i].currentPriceCashRub->setRange(0, 250);
+        azsNodeSettings[i].currentPriceCashKop = new QSpinBox;
+        azsNodeSettings[i].currentPriceCashKop->setRange(0, 100);
+        azsNodeSettings[i].currentPriceCashlessRub = new QSpinBox;
+        azsNodeSettings[i].currentPriceCashlessRub->setRange(0, 250);
+        azsNodeSettings[i].currentPriceCashlessKop = new QSpinBox;
+        azsNodeSettings[i].currentPriceCashlessKop->setRange(0, 100);
+        QHBoxLayout* hb            = new QHBoxLayout;
+        azsNodeSettings[i].idLabel = new QLabel(QString::number(i + 1) + ":");
+        hb->addWidget(azsNodeSettings[i].idLabel);
+        hb->addWidget(azsNodeSettings[i].gasTypeCBs);
+        hb->addWidget(new QLabel("Наличн:"));
+        hb->addWidget(azsNodeSettings[i].currentPriceCashRub);
+        hb->addWidget(azsNodeSettings[i].currentPriceCashKop);
+        hb->addWidget(new QLabel("Безнал:"));
+        hb->addWidget(azsNodeSettings[i].currentPriceCashlessRub);
+        hb->addWidget(azsNodeSettings[i].currentPriceCashlessKop);
+        azsNodeSettings[i].azsLayout = new QWidget;
+        azsNodeSettings[i].azsLayout->setLayout(hb);
     }
 
-    gl->addLayout(hb[0], 1, 0, Qt::AlignCenter);
-    gl->addLayout(hb[1], 2, 0, Qt::AlignCenter);
+    gl->addWidget(azsNodeSettings[0].azsLayout, 1, 0, Qt::AlignCenter);
+    gl->addWidget(azsNodeSettings[1].azsLayout, 2, 0, Qt::AlignCenter);
     constexpr int width = 140;
 
     QHBoxLayout* hbl = new QHBoxLayout;
@@ -129,11 +148,8 @@ void ServiceMenuWindow::createWidget()
 
 void ServiceMenuWindow::setVisibleSecondBtn(bool isVisible)
 {
-    constexpr size_t i = 1;
-    gasTypeCBs[i]->setVisible(isVisible);
-    currentPriceRub[i]->setVisible(isVisible);
-    currentPriceKop[i]->setVisible(isVisible);
-    idLabel[i]->setVisible(isVisible);
+    constexpr size_t idAzs = 1;
+    azsNodeSettings[idAzs].azsLayout->setVisible(isVisible);
 }
 
 std::array<ResponseData::AzsNode, countAzsNodeMax> ServiceMenuWindow::getAzsNodes() const
