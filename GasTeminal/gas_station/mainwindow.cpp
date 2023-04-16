@@ -453,9 +453,8 @@ void MainWindow::createWidget()
         azsNodeWidgets[i].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
 
         azsNodeWidgets[i].startBtn = new QPushButton(this);
-
-        connect(azsNodeWidgets[i].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
     }
+
     int indexWidget = 0;
     azsNodeWidgets[indexWidget].pricePerLitreLable->setGeometry(16, 664, 335, 36);
     azsNodeWidgets[indexWidget].pricePerLitreLable->setAlignment(Qt::AlignCenter);
@@ -499,6 +498,8 @@ void MainWindow::createWidget()
     connect(serviceMenuWindow, SIGNAL(getCounters()), this, SLOT(getCounters()));
     connect(serviceMenuWindow, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
     connect(serviceMenuWindow, SIGNAL(showStatistics()), historyReceiptsDialog, SLOT(showDialog()));
+    connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
+    connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SLOT(startSecondAzsNode()));
     QPixmap  bkgnd(":/images/image/background.png");
     QPalette palette;
     palette.setBrush(QPalette::Window, bkgnd);
