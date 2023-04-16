@@ -410,7 +410,7 @@ void MainWindow::setBtnFromServer(const AzsButton& azsButton)
 void MainWindow::sendToServer()
 {
     const AzsButton azsButton = getServerBtn();
-    if (azsButton.idAzs & (azsButton.price1 || azsButton.price2 || azsButton.button))
+    if (azsButton.idAzs && (azsButton.price1 || azsButton.price2 || azsButton.button))
     {
         setBtnFromServer(azsButton);
         resetServerBtn();

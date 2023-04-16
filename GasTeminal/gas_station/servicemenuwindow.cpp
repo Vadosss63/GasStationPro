@@ -121,7 +121,6 @@ void ServiceMenuWindow::createWidget()
     setupInfo(ReceivedData(), 2);
     setLayout(gl);
     setWindowTitle("Сервисное меню");
-
     connect(setupBtn, SIGNAL(clicked()), this, SLOT(setupPrice()));
     connect(countersBtn, SIGNAL(clicked()), this, SIGNAL(getCounters()));
     connect(resetCountersBtn, SIGNAL(clicked()), this, SIGNAL(resetCounters()));
