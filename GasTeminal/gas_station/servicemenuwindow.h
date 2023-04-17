@@ -14,7 +14,7 @@ class ServiceMenuWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ServiceMenuWindow(QWidget* parent = nullptr);
+    explicit ServiceMenuWindow(int showSecondPrice, QWidget* parent = nullptr);
     ~ServiceMenuWindow() override;
 
     void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
@@ -54,6 +54,7 @@ private:
         QWidget*   azsLayout{nullptr};
     };
 
+    int                                                showSecondPrice{false};
     std::array<AzsNodeSettings, countAzsNodeMax>       azsNodeSettings;
     std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
 };

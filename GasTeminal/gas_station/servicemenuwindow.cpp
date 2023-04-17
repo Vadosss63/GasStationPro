@@ -2,7 +2,8 @@
 
 #include <QStandardItemModel>
 
-ServiceMenuWindow::ServiceMenuWindow(QWidget* parent) : QWidget(parent, Qt::Tool)
+ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
+    : QWidget(parent, Qt::Tool), showSecondPrice(showSecondPrice)
 {
     createWidget();
     QString style = "QPushButton, QSpinBox{"
@@ -37,11 +38,14 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
         azsNodeSettings[i].currentPriceCashRub->setValue(rub);
         azsNodeSettings[i].currentPriceCashKop->setValue(kop);
 
-        priceInt = azsNodes[i].priceCashless;
-        rub      = (priceInt / 100) % 100;
-        kop      = priceInt % 100;
-        azsNodeSettings[i].currentPriceCashlessRub->setValue(rub);
-        azsNodeSettings[i].currentPriceCashlessKop->setValue(kop);
+        if (showSecondPrice)
+        {
+            priceInt = azsNodes[i].priceCashless;
+            rub      = (priceInt / 100) % 100;
+            kop      = priceInt % 100;
+            azsNodeSettings[i].currentPriceCashlessRub->setValue(rub);
+            azsNodeSettings[i].currentPriceCashlessKop->setValue(kop);
+        }
 
         azsNodeSettings[i].gasTypeCBs->setCurrentText(getGasTypeString(azsNodes[i].gasType));
     }
@@ -62,9 +66,16 @@ void ServiceMenuWindow::setupPrice()
         uint16_t kop          = azsNodeSettings[i].currentPriceCashKop->value();
         azsNodes[i].priceCash = rub * 100 + kop;
 
-        rub                       = azsNodeSettings[i].currentPriceCashlessRub->value();
-        kop                       = azsNodeSettings[i].currentPriceCashlessKop->value();
-        azsNodes[i].priceCashless = rub * 100 + kop;
+        if (showSecondPrice)
+        {
+            rub                       = azsNodeSettings[i].currentPriceCashlessRub->value();
+            kop                       = azsNodeSettings[i].currentPriceCashlessKop->value();
+            azsNodes[i].priceCashless = rub * 100 + kop;
+        }
+        else
+        {
+            azsNodes[i].priceCashless = 0;
+        }
 
         int type            = azsNodeSettings[i].gasTypeCBs->currentData().toInt();
         azsNodes[i].gasType = static_cast<ResponseData::GasType>(type);
@@ -98,20 +109,30 @@ void ServiceMenuWindow::createWidget()
         azsNodeSettings[i].currentPriceCashRub->setRange(0, 250);
         azsNodeSettings[i].currentPriceCashKop = new QSpinBox;
         azsNodeSettings[i].currentPriceCashKop->setRange(0, 100);
-        azsNodeSettings[i].currentPriceCashlessRub = new QSpinBox;
-        azsNodeSettings[i].currentPriceCashlessRub->setRange(0, 250);
-        azsNodeSettings[i].currentPriceCashlessKop = new QSpinBox;
-        azsNodeSettings[i].currentPriceCashlessKop->setRange(0, 100);
         QHBoxLayout* hb            = new QHBoxLayout;
         azsNodeSettings[i].idLabel = new QLabel(QString::number(i + 1) + ":");
         hb->addWidget(azsNodeSettings[i].idLabel);
         hb->addWidget(azsNodeSettings[i].gasTypeCBs);
-        hb->addWidget(new QLabel("Наличн:"));
-        hb->addWidget(azsNodeSettings[i].currentPriceCashRub);
-        hb->addWidget(azsNodeSettings[i].currentPriceCashKop);
-        hb->addWidget(new QLabel("Безнал:"));
-        hb->addWidget(azsNodeSettings[i].currentPriceCashlessRub);
-        hb->addWidget(azsNodeSettings[i].currentPriceCashlessKop);
+
+        if (showSecondPrice)
+        {
+            azsNodeSettings[i].currentPriceCashlessRub = new QSpinBox;
+            azsNodeSettings[i].currentPriceCashlessRub->setRange(0, 250);
+            azsNodeSettings[i].currentPriceCashlessKop = new QSpinBox;
+            azsNodeSettings[i].currentPriceCashlessKop->setRange(0, 100);
+            hb->addWidget(new QLabel("Наличн:"));
+            hb->addWidget(azsNodeSettings[i].currentPriceCashRub);
+            hb->addWidget(azsNodeSettings[i].currentPriceCashKop);
+            hb->addWidget(new QLabel("Безнал:"));
+            hb->addWidget(azsNodeSettings[i].currentPriceCashlessRub);
+            hb->addWidget(azsNodeSettings[i].currentPriceCashlessKop);
+        }
+        else
+        {
+            hb->addWidget(azsNodeSettings[i].currentPriceCashRub);
+            hb->addWidget(azsNodeSettings[i].currentPriceCashKop);
+        }
+
         azsNodeSettings[i].azsLayout = new QWidget;
         azsNodeSettings[i].azsLayout->setLayout(hb);
     }

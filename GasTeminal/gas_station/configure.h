@@ -16,7 +16,7 @@ struct Configure
     int     activeBtn2      = true;
     QString comPort         = "/dev/ttyS4";
     int     baudRate        = 115200;
-    int     showSecondPrice = false; ///TODO: write handler
+    int     showSecondPrice = false;
 };
 
 bool readConfigure(const QString& fileName, Configure& settings);

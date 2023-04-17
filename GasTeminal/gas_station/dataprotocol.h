@@ -106,7 +106,7 @@ struct ReceivedData
         return infoText;
     }
 
-    template<typename T>
+    template <typename T>
     QString getJsonReport(int countNode, const std::array<T, countAzsNodeMax>& azsNode)
     {
         QJsonObject mainInfo;

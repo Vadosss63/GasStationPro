@@ -40,11 +40,7 @@ QStringList AppSettings::readLogFile()
 
 void AppSettings::addTextToLogFile(const QString& text)
 {
-#ifdef QT_DEBUG
-    QFile file("/home/makarov/projects/GasStationPro/GasTeminal/logs.log");
-#else
     QFile file(logsName);
-#endif
 
     file.open(QIODevice::Append | QIODevice::Text);
     if (!file.isOpen())

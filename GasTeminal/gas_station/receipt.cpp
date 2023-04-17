@@ -85,7 +85,7 @@ QStringList getListReciptFiles()
         return QStringList{};
     }
 
-    QRegExp     expr("^\\d*\\d+\\.json"); /// TODO: fix regexp
+    QRegExp     expr("^\\d+\\.json$");
     QStringList allFiles = dir.entryList(QDir::Files | QDir::NoSymLinks);
 
     return allFiles.filter(expr);
