@@ -26,12 +26,7 @@ AppSettings::Settings& AppSettings::getSettings()
 
 QStringList AppSettings::readLogFile()
 {
-#ifdef QT_DEBUG
-    QFile file("/home/makarov/projects/GasStationPro/GasTeminal/gas_station/"
-               "settings/logs.log");
-#else
     QFile file(logsName);
-#endif
 
     file.open(QFile::ReadOnly);
     if (!file.isOpen())

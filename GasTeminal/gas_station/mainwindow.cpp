@@ -42,9 +42,9 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-    data.balanceCash     = 100;
-    data.balanceCashless = 1000;
-    data.isActiveBtn     = 2;
+    //    data.balanceCash     = 100;
+    //    data.balanceCashless = 1000;
+    //    data.isActiveBtn     = 2;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
@@ -65,13 +65,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::readConfig()
 {
-    QString filePath =
-#ifndef QT_DEBUG
-        "settings.json";
-#else
-        "/home/makarov/projects/GasStationPro/GasTeminal/gas_station/"
-        "settings/settings.json";
-#endif
+    QString filePath = "settings.json";
+
     Configure conf;
     if (!readConfigure(filePath, conf))
     {
@@ -159,20 +154,12 @@ void MainWindow::sendReport()
     params.addQueryItem("address", configure.address);
     params.addQueryItem("token", configure.token);
     params.addQueryItem("count_colum", QString("%1").arg((int)(countAzsNode)));
+    params.addQueryItem("is_second_price", QString("%1").arg((int)(configure.showSecondPrice)));
+
 
     ReceivedData receivedData = getReceivedData();
-    QStringList  typeFuel;
-    for (const auto& azsNodeWidget : azsNodeWidgets)
-    {
-        typeFuel.append(azsNodeWidget.pricePerLitreLableCash->text());
 
-        if (configure.showSecondPrice)
-        {
-            typeFuel.append(azsNodeWidget.pricePerLitreLableCashless->text());
-        }
-    }
-
-    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, typeFuel));
+    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, getResponseData().azsNodes));
     std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
 }
 
@@ -403,16 +390,38 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 void MainWindow::setBtnFromServer(const AzsButton& azsButton)
 {
-    getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
-    if (azsButton.price1)
+    switch (azsButton.button)
     {
-        currentAzsNodes[0].priceCash = azsButton.price1; /// TODO: Add more case for priceCashless
+        case 0x01:
+            currentAzsNodes[0].priceCash = azsButton.price;
+            break;
+        case 0x02:
+            currentAzsNodes[1].priceCash = azsButton.price;
+            break;
+        case 0x03:
+            currentAzsNodes[0].priceCashless = azsButton.price;
+            break;
+        case 0x04:
+            currentAzsNodes[1].priceCashless = azsButton.price;
+            break;
+        case 0x11:
+            [[fallthrough]];
+        case 0x12:
+            [[fallthrough]];
+        case 0x21:
+            [[fallthrough]];
+        case 0x22:
+            [[fallthrough]];
+        case 0x23:
+            [[fallthrough]];
+        case 0xFF:
+            getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
+            break;
+        default:
+            return;
     }
-    if (azsButton.price2)
-    {
-        currentAzsNodes[1].priceCash = azsButton.price2;
-    }
-    if (azsButton.price1 || azsButton.price2) /// TODO: Have to be refactored need to modify server part
+
+    if (azsButton.price)
     {
         setAzsNode(currentAzsNodes);
         writeSettings();
@@ -422,7 +431,7 @@ void MainWindow::setBtnFromServer(const AzsButton& azsButton)
 void MainWindow::sendToServer()
 {
     const AzsButton azsButton = getServerBtn();
-    if (azsButton.idAzs && (azsButton.price1 || azsButton.price2 || azsButton.button))
+    if (azsButton.idAzs && azsButton.button)
     {
         setBtnFromServer(azsButton);
         resetServerBtn();

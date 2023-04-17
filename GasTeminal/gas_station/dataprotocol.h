@@ -106,7 +106,8 @@ struct ReceivedData
         return infoText;
     }
 
-    QString getJsonReport(int countNode, const QStringList& typeFuel)
+    template<typename T>
+    QString getJsonReport(int countNode, const std::array<T, countAzsNodeMax>& azsNode)
     {
         QJsonObject mainInfo;
         mainInfo.insert("commonCash", static_cast<int>(commonCashSum + commonCoinsSum));
@@ -118,8 +119,6 @@ struct ReceivedData
         mainInfo.insert("commonOnline", static_cast<int>(commonOnlineSum));
         mainInfo.insert("dailyOnline", static_cast<int>(dailyOnlineSum));
 
-        mainInfo.insert("countAzsNode", countNode);
-
         QJsonArray jsonAzsNodes;
         for (int i = 0; i < countNode; ++i)
         {
@@ -129,7 +128,9 @@ struct ReceivedData
             jsonAzsNode.insert("dailyLiters",
                                QString("%1").arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2));
 
-            jsonAzsNode.insert("typeFuel", typeFuel[i]);
+            jsonAzsNode.insert("typeFuel", getGasTypeString(azsNode[i].gasType));
+            jsonAzsNode.insert("price", static_cast<int>(azsNode[i].priceCash));
+            jsonAzsNode.insert("priceCashless", static_cast<int>(azsNode[i].priceCashless));
             jsonAzsNode.insert("fuelVolume", QString("%1").arg(azsNodes[i].fuelVolume, 0, 'f', 2));
             jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(azsNodes[i].fuelVolumePerc, 0, 'f', 2));
             jsonAzsNode.insert("density", QString("%1").arg(azsNodes[i].density, 0, 'f', 2));
@@ -275,8 +276,7 @@ inline QString getGasTypeString(ResponseData::GasType gasType)
 struct AzsButton
 {
     int idAzs{};
-    int price1{};
-    int price2{};
+    int price{};
     int button{};
 
     bool readAzsButton(const QString& jsonText)
@@ -292,17 +292,14 @@ struct AzsButton
 
         QJsonObject object = document.object();
 
-        if (object.isEmpty() || !object.contains("id_azs") ||
-            !object.contains("price1") || /// TODO: ADD second price need to refactor server part
-            !object.contains("price2") || !object.contains("button"))
+        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("price") || !object.contains("button"))
         {
             qDebug() << "Missing or invalid field(s)!";
             return false;
         }
 
         idAzs  = object["id_azs"].toInt();
-        price1 = object["price1"].toInt();
-        price2 = object["price2"].toInt();
+        price  = object["price"].toInt();
         button = object["button"].toInt();
         return true;
     }
