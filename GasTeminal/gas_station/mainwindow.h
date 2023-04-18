@@ -67,8 +67,8 @@ private:
     void      readSettings();
     void      readConfig();
 
-    void clickedFirstHWBtn();
-    void clickedSecondHWBtn();
+    void clickedFirstHWBtn() const;
+    void clickedSecondHWBtn() const;
     void updateStateOfBtn();
     void closeServiceMenu();
 
@@ -85,10 +85,10 @@ private:
 
     void setEnabledStart(const ReceivedData& showData);
 
-    void    saveReceipt(int numOfAzsNode);
-    Receipt getReceipt(int numOfAzsNode);
+    void    saveReceipt(int numOfAzsNode) const;
+    Receipt getReceipt(int numOfAzsNode) const;
     bool    sendReciptFromFile(QFile& fileReceipt) const;
-    void    sendReceiptFiles();
+    void    sendReceiptFiles() const;
 
     void sendToPort(const QString& data);
     void sendToPort(const QByteArray& data);

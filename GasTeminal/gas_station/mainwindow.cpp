@@ -42,9 +42,9 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-    //    data.balanceCash     = 100;
-    //    data.balanceCashless = 1000;
-    //    data.isActiveBtn     = 2;
+    data.balanceCash     = 1000;
+    data.balanceCashless = 1000;
+    data.isActiveBtn     = 2;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
@@ -105,13 +105,13 @@ void MainWindow::startSecondAzsNode()
     getResponseData().state = ResponseData::isPressedSecondBtn;
 }
 
-void MainWindow::clickedFirstHWBtn()
+void MainWindow::clickedFirstHWBtn() const
 {
     constexpr int idexBtn = 1;
     saveReceipt(idexBtn);
 }
 
-void MainWindow::clickedSecondHWBtn()
+void MainWindow::clickedSecondHWBtn() const
 {
     constexpr int idexBtn = 2;
     saveReceipt(idexBtn);
@@ -174,7 +174,7 @@ bool MainWindow::sendReceipt(const Receipt& receipt) const
     return answer.isOk;
 }
 
-void MainWindow::saveReceipt(int numOfAzsNode)
+void MainWindow::saveReceipt(int numOfAzsNode) const
 {
     sendReceiptFiles();
 
@@ -188,7 +188,7 @@ void MainWindow::saveReceipt(int numOfAzsNode)
     }
 }
 
-void MainWindow::sendReceiptFiles()
+void MainWindow::sendReceiptFiles() const
 {
     QString     folderName      = AppSettings::instance().getReceiptFolderName();
     QStringList listReciptFiles = getListReciptFiles();
@@ -296,9 +296,10 @@ void MainWindow::setCountOfLitres()
         double priceCash     = static_cast<double>(currentAzsNodes[i].priceCash) / 100.f;
         double priceCashless = static_cast<double>(currentAzsNodes[i].priceCashless) / 100.f;
 
-        double countFuelCash = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
-        double countFuelCashless =
-            (azsNodeWidgets[i].startBtn->isEnabled() && priceCashless) ? balanceCashless / priceCashless : 0;
+        double countFuelCash     = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
+        double countFuelCashless = (azsNodeWidgets[i].startBtn->isEnabled() && priceCashless)
+                                       ? balanceCashless / priceCashless
+                                       : 0; ///TODO: = 0
 
         double countFuel = countFuelCash + countFuelCashless;
         azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(countFuel, 0, 'f', 2));
@@ -345,7 +346,7 @@ void MainWindow::updateStateOfBtn()
         default:
             break;
     }
-} ///TODO: find price validation max price is 200
+}
 
 void MainWindow::readDataFromPort()
 {
@@ -597,7 +598,7 @@ void MainWindow::setEnabledStart(const ReceivedData& showData)
     }
 }
 
-Receipt MainWindow::getReceipt(int numOfAzsNode)
+Receipt MainWindow::getReceipt(int numOfAzsNode) const
 {
     const int azsNodeIndex = numOfAzsNode - 1;
 
