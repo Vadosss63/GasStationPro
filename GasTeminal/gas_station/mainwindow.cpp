@@ -42,9 +42,9 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-    data.balanceCash     = 1000;
-    data.balanceCashless = 1000;
-    data.isActiveBtn     = 2;
+//    data.balanceCash     = 1000;
+//    data.balanceCashless = 1000;
+//    data.isActiveBtn     = 2;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
