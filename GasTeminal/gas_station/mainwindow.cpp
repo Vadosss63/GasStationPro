@@ -42,9 +42,9 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-//    data.balanceCash     = 1000;
-//    data.balanceCashless = 1000;
-//    data.isActiveBtn     = 2;
+    //    data.balanceCash     = 0;
+    //    data.balanceCashless = 0;
+    //    data.isActiveBtn     = 0;
 
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
@@ -52,6 +52,8 @@ MainWindow::MainWindow()
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(sendToServer()));
     timer->start(10000);
+
+    setupSecondPrice();
 }
 
 MainWindow::~MainWindow()
@@ -91,6 +93,18 @@ void MainWindow::showServiceMenu()
     getCounters();
     serviceMenuWindow->show();
     serviceMenuWindow->setFocus();
+}
+
+void MainWindow::setupSecondPrice()
+{
+    if (!configure.showSecondPrice)
+    {
+        currentAzsNodes[0].priceCashless = 0;
+        currentAzsNodes[1].priceCashless = 0;
+        setAzsNode(currentAzsNodes);
+        writeSettings();
+        setCountOfLitres();
+    }
 }
 
 void MainWindow::startFirstAzsNode()
@@ -256,16 +270,16 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
     currentAzsNodes = azsNodes;
     for (size_t i = 0; i < azsNodes.size(); ++i)
     {
-        getResponseData().azsNodes[i].priceCash = azsNodes[i].priceCash;
-        getResponseData().azsNodes[i].gasType   = azsNodes[i].gasType;
+        getResponseData().azsNodes[i].priceCash     = azsNodes[i].priceCash;
+        getResponseData().azsNodes[i].priceCashless = azsNodes[i].priceCashless;
+        getResponseData().azsNodes[i].gasType       = azsNodes[i].gasType;
         azsNodeWidgets[i].gasTypeLable->setText(getGasTypeString(azsNodes[i].gasType));
 
         double priceCash = static_cast<double>(azsNodes[i].priceCash) / 100;
 
         if (configure.showSecondPrice)
         {
-            getResponseData().azsNodes[i].priceCashless = azsNodes[i].priceCashless;
-            double priceCashless                        = static_cast<double>(azsNodes[i].priceCashless) / 100;
+            double priceCashless = static_cast<double>(azsNodes[i].priceCashless) / 100;
 
             azsNodeWidgets[i].pricePerLitreLableCash->setText(
                 QString("Налич: ") + QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar + "/Л");
@@ -296,10 +310,9 @@ void MainWindow::setCountOfLitres()
         double priceCash     = static_cast<double>(currentAzsNodes[i].priceCash) / 100.f;
         double priceCashless = static_cast<double>(currentAzsNodes[i].priceCashless) / 100.f;
 
-        double countFuelCash     = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
-        double countFuelCashless = (azsNodeWidgets[i].startBtn->isEnabled() && priceCashless)
-                                       ? balanceCashless / priceCashless
-                                       : 0; ///TODO: = 0
+        double countFuelCash = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
+        double countFuelCashless =
+            (azsNodeWidgets[i].startBtn->isEnabled() && priceCashless) ? balanceCashless / priceCashless : 0;
 
         double countFuel = countFuelCash + countFuelCashless;
         azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(countFuel, 0, 'f', 2));

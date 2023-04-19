@@ -72,10 +72,6 @@ void ServiceMenuWindow::setupPrice()
             kop                       = azsNodeSettings[i].currentPriceCashlessKop->value();
             azsNodes[i].priceCashless = rub * 100 + kop;
         }
-        else
-        {
-            azsNodes[i].priceCashless = 0;
-        }
 
         int type            = azsNodeSettings[i].gasTypeCBs->currentData().toInt();
         azsNodes[i].gasType = static_cast<ResponseData::GasType>(type);

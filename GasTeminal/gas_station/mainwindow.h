@@ -66,6 +66,7 @@ private:
     void      writeSettings();
     void      readSettings();
     void      readConfig();
+    void      setupSecondPrice();
 
     void clickedFirstHWBtn() const;
     void clickedSecondHWBtn() const;
