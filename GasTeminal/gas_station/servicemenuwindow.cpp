@@ -18,6 +18,7 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
                     "QComboBox{"
                     "color: #111;"
                     "background-color: #356ccc;"
+                    "font-size: 50px;"
                     "}"
                     "QLabel {"
                     "color: #ddd;"
