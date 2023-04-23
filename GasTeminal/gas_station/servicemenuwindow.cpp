@@ -8,7 +8,7 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
     createWidget();
     QString style = "QPushButton, QSpinBox{"
                     "color: #111;"
-                    "font-size: 20px;"
+                    "font-size: 50px;"
                     "background-color: qlineargradient( x1: 0, y1: 0, x2: 0, y2: 1,"
                     "stop: 0 #4287ff, stop: 1 #356ccc);}"
                     "QPushButton:pressed {"
@@ -21,7 +21,7 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
                     "}"
                     "QLabel {"
                     "color: #ddd;"
-                    "font-size: 20px;"
+                    "font-size: 50px;"
                     "}";
     setStyleSheet(style);
 }
@@ -135,7 +135,7 @@ void ServiceMenuWindow::createWidget()
 
     gl->addWidget(azsNodeSettings[0].azsLayout, 1, 0, Qt::AlignCenter);
     gl->addWidget(azsNodeSettings[1].azsLayout, 2, 0, Qt::AlignCenter);
-    constexpr int width = 140;
+    constexpr int width = 280;
 
     QHBoxLayout* hbl = new QHBoxLayout;
     setupBtn         = new QPushButton("Установить");
