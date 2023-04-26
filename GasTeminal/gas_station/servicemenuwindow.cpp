@@ -1,5 +1,6 @@
 #include "servicemenuwindow.h"
 
+#include <QHeaderView>
 #include <QStandardItemModel>
 
 ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
@@ -24,6 +25,7 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
                     "color: #ddd;"
                     "font-size: 50px;"
                     "}";
+
     setStyleSheet(style);
 }
 
@@ -54,9 +56,33 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
 
 void ServiceMenuWindow::setupInfo(const ReceivedData& info, uint8_t countAzsNode)
 {
-    infoLable->setText("\n\n" + info.getTextReport(countAzsNode));
+    setTableReport(info, countAzsNode);
     bool isVisible = countAzsNode == 2;
     setVisibleSecondBtn(isVisible);
+}
+
+void ServiceMenuWindow::setTableReport(const ReceivedData& info, uint8_t countAzsNode)
+{
+    const size_t priceTableRows = infoTable->rowCount() - countAzsNode;
+
+    infoTable->item(0, 0)->setData(Qt::DisplayRole, QVariant(info.commonCashSum + info.commonCoinsSum));
+    infoTable->item(0, 1)->setData(Qt::DisplayRole, QVariant(info.dailyCashSum + info.dailyCoinsSum));
+
+    infoTable->item(1, 0)->setData(Qt::DisplayRole, QVariant(info.commonCashlessSum));
+    infoTable->item(1, 1)->setData(Qt::DisplayRole, QVariant(info.dailyCashlessSum));
+
+    infoTable->item(2, 0)->setData(Qt::DisplayRole, QVariant(info.commonOnlineSum));
+    infoTable->item(2, 1)->setData(Qt::DisplayRole, QVariant(info.dailyOnlineSum));
+
+    for (int i = 0; i < countAzsNode; ++i)
+    {
+        infoTable->item(priceTableRows + i, 0)
+            ->setData(Qt::DisplayRole,
+                      QString("%1").arg(static_cast<double>(info.azsNodes[i].common) / 100., 0, 'f', 2));
+        infoTable->item(priceTableRows + i, 1)
+            ->setData(Qt::DisplayRole,
+                      QString("%1").arg(static_cast<double>(info.azsNodes[i].daily) / 100., 0, 'f', 2));
+    }
 }
 
 void ServiceMenuWindow::setupPrice()
@@ -152,8 +178,8 @@ void ServiceMenuWindow::createWidget()
     hbl->addWidget(resetCountersBtn);
     hbl->addWidget(statisticsBtn);
     gl->addLayout(hbl, 3, 0, Qt::AlignCenter);
-    infoLable = new QLabel;
-    gl->addWidget(infoLable, 4, 0, Qt::AlignCenter);
+    createInfoTable();
+    gl->addWidget(infoTable, 4, 0, Qt::AlignCenter);
 
     setupInfo(ReceivedData(), 2);
     setLayout(gl);
@@ -162,6 +188,48 @@ void ServiceMenuWindow::createWidget()
     connect(countersBtn, SIGNAL(clicked()), this, SIGNAL(getCounters()));
     connect(resetCountersBtn, SIGNAL(clicked()), this, SIGNAL(resetCounters()));
     connect(statisticsBtn, SIGNAL(clicked()), this, SIGNAL(showStatistics()));
+}
+
+void ServiceMenuWindow::createInfoTable()
+{
+    const size_t priceTableRows = 3;
+    const size_t tableRows      = priceTableRows + countAzsNodeMax;
+    const size_t tableColoms    = 2;
+
+    infoTable = new QTableWidget(tableRows, tableColoms);
+    infoTable->setStyleSheet("color: #111; font: 30px 'Arial Black'; background-color: qlineargradient( x1: 0, y1: 0, "
+                             "x2: 0, y2: 1, stop: 0 #4287ff, stop: 1 #356ccc);");
+    infoTable->setFixedSize(610, 293);
+
+    infoTable->setHorizontalHeaderItem(0, new QTableWidgetItem("общ"));
+    infoTable->setHorizontalHeaderItem(1, new QTableWidgetItem("инкас"));
+
+    infoTable->setVerticalHeaderItem(0, new QTableWidgetItem("Наличн.руб"));
+    infoTable->setVerticalHeaderItem(1, new QTableWidgetItem("Безнал.руб"));
+    infoTable->setVerticalHeaderItem(2, new QTableWidgetItem("Онлайн.руб"));
+
+    for (size_t i = 0; i < tableRows; ++i)
+    {
+        for (size_t j = 0; j < tableColoms; ++j)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem();
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            infoTable->setItem(i, j, item);
+        }
+    }
+
+    QHeaderView* header = infoTable->horizontalHeader();
+    header->setSectionResizeMode(QHeaderView::Fixed);
+    header->setDefaultSectionSize(200);
+
+    header = infoTable->verticalHeader();
+    header->setSectionResizeMode(QHeaderView::Fixed);
+    header->setDefaultSectionSize(50);
+
+    for (int i = 0; i < countAzsNodeMax; ++i)
+    {
+        infoTable->setVerticalHeaderItem(priceTableRows + i, new QTableWidgetItem(QString("%1-Литры").arg(i + 1)));
+    }
 }
 
 void ServiceMenuWindow::setVisibleSecondBtn(bool isVisible)

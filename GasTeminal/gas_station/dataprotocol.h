@@ -84,28 +84,6 @@ struct ReceivedData
         return indexBtn < countAzsNodeMax ? isActiveBtn & (1 << indexBtn) : false;
     }
 
-    QString getTextReport(uint8_t countAzsNode) const
-    {
-        QString infoText = QString("Наличн.руб\tобщ-%1\t\tинкас-%2\n"
-                                   "Безнал.руб\tобщ-%3\t\tинкас-%4\n"
-                                   "Онлайн.руб\tобщ-%5\t\tинкас-%6\n\n")
-                               .arg(commonCashSum + commonCoinsSum)
-                               .arg(dailyCashSum + dailyCoinsSum)
-                               .arg(commonCashlessSum)
-                               .arg(dailyCashlessSum)
-                               .arg(commonOnlineSum)
-                               .arg(dailyOnlineSum);
-
-        for (int i = 0; i < countAzsNode; ++i)
-        {
-            infoText += QString("%1-Литры\t\tобщ-%2\tинкас-%3\n")
-                            .arg(i + 1)
-                            .arg(static_cast<double>(azsNodes[i].common) / 100., 0, 'f', 2)
-                            .arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2);
-        }
-        return infoText;
-    }
-
     template <typename T>
     QString getJsonReport(int countNode, const std::array<T, countAzsNodeMax>& azsNode)
     {

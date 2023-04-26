@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTableWidget>
 #include <QWidget>
 
 #include "dataprotocol.h"
@@ -36,12 +37,14 @@ public slots:
 private:
     void createWidget();
     void setVisibleSecondBtn(bool isVisible);
+    void createInfoTable();
+    void setTableReport(const ReceivedData& info, uint8_t countAzsNode);
 
-    QPushButton* setupBtn{nullptr};
-    QPushButton* countersBtn{nullptr};
-    QPushButton* resetCountersBtn{nullptr};
-    QPushButton* statisticsBtn{nullptr};
-    QLabel*      infoLable{nullptr};
+    QPushButton*  setupBtn{nullptr};
+    QPushButton*  countersBtn{nullptr};
+    QPushButton*  resetCountersBtn{nullptr};
+    QPushButton*  statisticsBtn{nullptr};
+    QTableWidget* infoTable{nullptr};
 
     struct AzsNodeSettings
     {
