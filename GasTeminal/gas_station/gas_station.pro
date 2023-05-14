@@ -2,9 +2,10 @@ QT       += core gui network
 QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++1Z
 CONFIG += testcase
 CONFIG += no_testcase_installs
+QMAKE_CXXFLAGS += -std=c++1z
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings

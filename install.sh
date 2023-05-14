@@ -52,4 +52,5 @@ systemctl --user enable gas_station
 systemctl --user daemon-reload
 systemctl --user restart gas_station.service
 
+echo "systemctl --user start gas_station.service" > ~/.config/lxsession/Lubuntu/autostart
 #sudo reboot now
