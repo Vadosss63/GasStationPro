@@ -9,7 +9,7 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
     createWidget();
     QString style = "QPushButton, QSpinBox{"
                     "color: #111;"
-                    "font-size: 50px;"
+                    "font-size: 35px;"
                     "background-color: qlineargradient( x1: 0, y1: 0, x2: 0, y2: 1,"
                     "stop: 0 #4287ff, stop: 1 #356ccc);}"
                     "QPushButton:pressed {"
@@ -19,11 +19,11 @@ ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
                     "QComboBox{"
                     "color: #111;"
                     "background-color: #356ccc;"
-                    "font-size: 50px;"
+                    "font-size: 16px;"
                     "}"
                     "QLabel {"
                     "color: #ddd;"
-                    "font-size: 50px;"
+                    "font-size: 35px;"
                     "}";
 
     setStyleSheet(style);
@@ -197,7 +197,7 @@ void ServiceMenuWindow::createInfoTable()
     const size_t tableColoms    = 2;
 
     infoTable = new QTableWidget(tableRows, tableColoms);
-    infoTable->setStyleSheet("color: #111; font: 30px 'Arial Black'; background-color: qlineargradient( x1: 0, y1: 0, "
+    infoTable->setStyleSheet("color: #111; font: 25px 'Arial Black'; background-color: qlineargradient( x1: 0, y1: 0, "
                              "x2: 0, y2: 1, stop: 0 #4287ff, stop: 1 #356ccc);");
     infoTable->setFixedSize(610, 293);
 
