@@ -3,8 +3,8 @@
 #include <QHeaderView>
 #include <QStandardItemModel>
 
-ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, QWidget* parent)
-    : QWidget(parent, Qt::Tool), showSecondPrice(showSecondPrice)
+ServiceMenuWindow::ServiceMenuWindow(int showSecondPrice, uint8_t _countAzsNode, QWidget* parent)
+    : QWidget(parent, Qt::Tool), showSecondPrice(showSecondPrice), countAzsNode(_countAzsNode)
 {
     createWidget();
     QString style = "QPushButton, QSpinBox{"
@@ -54,14 +54,14 @@ void ServiceMenuWindow::setAzsNodes(const std::array<ResponseData::AzsNode, coun
     }
 }
 
-void ServiceMenuWindow::setupInfo(const ReceivedData& info, uint8_t countAzsNode)
+void ServiceMenuWindow::setupInfo(const ReceivedData& info)
 {
-    setTableReport(info, countAzsNode);
-    bool isVisible = countAzsNode == 2;
+    setTableReport(info);
+    bool isVisible = (countAzsNode == 2);
     setVisibleSecondBtn(isVisible);
 }
 
-void ServiceMenuWindow::setTableReport(const ReceivedData& info, uint8_t countAzsNode)
+void ServiceMenuWindow::setTableReport(const ReceivedData& info)
 {
     const size_t priceTableRows = infoTable->rowCount() - countAzsNode;
 
@@ -180,8 +180,7 @@ void ServiceMenuWindow::createWidget()
     gl->addLayout(hbl, 3, 0, Qt::AlignCenter);
     createInfoTable();
     gl->addWidget(infoTable, 4, 0, Qt::AlignCenter);
-
-    setupInfo(ReceivedData(), 2);
+    setupInfo(ReceivedData());
     setLayout(gl);
     setWindowTitle("Сервисное меню");
     connect(setupBtn, SIGNAL(clicked()), this, SLOT(setupPrice()));
@@ -193,7 +192,7 @@ void ServiceMenuWindow::createWidget()
 void ServiceMenuWindow::createInfoTable()
 {
     const size_t priceTableRows = 3;
-    const size_t tableRows      = priceTableRows + countAzsNodeMax;
+    const size_t tableRows      = priceTableRows + countAzsNode;
     const size_t tableColoms    = 2;
 
     infoTable = new QTableWidget(tableRows, tableColoms);
@@ -226,7 +225,7 @@ void ServiceMenuWindow::createInfoTable()
     header->setSectionResizeMode(QHeaderView::Fixed);
     header->setDefaultSectionSize(50);
 
-    for (int i = 0; i < countAzsNodeMax; ++i)
+    for (int i = 0; i < countAzsNode; ++i)
     {
         infoTable->setVerticalHeaderItem(priceTableRows + i, new QTableWidgetItem(QString("%1-Литры").arg(i + 1)));
     }

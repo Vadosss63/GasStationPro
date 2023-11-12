@@ -15,12 +15,12 @@ class ServiceMenuWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ServiceMenuWindow(int showSecondPrice, QWidget* parent = nullptr);
+    explicit ServiceMenuWindow(int showSecondPrice, uint8_t _countAzsNode, QWidget* parent = nullptr);
     ~ServiceMenuWindow() override;
 
     void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
 
-    void setupInfo(const ReceivedData& info, uint8_t countAzsNode);
+    void setupInfo(const ReceivedData& info);
 
     std::array<ResponseData::AzsNode, countAzsNodeMax> getAzsNodes() const;
 
@@ -38,7 +38,7 @@ private:
     void createWidget();
     void setVisibleSecondBtn(bool isVisible);
     void createInfoTable();
-    void setTableReport(const ReceivedData& info, uint8_t countAzsNode);
+    void setTableReport(const ReceivedData& info);
 
     QPushButton*  setupBtn{nullptr};
     QPushButton*  countersBtn{nullptr};
@@ -58,6 +58,7 @@ private:
     };
 
     int                                                showSecondPrice{false};
+    uint8_t                                            countAzsNode;
     std::array<AzsNodeSettings, countAzsNodeMax>       azsNodeSettings;
     std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
 };

@@ -68,6 +68,8 @@ private:
     void      readConfig();
     void      setupSecondPrice();
 
+    bool isBalanceValid() const;
+
     void clickedFirstHWBtn() const;
     void clickedSecondHWBtn() const;
     void updateStateOfBtn();
@@ -123,4 +125,5 @@ private:
     uint8_t      countAzsNode{2};
     ReceivedData receiveData{};
     ResponseData sendData{};
+    void         setCountAzsNodes(bool isVisible);
 };

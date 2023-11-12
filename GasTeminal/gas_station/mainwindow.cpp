@@ -28,6 +28,8 @@ MainWindow::MainWindow()
     readSettings();
     readConfig();
 
+    setCountAzsNodes(configure.activeBtn2);
+
     port = new Port();
     connect(port, SIGNAL(error_(QString)), this, SLOT(printLog(QString)));
     connect(port, SIGNAL(readyData()), this, SLOT(readDataFromPort()));
@@ -37,7 +39,7 @@ MainWindow::MainWindow()
     port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
-    serviceMenuWindow     = new ServiceMenuWindow(configure.showSecondPrice);
+    serviceMenuWindow     = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
     historyReceiptsDialog = new HistoryReceiptsDialog();
     createWidget();
 
@@ -105,6 +107,11 @@ void MainWindow::setupSecondPrice()
         writeSettings();
         setCountOfLitres();
     }
+}
+
+bool MainWindow::isBalanceValid() const
+{
+    return AppSettings::instance().getSettings().sum > 0;
 }
 
 void MainWindow::startFirstAzsNode()
@@ -191,6 +198,11 @@ bool MainWindow::sendReceipt(const Receipt& receipt) const
 void MainWindow::saveReceipt(int numOfAzsNode) const
 {
     sendReceiptFiles();
+
+    if (!isBalanceValid())
+    {
+        return;
+    }
 
     Receipt receipt = getReceipt(numOfAzsNode);
 
@@ -319,6 +331,11 @@ void MainWindow::setCountOfLitres()
     }
 }
 
+void MainWindow::setCountAzsNodes(bool isVisible)
+{
+    countAzsNode = isVisible ? 2 : 1;
+}
+
 void MainWindow::setVisibleSecondBtn(bool isVisible)
 {
     constexpr int index = 1;
@@ -331,8 +348,6 @@ void MainWindow::setVisibleSecondBtn(bool isVisible)
     {
         azsNodeWidgets[index].pricePerLitreLableCashless->setVisible(isVisible);
     }
-
-    countAzsNode = isVisible ? 2 : 1;
 }
 
 void MainWindow::closeServiceMenu()
@@ -471,7 +486,7 @@ void MainWindow::printLog(const QByteArray& data)
 
 void MainWindow::getCounters()
 {
-    serviceMenuWindow->setupInfo(getReceivedData(), countAzsNode);
+    serviceMenuWindow->setupInfo(getReceivedData());
 }
 
 void MainWindow::resetCounters()
