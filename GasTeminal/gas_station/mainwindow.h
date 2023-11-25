@@ -15,6 +15,7 @@
 #include "port.h"
 #include "receipt.h"
 #include "servicemenuwindow.h"
+#include "temporarilyunavailablewidget.h"
 
 class Label : public QLabel
 {
@@ -62,6 +63,7 @@ private:
     AzsButton getServerBtn() const;
     bool      resetServerBtn() const;
     void      setBtnFromServer(const AzsButton& azsButton);
+    void      disableAzs(bool disable);
     void      createWidget();
     void      writeSettings();
     void      readSettings();
@@ -96,6 +98,9 @@ private:
     void sendToPort(const QString& data);
     void sendToPort(const QByteArray& data);
     void sendToPort(const std::string& data);
+    void setCountAzsNodes(bool isVisible);
+
+    TemporarilyUnavailableWidget* temporarilyUnavailableWidget;
 
     ServiceMenuWindow*     serviceMenuWindow{nullptr};
     HistoryReceiptsDialog* historyReceiptsDialog{nullptr};
@@ -125,5 +130,4 @@ private:
     uint8_t      countAzsNode{2};
     ReceivedData receiveData{};
     ResponseData sendData{};
-    void         setCountAzsNodes(bool isVisible);
 };

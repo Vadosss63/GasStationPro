@@ -56,6 +56,9 @@ MainWindow::MainWindow()
     timer->start(10000);
 
     setupSecondPrice();
+
+    temporarilyUnavailableWidget = new TemporarilyUnavailableWidget("Терминал временно не работает", this);
+    temporarilyUnavailableWidget->hide();
 }
 
 MainWindow::~MainWindow()
@@ -450,12 +453,29 @@ void MainWindow::setBtnFromServer(const AzsButton& azsButton)
         default:
             return;
     }
-
+    //TODO: to be refactored
     if (azsButton.price)
     {
         setAzsNode(currentAzsNodes);
         writeSettings();
     }
+
+    if (ResponseData::State::blockAzsNode == azsButton.button)
+    {
+        disableAzs(true);
+    }
+
+    if (ResponseData::State::unblockAzsNode == azsButton.button)
+    {
+        disableAzs(false);
+    }
+}
+
+void MainWindow::disableAzs(bool disable)
+{
+    setDisabled(disable);
+    temporarilyUnavailableWidget->showFullScreen();
+    temporarilyUnavailableWidget->setHidden(!disable);
 }
 
 void MainWindow::sendToServer()
