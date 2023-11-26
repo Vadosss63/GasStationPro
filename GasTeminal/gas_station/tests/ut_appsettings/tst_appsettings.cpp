@@ -6,27 +6,27 @@
 
 namespace
 {
-std::unique_ptr<QByteArray> buf = std::make_unique<QByteArray>();
+QByteArray buf{};
 }
 
 std::unique_ptr<QIODevice> openFile(const QString&, QIODevice::OpenMode mode)
 {
-    std::unique_ptr<QIODevice> buffer = std::make_unique<QBuffer>(buf.get());
+    std::unique_ptr<QIODevice> buffer = std::make_unique<QBuffer>(&buf);
 
     buffer->open(mode);
     return buffer;
 }
 
-class appsettings : public QObject
+class AppSettingsTest : public QObject
 {
     Q_OBJECT
 
 public:
-    appsettings() {}
-    ~appsettings() {}
+    AppSettingsTest() {}
+    ~AppSettingsTest() {}
 
 private slots:
-    void initTestCase() { buf = std::make_unique<QByteArray>(); }
+    void initTestCase() { buf = QByteArray(); }
     void cleanupTestCase() {}
 
     void testParams();
@@ -39,7 +39,7 @@ private:
     void addLogToFile(const QString& log);
 };
 
-void appsettings::addLogToFile(const QString& log)
+void AppSettingsTest::addLogToFile(const QString& log)
 {
     AppSettings& settings      = AppSettings::instance();
     settings.getSettings().sum = 1000;
@@ -48,7 +48,7 @@ void appsettings::addLogToFile(const QString& log)
     QCOMPARE(settings.getSettings().sum, 0);
 }
 
-void appsettings::testParams()
+void AppSettingsTest::testParams()
 {
     initTestCase();
     AppSettings& settings = AppSettings::instance();
@@ -58,7 +58,7 @@ void appsettings::testParams()
     QCOMPARE(appSettings.sum, 0);
 }
 
-void appsettings::testAddOneLogFile()
+void AppSettingsTest::testAddOneLogFile()
 {
     initTestCase();
 
@@ -76,7 +76,7 @@ void appsettings::testAddOneLogFile()
     QVERIFY(logs.contains(receipt));
 }
 
-void appsettings::testAddTwoLogFiles()
+void AppSettingsTest::testAddTwoLogFiles()
 {
     initTestCase();
     QString receipt1 = "Дата: 21.07.2021 22:54\n"
@@ -102,6 +102,6 @@ void appsettings::testAddTwoLogFiles()
     QVERIFY(logs.contains(receipt2));
 }
 
-QTEST_MAIN(appsettings)
+QTEST_MAIN(AppSettingsTest)
 
 #include "tst_appsettings.moc"
