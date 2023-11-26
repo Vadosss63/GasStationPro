@@ -1,10 +1,10 @@
 #include "appsettings.h"
 
-#include <QErrorMessage>
-#include <QFile>
 #include <QSettings>
 #include <QTextCodec>
 #include <QTextStream>
+
+#include "filesystemutilities.h"
 
 AppSettings::AppSettings() {}
 
@@ -26,30 +26,27 @@ AppSettings::Settings& AppSettings::getSettings()
 
 QStringList AppSettings::readLogFile()
 {
-    QFile file(logsName);
-
-    file.open(QFile::ReadOnly);
-    if (!file.isOpen())
+    std::unique_ptr<QIODevice> file = openFile(logsName, QIODevice::ReadOnly);
+    if (!file->isOpen())
     {
         return QStringList();
     }
-    QString setting = QString::fromUtf8(file.readAll());
-    file.close();
-    return setting.split("####");
+    QString setting = QString::fromUtf8(file->readAll());
+    file->close();
+    return setting.split(splitter);
 }
 
 void AppSettings::addTextToLogFile(const QString& text)
 {
-    QFile file(logsName);
+    std::unique_ptr<QIODevice> file = openFile(logsName, QIODevice::Append | QIODevice::Text);
 
-    file.open(QIODevice::Append | QIODevice::Text);
-    if (!file.isOpen())
+    if (!file->isOpen())
     {
         return;
     }
-    QTextStream writeStream(&file);
+    QTextStream writeStream(file.get());
     writeStream.setCodec(QTextCodec::codecForName("UTF-8"));
-    writeStream << "\n" << text << "\n####";
-    file.close();
+    writeStream << text << splitter;
+    file->close();
     settings.sum = 0;
 }

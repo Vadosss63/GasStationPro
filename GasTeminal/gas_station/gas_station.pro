@@ -3,8 +3,6 @@ QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++1Z
-CONFIG += testcase
-CONFIG += no_testcase_installs
 QMAKE_CXXFLAGS += -std=c++1z
 
 # The following define makes your compiler emit warnings if you use
@@ -21,6 +19,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     appsettings.cpp \
     configure.cpp \
+    filesystemutilities.cpp \
     historyreceiptsdialog.cpp \
     httprequest.cpp \
     main.cpp \
@@ -34,6 +33,7 @@ HEADERS += \
     appsettings.h \
     configure.h \
     dataprotocol.h \
+    filesystemutilities.h \
     historyreceiptsdialog.h \
     httprequest.h \
     mainwindow.h \

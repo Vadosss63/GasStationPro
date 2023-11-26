@@ -23,4 +23,5 @@ private:
     Settings      settings;
     const QString logsName          = "logs.log";
     const QString receiptFolderName = "./receiptCache/";
+    const QString splitter          = "\n####\n";
 };
