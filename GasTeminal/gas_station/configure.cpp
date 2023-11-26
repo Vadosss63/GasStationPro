@@ -1,15 +1,23 @@
 #include "configure.h"
 
+#include <QDebug>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include "filesystemutilities.h"
+
 bool readConfigure(const QString& fileName, Configure& configure)
 {
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    std::unique_ptr<QIODevice> file = openFile(fileName, QIODevice::ReadOnly | QIODevice::Text);
+    if (!file->isOpen())
     {
         qDebug() << "Failed to open file!";
         return false;
     }
-    QByteArray    jsonData = file.readAll();
+    QByteArray    jsonData = file->readAll();
     QJsonDocument document = QJsonDocument::fromJson(jsonData);
+    file->close();
 
     if (document.isNull())
     {

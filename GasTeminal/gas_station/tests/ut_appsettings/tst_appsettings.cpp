@@ -31,8 +31,6 @@ private slots:
 
     void testParams();
 
-    void testGetSettings();
-
     void testAddOneLogFile();
 
     void testAddTwoLogFiles();

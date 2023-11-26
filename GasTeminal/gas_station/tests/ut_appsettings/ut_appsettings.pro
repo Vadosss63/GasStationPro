@@ -9,7 +9,7 @@ DEPENDPATH += $$PWD/../../
 
 SOURCES +=  \
     tst_appsettings.cpp \
-    ../../appsettings.cpp
+    ../../appsettings.cpp \
 
 HEADERS += \
     ../../appsettings.h \

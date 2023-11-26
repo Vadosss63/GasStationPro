@@ -1,9 +1,6 @@
 #pragma once
 
-#include <QDebug>
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QString>
 
 struct Configure
 {
