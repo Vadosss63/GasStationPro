@@ -7,9 +7,10 @@ TEMPLATE = app
 include(../include.pri)
 
 SOURCES +=  \
-    tst_appsettings.cpp \
+    tst_receipt.cpp \
+    $${SOURCE_PATH}/receipt.cpp \
     $${SOURCE_PATH}/appsettings.cpp \
 
 HEADERS += \
-    $${SOURCE_PATH}/appsettings.h \
+    $${SOURCE_PATH}/receipt.h \
     $${SOURCE_PATH}/filesystemutilities.h
