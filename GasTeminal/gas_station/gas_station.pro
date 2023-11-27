@@ -17,30 +17,30 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    appsettings.cpp \
-    configure.cpp \
-    filesystemutilities.cpp \
-    historyreceiptsdialog.cpp \
-    httprequest.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    port.cpp \
-    servicemenuwindow.cpp \
-    receipt.cpp \
-    temporarilyunavailablewidget.cpp
+    src/appsettings.cpp \
+    src/configure.cpp \
+    src/filesystemutilities.cpp \
+    src/historyreceiptsdialog.cpp \
+    src/httprequest.cpp \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/port.cpp \
+    src/servicemenuwindow.cpp \
+    src/receipt.cpp \
+    src/temporarilyunavailablewidget.cpp
 
 HEADERS += \
-    appsettings.h \
-    configure.h \
-    dataprotocol.h \
-    filesystemutilities.h \
-    historyreceiptsdialog.h \
-    httprequest.h \
-    mainwindow.h \
-    port.h \
-    servicemenuwindow.h \
-    receipt.h \
-    temporarilyunavailablewidget.h
+    src/appsettings.h \
+    src/configure.h \
+    src/dataprotocol.h \
+    src/filesystemutilities.h \
+    src/historyreceiptsdialog.h \
+    src/httprequest.h \
+    src/mainwindow.h \
+    src/port.h \
+    src/servicemenuwindow.h \
+    src/receipt.h \
+    src/temporarilyunavailablewidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

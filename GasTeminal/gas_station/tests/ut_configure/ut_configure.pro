@@ -1,16 +1,15 @@
 QT += testlib
-QT += gui core network
+QT += core
 CONFIG += qt warn_on depend_includepath testcase
 
 TEMPLATE = app
 
-INCLUDEPATH += $$PWD/../../
-DEPENDPATH += $$PWD/../../
+include(../include.pri)
 
 SOURCES +=  \
     tst_configure.cpp \
-    ../../configure.cpp \
+    $${SOURCE_PATH}/configure.cpp \
 
 HEADERS += \
-    ../../configure.h \
-    ../../filesystemutilities.h
+    $${SOURCE_PATH}/configure.h \
+    $${SOURCE_PATH}/filesystemutilities.h
