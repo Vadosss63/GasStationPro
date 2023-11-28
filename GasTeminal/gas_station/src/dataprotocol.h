@@ -15,9 +15,6 @@ constexpr uint8_t countAzsNodeMax = 2;
 constexpr char HEADER_DATA       = 0x7F;
 constexpr char RECEIVED_DATA_CMD = 0x81;
 
-// inline QChar rubChar = QChar(0x20BD);
-inline QChar rubChar = QString("Р").at(0);
-
 #pragma pack(push, 1)
 struct ReceivedData
 {

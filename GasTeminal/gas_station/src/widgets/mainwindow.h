@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QMutex>
@@ -11,10 +12,11 @@
 
 #include "configure.h"
 #include "dataprotocol.h"
-#include "historyreceiptswindow.h"
 #include "labelwidget.h"
 #include "port.h"
 #include "receipt.h"
+#include "receipthistorycontroller.h"
+#include "receipthistorywindow.h"
 #include "servicemenuwindow.h"
 #include "temporarilyunavailablewidget.h"
 
@@ -89,10 +91,9 @@ private:
 
     TemporarilyUnavailableWidget* temporarilyUnavailableWidget;
 
-    ServiceMenuWindow*    serviceMenuWindow{nullptr};
-    ReceiptHistoryWindow* historyReceiptsDialog{nullptr};
-    LabelWidget*          balanceLable{nullptr};
-    LabelWidget*          phoneOfSupportLable{nullptr};
+    ServiceMenuWindow* serviceMenuWindow{nullptr};
+    LabelWidget*       balanceLable{nullptr};
+    LabelWidget*       phoneOfSupportLable{nullptr};
 
     std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
 
@@ -111,6 +112,8 @@ private:
 
     Port*   port{nullptr};
     QTimer* timer;
+
+    ReceiptHistoryController receiptHistoryController;
 
     double       balanceCashless{0};
     double       balanceCash{0};

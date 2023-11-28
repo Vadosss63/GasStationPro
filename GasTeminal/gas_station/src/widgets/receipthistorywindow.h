@@ -2,7 +2,6 @@
 
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
 #include <QWidget>
 
 class ReceiptHistoryWindow : public QWidget
@@ -10,16 +9,15 @@ class ReceiptHistoryWindow : public QWidget
     Q_OBJECT
 public:
     explicit ReceiptHistoryWindow(QWidget* parent = nullptr);
-    ~ReceiptHistoryWindow() override {}
-    void readReceiptsLogFile();
+    ~ReceiptHistoryWindow() override = default;
 
-public slots:
-    void showDialog();
+    void settupReceiptList(const QStringList& receipts);
+    void setInputSum(int sum);
 
 private:
     void createWidget();
-    void showSum(int sum_);
 
-    QLabel*      sum         = nullptr;
+    QLabel*      inputSum    = nullptr;
     QListWidget* receiptList = nullptr;
+    const char*  sumTemplate = "Сумма = %1 Р";
 };

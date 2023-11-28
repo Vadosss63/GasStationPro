@@ -39,8 +39,7 @@ MainWindow::MainWindow()
     port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
-    serviceMenuWindow     = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
-    historyReceiptsDialog = new ReceiptHistoryWindow();
+    serviceMenuWindow = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
     createWidget();
 
     ReceivedData data{};
@@ -64,7 +63,6 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
     timer->stop();
-    delete historyReceiptsDialog;
     delete serviceMenuWindow;
     port->disconnectPort();
     delete port;
@@ -296,15 +294,13 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
         {
             double priceCashless = static_cast<double>(azsNodes[i].priceCashless) / 100;
 
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(
-                QString("Налич: ") + QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar + "/Л");
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("Налич: %1 Р/Л").arg(priceCash, 0, 'f', 2));
             azsNodeWidgets[i].pricePerLitreLableCashless->setText(
-                QString("Безнал: ") + QString("%1 ").arg(priceCashless, 0, 'f', 2) + rubChar + "/Л");
+                QString("Безнал: %1 Р/Л").arg(priceCashless, 0, 'f', 2));
         }
         else
         {
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar +
-                                                              "/Л");
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 Р/Л").arg(priceCash, 0, 'f', 2));
         }
     }
 }
@@ -314,7 +310,7 @@ void MainWindow::setBalance(double inputBalanceCash, double inputBalanceCashless
     balanceCash     = inputBalanceCash;
     balanceCashless = inputBalanceCashless;
     double price    = inputBalanceCash + inputBalanceCashless;
-    balanceLable->setText(QString("%1").arg(price, 0, 'f', 2) + rubChar);
+    balanceLable->setText(QString("%1Р").arg(price, 0, 'f', 2));
     AppSettings::instance().getSettings().sum = price;
 }
 
@@ -410,7 +406,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
             resetCounters();
             break;
         case Qt::Key_3:
-            historyReceiptsDialog->showDialog();
+            receiptHistoryController.showDialog();
             break;
         case Qt::Key_Escape:
             qApp->exit(0);
@@ -601,7 +597,7 @@ void MainWindow::createWidget()
     connect(serviceMenuWindow, SIGNAL(setPrice()), this, SLOT(setupPrice()));
     connect(serviceMenuWindow, SIGNAL(getCounters()), this, SLOT(getCounters()));
     connect(serviceMenuWindow, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
-    connect(serviceMenuWindow, SIGNAL(showStatistics()), historyReceiptsDialog, SLOT(showDialog()));
+    connect(serviceMenuWindow, SIGNAL(showStatistics()), &receiptHistoryController, SLOT(showDialog()));
     connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
     connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SLOT(startSecondAzsNode()));
     QPixmap  bkgnd(":/images/image/background.png");

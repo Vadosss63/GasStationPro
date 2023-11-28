@@ -16,22 +16,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+INCLUDEPATH += $$PWD/src/
+DEPENDPATH += $$PWD/src/
+
 INCLUDEPATH += $$PWD/src/widgets/
 DEPENDPATH += $$PWD/src/widgets/
 
-INCLUDEPATH += $$PWD/src/
-DEPENDPATH += $$PWD/src/
+INCLUDEPATH += $$PWD/src/controllers/
+DEPENDPATH += $$PWD/src/controllers/
 
 SOURCES += \
     src/appsettings.cpp \
     src/configure.cpp \
+    src/controllers/receipthistorycontroller.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
     src/main.cpp \
     src/port.cpp \
-    src/widgets/historyreceiptswindow.cpp \
     src/receipt.cpp \
     src/widgets/mainwindow.cpp \
+    src/widgets/receipthistorywindow.cpp \
     src/widgets/servicemenuwindow.cpp \
     src/widgets/temporarilyunavailablewidget.cpp \
     src/widgets/labelwidget.cpp
@@ -39,13 +43,14 @@ SOURCES += \
 HEADERS += \
     src/appsettings.h \
     src/configure.h \
+    src/controllers/receipthistorycontroller.h \
     src/dataprotocol.h \
     src/filesystemutilities.h \
     src/httprequest.h \
     src/port.h \
     src/receipt.h \
-    src/widgets/historyreceiptswindow.h \
     src/widgets/mainwindow.h \
+    src/widgets/receipthistorywindow.h \
     src/widgets/servicemenuwindow.h \
     src/widgets/temporarilyunavailablewidget.h \
     src/widgets/labelwidget.h
