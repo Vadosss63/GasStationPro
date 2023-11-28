@@ -17,10 +17,8 @@ TemporarilyUnavailableWidget::TemporarilyUnavailableWidget(const QString& msg, Q
     layout->addWidget(label);
     layout->setAlignment(Qt::AlignCenter);
 
-    // Получение геометрии первого экрана
     QScreen* primaryScreen = QApplication::primaryScreen();
     QRect    screenRect    = primaryScreen->geometry();
 
-    // Установка размеров виджета на весь экран
     setGeometry(screenRect);
 }

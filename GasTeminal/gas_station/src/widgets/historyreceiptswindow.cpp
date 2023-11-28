@@ -1,4 +1,4 @@
-#include "historyreceiptsdialog.h"
+#include "historyreceiptswindow.h"
 
 #include <QFile>
 #include <QVBoxLayout>
@@ -7,19 +7,19 @@
 #include "appsettings.h"
 #include "dataprotocol.h"
 
-HistoryReceiptsDialog::HistoryReceiptsDialog(QWidget* parent) : QWidget(parent)
+ReceiptHistoryWindow::ReceiptHistoryWindow(QWidget* parent) : QWidget(parent)
 {
     setWindowFlag(Qt::WindowStaysOnTopHint);
     setFixedSize(500, 500);
     createWidget();
 }
 
-void HistoryReceiptsDialog::showSum(int sum_)
+void ReceiptHistoryWindow::showSum(int sum_)
 {
     sum->setText(QString("Сумма %1 ").arg(sum_) + rubChar);
 }
 
-void HistoryReceiptsDialog::readReceiptsLogFile()
+void ReceiptHistoryWindow::readReceiptsLogFile()
 {
     auto receipts = AppSettings::instance().readLogFile();
     showSum(AppSettings::instance().getSettings().sum);
@@ -35,13 +35,13 @@ void HistoryReceiptsDialog::readReceiptsLogFile()
     receiptList->setCurrentRow(receipts.size() - 2);
 }
 
-void HistoryReceiptsDialog::showDialog()
+void ReceiptHistoryWindow::showDialog()
 {
     readReceiptsLogFile();
     show();
 }
 
-void HistoryReceiptsDialog::createWidget()
+void ReceiptHistoryWindow::createWidget()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout();
     QHBoxLayout* sumHLayout = new QHBoxLayout();

@@ -11,25 +11,12 @@
 
 #include "configure.h"
 #include "dataprotocol.h"
-#include "historyreceiptsdialog.h"
+#include "historyreceiptswindow.h"
+#include "labelwidget.h"
 #include "port.h"
 #include "receipt.h"
 #include "servicemenuwindow.h"
 #include "temporarilyunavailablewidget.h"
-
-class Label : public QLabel
-{
-    Q_OBJECT
-public:
-    explicit Label(QWidget* parent = nullptr) : QLabel(parent) {}
-    ~Label() override {}
-
-signals:
-    void clicked();
-
-protected:
-    virtual void mousePressEvent(QMouseEvent*) Q_DECL_OVERRIDE { emit clicked(); }
-};
 
 class MainWindow : public QWidget
 {
@@ -102,20 +89,20 @@ private:
 
     TemporarilyUnavailableWidget* temporarilyUnavailableWidget;
 
-    ServiceMenuWindow*     serviceMenuWindow{nullptr};
-    HistoryReceiptsDialog* historyReceiptsDialog{nullptr};
-    Label*                 balanceLable{nullptr};
-    Label*                 phoneOfSupportLable{nullptr};
+    ServiceMenuWindow*    serviceMenuWindow{nullptr};
+    ReceiptHistoryWindow* historyReceiptsDialog{nullptr};
+    LabelWidget*          balanceLable{nullptr};
+    LabelWidget*          phoneOfSupportLable{nullptr};
 
     std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
 
     struct AzsNodeWidget
     {
-        Label*       gasTypeLable{nullptr};
-        Label*       pricePerLitreLableCash{nullptr};
-        Label*       pricePerLitreLableCashless{nullptr};
+        LabelWidget* gasTypeLable{nullptr};
+        LabelWidget* pricePerLitreLableCash{nullptr};
+        LabelWidget* pricePerLitreLableCashless{nullptr};
         QPushButton* startBtn{nullptr};
-        Label*       countLitresLable{nullptr};
+        LabelWidget* countLitresLable{nullptr};
     };
 
     std::array<AzsNodeWidget, countAzsNodeMax> azsNodeWidgets{};

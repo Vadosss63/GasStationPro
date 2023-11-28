@@ -40,7 +40,7 @@ MainWindow::MainWindow()
     port->connectPort();
 
     serviceMenuWindow     = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
-    historyReceiptsDialog = new HistoryReceiptsDialog();
+    historyReceiptsDialog = new ReceiptHistoryWindow();
     createWidget();
 
     ReceivedData data{};
@@ -518,16 +518,16 @@ void MainWindow::createWidget()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        azsNodeWidgets[i].gasTypeLable           = new Label(this);
-        azsNodeWidgets[i].pricePerLitreLableCash = new Label(this);
-        azsNodeWidgets[i].countLitresLable       = new Label(this);
+        azsNodeWidgets[i].gasTypeLable           = new LabelWidget(this);
+        azsNodeWidgets[i].pricePerLitreLableCash = new LabelWidget(this);
+        azsNodeWidgets[i].countLitresLable       = new LabelWidget(this);
         azsNodeWidgets[i].gasTypeLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[i].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[i].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
 
         if (configure.showSecondPrice)
         {
-            azsNodeWidgets[i].pricePerLitreLableCashless = new Label(this);
+            azsNodeWidgets[i].pricePerLitreLableCashless = new LabelWidget(this);
             azsNodeWidgets[i].pricePerLitreLableCashless->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         }
 
@@ -583,12 +583,12 @@ void MainWindow::createWidget()
         azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(918, 664, 335, 36);
     }
 
-    balanceLable = new Label(this);
+    balanceLable = new LabelWidget(this);
     balanceLable->setStyleSheet("color: #003EC9; font: 210px 'Arial Black';");
     balanceLable->setGeometry(47, 315, 1178, 270);
     balanceLable->setAlignment(Qt::AlignCenter);
 
-    phoneOfSupportLable = new Label(this);
+    phoneOfSupportLable = new LabelWidget(this);
     phoneOfSupportLable->setGeometry(386, 932, 506, 78);
     phoneOfSupportLable->setStyleSheet("color: #003EC9; font: 34px 'Arial Black';");
     phoneOfSupportLable->setAlignment(Qt::AlignCenter);

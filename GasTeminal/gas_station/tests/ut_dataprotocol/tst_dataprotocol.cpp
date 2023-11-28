@@ -1,4 +1,5 @@
 #include <QtTest>
+
 #include "dataprotocol.h"
 
 class DataProtocolTest : public QObject
@@ -6,8 +7,8 @@ class DataProtocolTest : public QObject
     Q_OBJECT
 public:
 private slots:
-//    void initTestCase() {}
-//    void cleanupTestCase() {}
+    //    void initTestCase() {}
+    //    void cleanupTestCase() {}
 
     void testStub();
 };

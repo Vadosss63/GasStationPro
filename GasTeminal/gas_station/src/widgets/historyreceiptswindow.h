@@ -5,12 +5,12 @@
 #include <QPushButton>
 #include <QWidget>
 
-class HistoryReceiptsDialog : public QWidget
+class ReceiptHistoryWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit HistoryReceiptsDialog(QWidget* parent = nullptr);
-    ~HistoryReceiptsDialog() override {}
+    explicit ReceiptHistoryWindow(QWidget* parent = nullptr);
+    ~ReceiptHistoryWindow() override {}
     void readReceiptsLogFile();
 
 public slots:

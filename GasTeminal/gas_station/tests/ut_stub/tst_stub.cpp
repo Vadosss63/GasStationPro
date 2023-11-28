@@ -5,8 +5,8 @@ class StubTest : public QObject
     Q_OBJECT
 public:
 private slots:
-//    void initTestCase() {}
-//    void cleanupTestCase() {}
+    //    void initTestCase() {}
+    //    void cleanupTestCase() {}
 
     void testStub();
 };
