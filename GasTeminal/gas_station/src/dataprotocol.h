@@ -169,12 +169,6 @@ struct ResponseData
     };
     State state{0};
 
-    // 0x01 – Бензин АИ-92
-    // 0x02 – Бензин АИ-95
-    // 0x03 – Бензин АИ-98
-    // 0x04 – ДТ
-    // 0x05 – Метан
-    // 0x06 – Пропан
     enum GasType : uint8_t
     {
         Gas92   = 0x01,
