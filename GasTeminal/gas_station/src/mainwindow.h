@@ -92,7 +92,7 @@ private:
 
     void    saveReceipt(int numOfAzsNode) const;
     Receipt getReceipt(int numOfAzsNode) const;
-    bool    sendReciptFromFile(QFile& fileReceipt) const;
+    bool    sendReciptFromFile(const QString& fileReceipt) const;
     void    sendReceiptFiles() const;
 
     void sendToPort(const QString& data);

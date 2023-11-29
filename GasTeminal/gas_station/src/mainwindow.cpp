@@ -21,6 +21,7 @@
 #include <qmap.h>
 
 #include "appsettings.h"
+#include "filesystemutilities.h"
 #include "httprequest.h"
 
 MainWindow::MainWindow()
@@ -219,15 +220,15 @@ void MainWindow::saveReceipt(int numOfAzsNode) const
 
 void MainWindow::sendReceiptFiles() const
 {
-    QString     folderName      = AppSettings::instance().getReceiptFolderName();
-    QStringList listReciptFiles = getListReciptFiles();
+    const QString folderName      = AppSettings::instance().getReceiptFolderName();
+    QStringList   listReciptFiles = getListReciptFiles();
 
     for (const QString& fileName : listReciptFiles)
     {
-        QFile fileReceipt(folderName + fileName);
-        if (sendReciptFromFile(fileReceipt))
+        const QString fileReceiptPath{folderName + fileName};
+        if (sendReciptFromFile(fileReceiptPath))
         {
-            fileReceipt.remove();
+            removeFile(fileReceiptPath);
         }
         else
         {
@@ -236,16 +237,16 @@ void MainWindow::sendReceiptFiles() const
     }
 }
 
-bool MainWindow::sendReciptFromFile(QFile& fileReceipt) const
+bool MainWindow::sendReciptFromFile(const QString& fileReceiptPath) const
 {
-    Receipt receipt{};
+    std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
 
-    if (readReceiptFromFile(fileReceipt, receipt))
+    if (receipt)
     {
-        return sendReceipt(receipt);
+        return sendReceipt(receipt.value());
     }
 
-    fileReceipt.remove();
+    removeFile(fileReceiptPath);
 
     return false;
 }
