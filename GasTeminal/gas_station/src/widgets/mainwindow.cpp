@@ -39,7 +39,8 @@ MainWindow::MainWindow()
     port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
-    serviceMenuWindow = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
+    serviceMenuController.createWindow(configure.showSecondPrice, countAzsNode);
+
     createWidget();
 
     ReceivedData data{};
@@ -63,7 +64,6 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
     timer->stop();
-    delete serviceMenuWindow;
     port->disconnectPort();
     delete port;
 }
@@ -92,10 +92,7 @@ ResponseData& MainWindow::getResponseData()
 
 void MainWindow::showServiceMenu()
 {
-    serviceMenuWindow->setAzsNodes(currentAzsNodes);
-    getCounters();
-    serviceMenuWindow->show();
-    serviceMenuWindow->setFocus();
+    serviceMenuController.showServiceMenu(getReceivedData(), currentAzsNodes);
 }
 
 void MainWindow::setupSecondPrice()
@@ -157,7 +154,7 @@ void MainWindow::sendToPort(const std::string& data)
 
 void MainWindow::setupPrice()
 {
-    setAzsNode(serviceMenuWindow->getAzsNodes());
+    setAzsNode(serviceMenuController.getAzsNodes());
     writeSettings();
 }
 
@@ -351,7 +348,7 @@ void MainWindow::setVisibleSecondBtn(bool isVisible)
 
 void MainWindow::closeServiceMenu()
 {
-    serviceMenuWindow->close();
+    serviceMenuController.closeServiceMenu();
 }
 
 void MainWindow::updateStateOfBtn()
@@ -502,7 +499,7 @@ void MainWindow::printLog(const QByteArray& data)
 
 void MainWindow::getCounters()
 {
-    serviceMenuWindow->setupInfo(getReceivedData());
+    serviceMenuController.setupReportTable(getReceivedData());
 }
 
 void MainWindow::resetCounters()
@@ -594,10 +591,10 @@ void MainWindow::createWidget()
     setBalance(0, 0);
     setCountOfLitres();
 
-    connect(serviceMenuWindow, SIGNAL(setPrice()), this, SLOT(setupPrice()));
-    connect(serviceMenuWindow, SIGNAL(getCounters()), this, SLOT(getCounters()));
-    connect(serviceMenuWindow, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
-    connect(serviceMenuWindow, SIGNAL(showStatistics()), &receiptHistoryController, SLOT(showDialog()));
+    connect(&serviceMenuController, SIGNAL(setPrice()), this, SLOT(setupPrice()));
+    connect(&serviceMenuController, SIGNAL(readCounters()), this, SLOT(getCounters()));
+    connect(&serviceMenuController, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
+    connect(&serviceMenuController, SIGNAL(showStatistics()), &receiptHistoryController, SLOT(showDialog()));
     connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
     connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SLOT(startSecondAzsNode()));
     QPixmap  bkgnd(":/images/image/background.png");

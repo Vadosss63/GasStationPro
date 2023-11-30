@@ -17,7 +17,7 @@
 #include "receipt.h"
 #include "receipthistorycontroller.h"
 #include "receipthistorywindow.h"
-#include "servicemenuwindow.h"
+#include "servicemenucontroller.h"
 #include "temporarilyunavailablewidget.h"
 
 class MainWindow : public QWidget
@@ -89,11 +89,13 @@ private:
     void sendToPort(const std::string& data);
     void setCountAzsNodes(bool isVisible);
 
+    ServiceMenuController    serviceMenuController;
+    ReceiptHistoryController receiptHistoryController;
+
     TemporarilyUnavailableWidget* temporarilyUnavailableWidget;
 
-    ServiceMenuWindow* serviceMenuWindow{nullptr};
-    LabelWidget*       balanceLable{nullptr};
-    LabelWidget*       phoneOfSupportLable{nullptr};
+    LabelWidget* balanceLable{nullptr};
+    LabelWidget* phoneOfSupportLable{nullptr};
 
     std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
 
@@ -112,8 +114,6 @@ private:
 
     Port*   port{nullptr};
     QTimer* timer;
-
-    ReceiptHistoryController receiptHistoryController;
 
     double       balanceCashless{0};
     double       balanceCash{0};

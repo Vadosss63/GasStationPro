@@ -14,37 +14,6 @@
 class ServiceMenuWindow : public QWidget
 {
     Q_OBJECT
-public:
-    explicit ServiceMenuWindow(int showSecondPrice, uint8_t _countAzsNode, QWidget* parent = nullptr);
-    ~ServiceMenuWindow() override;
-
-    void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
-
-    void setupInfo(const ReceivedData& info);
-
-    std::array<ResponseData::AzsNode, countAzsNodeMax> getAzsNodes() const;
-
-signals:
-    void setPrice();
-    void getCounters();
-    void resetCounters();
-    void showStatistics();
-
-public slots:
-
-    void setupPrice();
-
-private:
-    void createWidget();
-    void setVisibleSecondBtn(bool isVisible);
-    void createInfoTable();
-    void setTableReport(const ReceivedData& info);
-
-    QPushButton*  setupBtn{nullptr};
-    QPushButton*  countersBtn{nullptr};
-    QPushButton*  resetCountersBtn{nullptr};
-    QPushButton*  statisticsBtn{nullptr};
-    QTableWidget* infoTable{nullptr};
 
     struct AzsNodeSettings
     {
@@ -57,8 +26,61 @@ private:
         QWidget*   azsLayout{nullptr};
     };
 
-    int                                                showSecondPrice{false};
-    uint8_t                                            countAzsNode;
-    std::array<AzsNodeSettings, countAzsNodeMax>       azsNodeSettings;
-    std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
+public:
+    explicit ServiceMenuWindow(QWidget* parent = nullptr);
+
+    void createOnePriceOneNode();
+    void createOnePriceTwoNode();
+    void createTwoPriceOneNode();
+    void createTwoPriceTwoNode();
+
+    int getGasType(size_t nodeId) const;
+
+    int getPriceCashRub(size_t nodeId) const;
+    int getPriceCashKop(size_t nodeId) const;
+
+    int getPriceCashlessRub(size_t nodeId) const;
+    int getPriceCashlessKop(size_t nodeId) const;
+
+    void setPriceCashRub(int rub, size_t nodeId);
+    void setPriceCashKop(int kop, size_t nodeId);
+    void setPriceCashlessRub(int rub, size_t nodeId);
+
+    void setPriceCashlessKop(int rub, size_t nodeId);
+    void setGasType(const QString& gasType, size_t nodeId);
+
+    void setCommonCash(uint32_t commonCash);
+    void setDailyCash(uint32_t dailyCash);
+
+    void setCommonCashless(uint32_t commonCashless);
+    void setDailyCashless(uint32_t dailyCashless);
+
+    void setCommonOnline(uint32_t commonOnline);
+    void setDailyOnline(uint32_t dailyOnline);
+
+    void setLiters(double common, double daily, size_t nodeId, size_t countAzsNode);
+
+signals:
+    void setPrice();
+    void readCounters();
+    void resetCounters();
+    void showStatistics();
+
+private:
+    void createInfoTable(size_t countNodes);
+
+    void setupGasTypeCB(size_t nodeId);
+    void setupPriceCash(size_t nodeId);
+    void setupAzsNodeId(size_t nodeId);
+    void setupPriceCashless(size_t nodeId);
+    void setupButtons();
+    void setupConnects();
+
+    QPushButton*  setupBtn{nullptr};
+    QPushButton*  countersBtn{nullptr};
+    QPushButton*  resetCountersBtn{nullptr};
+    QPushButton*  statisticsBtn{nullptr};
+    QTableWidget* infoTable{nullptr};
+
+    std::array<AzsNodeSettings, countAzsNodeMax> azsNodeSettings;
 };

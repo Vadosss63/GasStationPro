@@ -29,10 +29,12 @@ SOURCES += \
     src/appsettings.cpp \
     src/configure.cpp \
     src/controllers/receipthistorycontroller.cpp \
+    src/controllers/servicemenucontroller.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
     src/main.cpp \
     src/port.cpp \
+    src/price.cpp \
     src/receipt.cpp \
     src/widgets/mainwindow.cpp \
     src/widgets/receipthistorywindow.cpp \
@@ -44,10 +46,12 @@ HEADERS += \
     src/appsettings.h \
     src/configure.h \
     src/controllers/receipthistorycontroller.h \
+    src/controllers/servicemenucontroller.h \
     src/dataprotocol.h \
     src/filesystemutilities.h \
     src/httprequest.h \
     src/port.h \
+    src/price.h \
     src/receipt.h \
     src/widgets/mainwindow.h \
     src/widgets/receipthistorywindow.h \

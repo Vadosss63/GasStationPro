@@ -9,8 +9,8 @@ ReceiptHistoryController::ReceiptHistoryController(QObject* parent) : QObject(pa
 
 void ReceiptHistoryController::showDialog()
 {
-    QStringList receipts = AppSettings::instance().readLogFile();
-    int         sum      = AppSettings::instance().getSettings().sum;
+    const QStringList receipts = AppSettings::instance().readLogFile();
+    const int         sum      = AppSettings::instance().getSettings().sum;
 
     historyReceiptsDialog->setInputSum(sum);
     historyReceiptsDialog->settupReceiptList(receipts);
