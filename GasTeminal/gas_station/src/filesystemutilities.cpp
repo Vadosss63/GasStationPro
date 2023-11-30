@@ -12,14 +12,16 @@ std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mod
     return file;
 }
 
-void createDirIfNeeded(const QString& dirPath)
+bool createDir(const QString& dirPath)
 {
     QDir directory{dirPath};
 
     if (!directory.exists())
     {
-        directory.mkdir(dirPath);
+        return directory.mkdir(dirPath);
     }
+
+    return true;
 }
 
 void removeFile(const QString& filePath)

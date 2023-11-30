@@ -5,7 +5,7 @@
 
 std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mode);
 
-void createDirIfNeeded(const QString& dirPath);
+bool createDir(const QString& dirPath);
 
 void removeFile(const QString& filePath);
 

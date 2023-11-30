@@ -15,9 +15,6 @@ constexpr uint8_t countAzsNodeMax = 2;
 constexpr char HEADER_DATA       = 0x7F;
 constexpr char RECEIVED_DATA_CMD = 0x81;
 
-// inline QChar rubChar = QChar(0x20BD);
-inline QChar rubChar = QString("Р").at(0);
-
 #pragma pack(push, 1)
 struct ReceivedData
 {
@@ -169,12 +166,6 @@ struct ResponseData
     };
     State state{0};
 
-    // 0x01 – Бензин АИ-92
-    // 0x02 – Бензин АИ-95
-    // 0x03 – Бензин АИ-98
-    // 0x04 – ДТ
-    // 0x05 – Метан
-    // 0x06 – Пропан
     enum GasType : uint8_t
     {
         Gas92   = 0x01,

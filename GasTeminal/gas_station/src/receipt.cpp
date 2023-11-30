@@ -35,9 +35,13 @@ QString Receipt::getReceiptJson() const
 void writeReceiptToFile(const Receipt& receipt)
 {
     const QString folderPath = AppSettings::instance().getReceiptFolderName();
-    const QString filePath   = QString("%1/%2.json").arg(folderPath, receipt.time);
+    const QString filePath   = QString("%1%2.json").arg(folderPath).arg(receipt.time);
 
-    createDirIfNeeded(folderPath);
+    if (!createDir(folderPath))
+    {
+        qDebug() << "Failed to create directory: " << folderPath;
+        return;
+    }
 
     std::unique_ptr<QIODevice> fileReceipt = openFile(filePath, QIODevice::WriteOnly);
     if (!fileReceipt->isOpen())
@@ -67,6 +71,17 @@ std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
     const QJsonDocument doc  = QJsonDocument::fromJson(jsonData.toUtf8());
     const QJsonObject   json = doc.object();
 
+    const QList<QString> requiredFields = {"time", "data", "num_azs_node", "gas_type", "count_litres", "sum"};
+
+    for (const QString& field : requiredFields)
+    {
+        if (!json.contains(field))
+        {
+            qDebug() << "Missing or invalid field in settings: " << field;
+            return std::nullopt;
+        }
+    }
+
     Receipt receipt{.time         = json["time"].toInt(),
                     .date         = json["data"].toString(),
                     .numOfAzsNode = json["num_azs_node"].toInt(),
@@ -83,7 +98,7 @@ QStringList getListReciptFiles()
 {
     const QString folderPath = AppSettings::instance().getReceiptFolderName();
 
-    const QRegExp     expr{"^\\d+\\.json$"};
+    const QRegExp     expr{"^\\d{10}\\.json$"};
     const QStringList allFiles{getDirectoryFileList(folderPath)};
 
     return allFiles.filter(expr);

@@ -40,8 +40,7 @@ MainWindow::MainWindow()
     port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
-    serviceMenuWindow     = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
-    historyReceiptsDialog = new HistoryReceiptsDialog();
+    serviceMenuWindow = new ServiceMenuWindow(configure.showSecondPrice, countAzsNode);
     createWidget();
 
     ReceivedData data{};
@@ -65,7 +64,6 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
     timer->stop();
-    delete historyReceiptsDialog;
     delete serviceMenuWindow;
     port->disconnectPort();
     delete port;
@@ -220,20 +218,19 @@ void MainWindow::saveReceipt(int numOfAzsNode) const
 
 void MainWindow::sendReceiptFiles() const
 {
-    const QString folderName      = AppSettings::instance().getReceiptFolderName();
-    QStringList   listReciptFiles = getListReciptFiles();
+    const QString     folderName      = AppSettings::instance().getReceiptFolderName();
+    const QStringList listReciptFiles = getListReciptFiles();
 
     for (const QString& fileName : listReciptFiles)
     {
         const QString fileReceiptPath{folderName + fileName};
-        if (sendReciptFromFile(fileReceiptPath))
+        if (!sendReciptFromFile(fileReceiptPath))
         {
-            removeFile(fileReceiptPath);
-        }
-        else
-        {
+            qDebug() << "Failed to send receipt from file " << fileReceiptPath;
             return;
         }
+
+        removeFile(fileReceiptPath);
     }
 }
 
@@ -241,14 +238,13 @@ bool MainWindow::sendReciptFromFile(const QString& fileReceiptPath) const
 {
     std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
 
-    if (receipt)
+    if (!receipt.has_value())
     {
-        return sendReceipt(receipt.value());
+        removeFile(fileReceiptPath);
+        return false;
     }
 
-    removeFile(fileReceiptPath);
-
-    return false;
+    return sendReceipt(receipt.value());
 }
 
 AzsButton MainWindow::getServerBtn() const
@@ -297,15 +293,13 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
         {
             double priceCashless = static_cast<double>(azsNodes[i].priceCashless) / 100;
 
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(
-                QString("Налич: ") + QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar + "/Л");
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("Налич: %1 Р/Л").arg(priceCash, 0, 'f', 2));
             azsNodeWidgets[i].pricePerLitreLableCashless->setText(
-                QString("Безнал: ") + QString("%1 ").arg(priceCashless, 0, 'f', 2) + rubChar + "/Л");
+                QString("Безнал: %1 Р/Л").arg(priceCashless, 0, 'f', 2));
         }
         else
         {
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 ").arg(priceCash, 0, 'f', 2) + rubChar +
-                                                              "/Л");
+            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 Р/Л").arg(priceCash, 0, 'f', 2));
         }
     }
 }
@@ -315,7 +309,7 @@ void MainWindow::setBalance(double inputBalanceCash, double inputBalanceCashless
     balanceCash     = inputBalanceCash;
     balanceCashless = inputBalanceCashless;
     double price    = inputBalanceCash + inputBalanceCashless;
-    balanceLable->setText(QString("%1").arg(price, 0, 'f', 2) + rubChar);
+    balanceLable->setText(QString("%1Р").arg(price, 0, 'f', 2));
     AppSettings::instance().getSettings().sum = price;
 }
 
@@ -411,7 +405,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
             resetCounters();
             break;
         case Qt::Key_3:
-            historyReceiptsDialog->showDialog();
+            receiptHistoryController.showDialog();
             break;
         case Qt::Key_Escape:
             qApp->exit(0);
@@ -519,16 +513,16 @@ void MainWindow::createWidget()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        azsNodeWidgets[i].gasTypeLable           = new Label(this);
-        azsNodeWidgets[i].pricePerLitreLableCash = new Label(this);
-        azsNodeWidgets[i].countLitresLable       = new Label(this);
+        azsNodeWidgets[i].gasTypeLable           = new LabelWidget(this);
+        azsNodeWidgets[i].pricePerLitreLableCash = new LabelWidget(this);
+        azsNodeWidgets[i].countLitresLable       = new LabelWidget(this);
         azsNodeWidgets[i].gasTypeLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[i].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[i].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
 
         if (configure.showSecondPrice)
         {
-            azsNodeWidgets[i].pricePerLitreLableCashless = new Label(this);
+            azsNodeWidgets[i].pricePerLitreLableCashless = new LabelWidget(this);
             azsNodeWidgets[i].pricePerLitreLableCashless->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         }
 
@@ -584,12 +578,12 @@ void MainWindow::createWidget()
         azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(918, 664, 335, 36);
     }
 
-    balanceLable = new Label(this);
+    balanceLable = new LabelWidget(this);
     balanceLable->setStyleSheet("color: #003EC9; font: 210px 'Arial Black';");
     balanceLable->setGeometry(47, 315, 1178, 270);
     balanceLable->setAlignment(Qt::AlignCenter);
 
-    phoneOfSupportLable = new Label(this);
+    phoneOfSupportLable = new LabelWidget(this);
     phoneOfSupportLable->setGeometry(386, 932, 506, 78);
     phoneOfSupportLable->setStyleSheet("color: #003EC9; font: 34px 'Arial Black';");
     phoneOfSupportLable->setAlignment(Qt::AlignCenter);
@@ -602,7 +596,7 @@ void MainWindow::createWidget()
     connect(serviceMenuWindow, SIGNAL(setPrice()), this, SLOT(setupPrice()));
     connect(serviceMenuWindow, SIGNAL(getCounters()), this, SLOT(getCounters()));
     connect(serviceMenuWindow, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
-    connect(serviceMenuWindow, SIGNAL(showStatistics()), historyReceiptsDialog, SLOT(showDialog()));
+    connect(serviceMenuWindow, SIGNAL(showStatistics()), &receiptHistoryController, SLOT(showDialog()));
     connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
     connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SLOT(startSecondAzsNode()));
     QPixmap  bkgnd(":/images/image/background.png");
