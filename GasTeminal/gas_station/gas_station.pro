@@ -27,11 +27,13 @@ DEPENDPATH += $$PWD/src/controllers/
 
 SOURCES += \
     src/appsettings.cpp \
+    src/azsnodesettings.cpp \
     src/configure.cpp \
     src/controllers/receipthistorycontroller.cpp \
     src/controllers/servicemenucontroller.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
+    src/logger.cpp \
     src/main.cpp \
     src/port.cpp \
     src/price.cpp \
@@ -44,12 +46,14 @@ SOURCES += \
 
 HEADERS += \
     src/appsettings.h \
+    src/azsnodesettings.h \
     src/configure.h \
     src/controllers/receipthistorycontroller.h \
     src/controllers/servicemenucontroller.h \
     src/dataprotocol.h \
     src/filesystemutilities.h \
     src/httprequest.h \
+    src/logger.h \
     src/port.h \
     src/price.h \
     src/receipt.h \

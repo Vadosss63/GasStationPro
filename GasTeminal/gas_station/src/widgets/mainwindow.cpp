@@ -3,11 +3,12 @@
 #include <QApplication>
 #include <QErrorMessage>
 #include <QKeyEvent>
-#include <QSettings>
 #include <iostream>
 
 #include "appsettings.h"
+#include "azsnodesettings.h"
 #include "httprequest.h"
+#include "logger.h"
 #include "price.h"
 
 MainWindow::MainWindow()
@@ -185,7 +186,7 @@ void MainWindow::saveReceipt(int numOfAzsNode) const
         return;
     }
 
-    Receipt receipt = getReceipt(numOfAzsNode);
+    Receipt receipt = fillReceipt(numOfAzsNode);
 
     AppSettings::instance().addTextToLogFile(receipt.getReceipt());
 
@@ -472,21 +473,6 @@ void MainWindow::sendToServer()
     sendReport();
 }
 
-void MainWindow::printLog(const QString& log)
-{
-    std::cout << log.toStdString() << std::endl;
-}
-
-void MainWindow::printLog(const QByteArray& data)
-{
-    QString print;
-    foreach(auto b, data)
-    {
-        print.append("0x" + QString::number(static_cast<uint8_t>(b), 16) + " ");
-    }
-    printLog(print);
-}
-
 void MainWindow::getCounters()
 {
     serviceMenuController.setupReportTable(getReceivedData());
@@ -596,41 +582,23 @@ void MainWindow::createWidget()
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("Gas Station");
-    settings.beginGroup("parms");
-    for (int i = 0; i < countAzsNodeMax; ++i)
-    {
-        settings.setValue("currentPriceCash" + QString::number(i), currentAzsNodes[i].priceCash);
-        settings.setValue("currentPriceCashless" + QString::number(i), currentAzsNodes[i].priceCashless);
-        settings.setValue("gasTypes" + QString::number(i), currentAzsNodes[i].gasType);
-    }
-    settings.endGroup();
+    writeAzsNodeSettings(currentAzsNodes);
 }
 
 void MainWindow::readSettings()
 {
-    QSettings settings("Gas Station");
-    settings.beginGroup("parms");
-    bool ok = false;
-    for (int i = 0; i < countAzsNodeMax; ++i)
-    {
-        currentAzsNodes[i].priceCash     = settings.value("currentPriceCash" + QString::number(i)).toInt();
-        currentAzsNodes[i].priceCashless = settings.value("currentPriceCashless" + QString::number(i)).toInt();
-        currentAzsNodes[i].gasType =
-            static_cast<ResponseData::GasType>(settings.value("gasTypes" + QString::number(i)).toUInt(&ok));
-    }
-    settings.endGroup();
+    currentAzsNodes = readAzsNodeSettings();
 }
 
 void MainWindow::setEnabledStart(const ReceivedData& showData)
 {
-    for (int i = 0; i < countAzsNodeMax; ++i)
+    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
-        azsNodeWidgets[i].startBtn->setEnabled(showData.getIsActiveBtn(i));
+        azsNodeWidgets[nodeId].startBtn->setEnabled(showData.getIsActiveBtn(nodeId));
     }
 }
 
-Receipt MainWindow::getReceipt(int numOfAzsNode) const
+Receipt MainWindow::fillReceipt(int numOfAzsNode) const
 {
     const int azsNodeIndex = numOfAzsNode - 1;
 

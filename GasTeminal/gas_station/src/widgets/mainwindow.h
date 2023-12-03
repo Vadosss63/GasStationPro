@@ -36,8 +36,6 @@ public slots:
     void setupPrice();
 
     void readDataFromPort();
-    void printLog(const QString& log);
-    void printLog(const QByteArray& data);
 
     void getCounters();
     void resetCounters();
@@ -82,7 +80,7 @@ private:
     void setEnabledStart(const ReceivedData& showData);
 
     void    saveReceipt(int numOfAzsNode) const;
-    Receipt getReceipt(int numOfAzsNode) const;
+    Receipt fillReceipt(int numOfAzsNode) const;
     bool    sendReciptFromFile(QFile& fileReceipt) const;
     void    sendReceiptFiles() const;
 
@@ -111,6 +109,7 @@ private:
     double       balanceCashless{0};
     double       balanceCash{0};
     uint8_t      countAzsNode{2};
+
     ReceivedData receiveData{};
     ResponseData sendData{};
 };
