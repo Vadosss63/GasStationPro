@@ -81,7 +81,7 @@ private:
 
     void    saveReceipt(int numOfAzsNode) const;
     Receipt fillReceipt(int numOfAzsNode) const;
-    bool    sendReciptFromFile(QFile& fileReceipt) const;
+    bool    sendReciptFromFile(const QString& fileReceipt) const;
     void    sendReceiptFiles() const;
 
     void sendToPort(const QString& data);
@@ -106,9 +106,9 @@ private:
     Port*   port{nullptr};
     QTimer* timer;
 
-    double       balanceCashless{0};
-    double       balanceCash{0};
-    uint8_t      countAzsNode{2};
+    double  balanceCashless{0};
+    double  balanceCash{0};
+    uint8_t countAzsNode{2};
 
     ReceivedData receiveData{};
     ResponseData sendData{};

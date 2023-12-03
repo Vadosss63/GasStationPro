@@ -7,6 +7,7 @@
 
 #include "appsettings.h"
 #include "azsnodesettings.h"
+#include "filesystemutilities.h"
 #include "httprequest.h"
 #include "logger.h"
 #include "price.h"
@@ -198,35 +199,33 @@ void MainWindow::saveReceipt(int numOfAzsNode) const
 
 void MainWindow::sendReceiptFiles() const
 {
-    QString     folderName      = AppSettings::instance().getReceiptFolderName();
-    QStringList listReciptFiles = getListReciptFiles();
+    const QString     folderName      = AppSettings::instance().getReceiptFolderName();
+    const QStringList listReciptFiles = getListReciptFiles();
 
     for (const QString& fileName : listReciptFiles)
     {
-        QFile fileReceipt(folderName + fileName);
-        if (sendReciptFromFile(fileReceipt))
+        const QString fileReceiptPath{folderName + fileName};
+        if (!sendReciptFromFile(fileReceiptPath))
         {
-            fileReceipt.remove();
-        }
-        else
-        {
+            qDebug() << "Failed to send receipt from file " << fileReceiptPath;
             return;
         }
+
+        removeFile(fileReceiptPath);
     }
 }
 
-bool MainWindow::sendReciptFromFile(QFile& fileReceipt) const
+bool MainWindow::sendReciptFromFile(const QString& fileReceiptPath) const
 {
-    Receipt receipt{};
+    std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
 
-    if (readReceiptFromFile(fileReceipt, receipt))
+    if (!receipt.has_value())
     {
-        return sendReceipt(receipt);
+        removeFile(fileReceiptPath);
+        return false;
     }
 
-    fileReceipt.remove();
-
-    return false;
+    return sendReceipt(receipt.value());
 }
 
 AzsButton MainWindow::getServerBtn() const

@@ -2,6 +2,7 @@
 
 #include <QFile>
 #include <QString>
+#include <optional>
 
 struct Receipt
 {
@@ -16,6 +17,6 @@ struct Receipt
     QString getReceiptJson() const;
 };
 
-void        writeReceiptToFile(const Receipt& receipt);
-bool        readReceiptFromFile(QFile& fileReceipt, Receipt& receipt);
-QStringList getListReciptFiles();
+void                   writeReceiptToFile(const Receipt& receipt);
+std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath);
+QStringList            getListReciptFiles();
