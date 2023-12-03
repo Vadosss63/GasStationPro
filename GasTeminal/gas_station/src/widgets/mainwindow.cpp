@@ -1,27 +1,14 @@
 #include "mainwindow.h"
 
 #include <QApplication>
-#include <QBoxLayout>
-#include <QDate>
-#include <QDateTime>
-#include <QDebug>
-#include <QDir>
 #include <QErrorMessage>
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QKeyEvent>
 #include <QSettings>
-#include <QSpacerItem>
-#include <QString>
-#include <QThread>
 #include <iostream>
-
-#include <qmap.h>
 
 #include "appsettings.h"
 #include "httprequest.h"
+#include "price.h"
 
 MainWindow::MainWindow()
 {
@@ -35,7 +22,7 @@ MainWindow::MainWindow()
     connect(port, SIGNAL(readyData()), this, SLOT(readDataFromPort()));
 
     /// TODO: linux
-    ///  grep -i 'tty' /var/log/dmesg
+    /// grep -i 'tty' /var/log/dmesg
     port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
@@ -44,10 +31,6 @@ MainWindow::MainWindow()
     createWidget();
 
     ReceivedData data{};
-    //    data.balanceCash     = 0;
-    //    data.balanceCashless = 0;
-    //    data.isActiveBtn     = 0;
-
     setShowData(data);
     phoneOfSupportLable->setText(configure.phoneOfSupport);
     setVisibleSecondBtn(configure.activeBtn2);
@@ -283,13 +266,13 @@ void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNode
         getResponseData().azsNodes[i].priceCash     = azsNodes[i].priceCash;
         getResponseData().azsNodes[i].priceCashless = azsNodes[i].priceCashless;
         getResponseData().azsNodes[i].gasType       = azsNodes[i].gasType;
-        azsNodeWidgets[i].gasTypeLable->setText(getGasTypeString(azsNodes[i].gasType));
+        azsNodeWidgets[i].gasTypeLable->setText(convertGasTypeToString(azsNodes[i].gasType));
 
-        double priceCash = static_cast<double>(azsNodes[i].priceCash) / 100;
+        double priceCash = Price::convertPriceToDouble(azsNodes[i].priceCash);
 
         if (configure.showSecondPrice)
         {
-            double priceCashless = static_cast<double>(azsNodes[i].priceCashless) / 100;
+            double priceCashless = Price::convertPriceToDouble(azsNodes[i].priceCashless);
 
             azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("Налич: %1 Р/Л").arg(priceCash, 0, 'f', 2));
             azsNodeWidgets[i].pricePerLitreLableCashless->setText(
@@ -315,8 +298,8 @@ void MainWindow::setCountOfLitres()
 {
     for (int i = 0; i < countAzsNodeMax; ++i)
     {
-        double priceCash     = static_cast<double>(currentAzsNodes[i].priceCash) / 100.f;
-        double priceCashless = static_cast<double>(currentAzsNodes[i].priceCashless) / 100.f;
+        double priceCash     = Price::convertPriceToDouble(currentAzsNodes[i].priceCash);
+        double priceCashless = Price::convertPriceToDouble(currentAzsNodes[i].priceCashless);
 
         double countFuelCash = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
         double countFuelCashless =
@@ -353,18 +336,19 @@ void MainWindow::closeServiceMenu()
 
 void MainWindow::updateStateOfBtn()
 {
+    using ClickedBtnState = ReceivedData::ClickedBtnState;
     switch (getReceivedData().isClickedBtn)
     {
-        case 0xFF:
+        case ClickedBtnState::ShowServiceMode:
             showServiceMenu();
             break;
-        case 0xFE:
+        case ClickedBtnState::CloseServiceMode:
             closeServiceMenu();
             break;
-        case 0x01:
+        case ClickedBtnState::Button1Pressed:
             clickedFirstHWBtn();
             break;
-        case 0x02:
+        case ClickedBtnState::Button2Pressed:
             clickedSecondHWBtn();
             break;
         default:
@@ -416,31 +400,37 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 void MainWindow::setBtnFromServer(const AzsButton& azsButton)
 {
+    using State      = ResponseData::State;
+    using PriceState = AzsButton::PriceState;
+
+    constexpr size_t firstNodeId  = 0;
+    constexpr size_t secondNodeId = 1;
+
     switch (azsButton.button)
     {
-        case 0x01:
-            currentAzsNodes[0].priceCash = azsButton.price;
+        case PriceState::updatePriceCashForFirstNode:
+            currentAzsNodes[firstNodeId].priceCash = azsButton.price;
             break;
-        case 0x02:
-            currentAzsNodes[1].priceCash = azsButton.price;
+        case PriceState::updatePriceCashForSecondNode:
+            currentAzsNodes[secondNodeId].priceCash = azsButton.price;
             break;
-        case 0x03:
-            currentAzsNodes[0].priceCashless = azsButton.price;
+        case PriceState::updatePriceCashlessFirstNode:
+            currentAzsNodes[firstNodeId].priceCashless = azsButton.price;
             break;
-        case 0x04:
-            currentAzsNodes[1].priceCashless = azsButton.price;
+        case PriceState::updatePriceCashlessSecondNode:
+            currentAzsNodes[secondNodeId].priceCashless = azsButton.price;
             break;
-        case 0x11:
+        case State::blockAzsNode:
             [[fallthrough]];
-        case 0x12:
+        case State::unblockAzsNode:
             [[fallthrough]];
-        case 0x21:
+        case State::isPressedServiceBtn1:
             [[fallthrough]];
-        case 0x22:
+        case State::isPressedServiceBtn2:
             [[fallthrough]];
-        case 0x23:
+        case State::isPressedServiceBtn3:
             [[fallthrough]];
-        case 0xFF:
+        case State::resetCounters:
             getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
             break;
         default:
@@ -453,12 +443,12 @@ void MainWindow::setBtnFromServer(const AzsButton& azsButton)
         writeSettings();
     }
 
-    if (ResponseData::State::blockAzsNode == azsButton.button)
+    if (State::blockAzsNode == azsButton.button)
     {
         disableAzs(true);
     }
 
-    if (ResponseData::State::unblockAzsNode == azsButton.button)
+    if (State::unblockAzsNode == azsButton.button)
     {
         disableAzs(false);
     }
@@ -509,22 +499,23 @@ void MainWindow::resetCounters()
 
 void MainWindow::createWidget()
 {
-    for (int i = 0; i < countAzsNodeMax; ++i)
+    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
-        azsNodeWidgets[i].gasTypeLable           = new LabelWidget(this);
-        azsNodeWidgets[i].pricePerLitreLableCash = new LabelWidget(this);
-        azsNodeWidgets[i].countLitresLable       = new LabelWidget(this);
-        azsNodeWidgets[i].gasTypeLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
-        azsNodeWidgets[i].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
-        azsNodeWidgets[i].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        azsNodeWidgets[nodeId].gasTypeLable           = new LabelWidget(this);
+        azsNodeWidgets[nodeId].pricePerLitreLableCash = new LabelWidget(this);
+        azsNodeWidgets[nodeId].countLitresLable       = new LabelWidget(this);
+        azsNodeWidgets[nodeId].gasTypeLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        azsNodeWidgets[nodeId].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+        azsNodeWidgets[nodeId].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
 
         if (configure.showSecondPrice)
         {
-            azsNodeWidgets[i].pricePerLitreLableCashless = new LabelWidget(this);
-            azsNodeWidgets[i].pricePerLitreLableCashless->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
+            azsNodeWidgets[nodeId].pricePerLitreLableCashless = new LabelWidget(this);
+            azsNodeWidgets[nodeId].pricePerLitreLableCashless->setStyleSheet(
+                "color: #003EC9; font: 30px 'Arial Black';");
         }
 
-        azsNodeWidgets[i].startBtn = new QPushButton(this);
+        azsNodeWidgets[nodeId].startBtn = new QPushButton(this);
     }
 
     int indexWidget = 0;

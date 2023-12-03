@@ -1,8 +1,5 @@
 #pragma once
 
-#include <QByteArray>
-#include <QDateTime>
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -18,14 +15,18 @@ constexpr char RECEIVED_DATA_CMD = 0x81;
 #pragma pack(push, 1)
 struct ReceivedData
 {
+    enum ClickedBtnState
+    {
+        Normal           = 0x00,
+        Button1Pressed   = 0x01,
+        Button2Pressed   = 0x02,
+        CloseServiceMode = 0xFE,
+        ShowServiceMode  = 0xFF
+    };
+
     uint8_t head{0};    // 0x7F
     uint8_t command{0}; // 0x81
-    // Состояние
-    // 0x00 – обычное состояние,
-    // 0x01 – нажата кнопка 1,
-    // 0x02 – нажата кнопка 2,
-    // 0xFE – выход из сервисного режима
-    // 0xFF – вход в сервисный режим
+
     uint8_t isClickedBtn{0};
     // Активность кнопок «старт»
     // (0 – кнопка не активна, 1 – кнопка активна)
@@ -103,7 +104,7 @@ struct ReceivedData
             jsonAzsNode.insert("dailyLiters",
                                QString("%1").arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2));
 
-            jsonAzsNode.insert("typeFuel", getGasTypeString(azsNode[i].gasType));
+            jsonAzsNode.insert("typeFuel", convertGasTypeToString(azsNode[i].gasType));
             jsonAzsNode.insert("price", static_cast<int>(azsNode[i].priceCash));
             jsonAzsNode.insert("priceCashless", static_cast<int>(azsNode[i].priceCashless));
             jsonAzsNode.insert("fuelVolume", QString("%1").arg(azsNodes[i].fuelVolume, 0, 'f', 2));
@@ -116,7 +117,6 @@ struct ReceivedData
         infoJson.insert("azs_nodes", jsonAzsNodes);
         infoJson.insert("main_info", mainInfo);
 
-        // Convert the JSON object to a string
         QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());
         return infoText;
     }
@@ -139,19 +139,6 @@ struct ReceivedData
 #pragma pack(push, 1)
 struct ResponseData
 {
-    uint8_t header{0x7F};  // 0x7F
-    uint8_t command{0x01}; // 0x01
-
-    //Состояние
-    //0x00 – обычное состояние,
-    //0x01 – нажата кнопка 1 (если будут кнопки на экране),
-    //0x02 – нажата кнопка 2 (если будут кнопки на экране),
-    //0x11 – сброс колонки 1,
-    //0x12 – сброс колонки 2,
-    //0x21 – сервисная кнопка 1 (зарезервировано на будущее)
-    //0x22 – сервисная кнопка 2 (зарезервировано на будущее)
-    //0x23 – сервисная кнопка 3 (зарезервировано на будущее)
-    //0xFF – сброс суточных счетчиков
     enum State : uint8_t
     {
         defaultVal           = 0x00,
@@ -164,7 +151,6 @@ struct ResponseData
         isPressedServiceBtn3 = 0x23,
         resetCounters        = 0xFF
     };
-    State state{0};
 
     enum GasType : uint8_t
     {
@@ -180,16 +166,31 @@ struct ResponseData
     {
         //Тип топлива, колонка
         GasType gasType;
-        //Цена за наличные, колонка n, дискрет 0,01 руб
+        //Дискрет 0,01 руб
         uint16_t priceCash;
-        //Цена за безналичные, колонка n, дискрет 0,01 руб
+        //Дискрет 0,01 руб
         uint16_t priceCashless;
     };
 
-    std::array<AzsNode, countAzsNodeMax> azsNodes;
+    using AzsNodes = std::array<AzsNode, countAzsNodeMax>;
 
-    uint8_t checksum{0};
+    uint8_t  header{0x7F};
+    uint8_t  command{0x01};
+    State    state{0};
+    AzsNodes azsNodes;
+    uint8_t  checksum{0};
 
+    QByteArray getQByteArray()
+    {
+        constexpr uint16_t size = sizeof(ResponseData);
+        addChecksum();
+        char*      ptr = reinterpret_cast<char*>(this);
+        QByteArray res(ptr, size);
+
+        return res;
+    }
+
+private:
     void addChecksum()
     {
         constexpr uint16_t size = sizeof(ResponseData);
@@ -202,20 +203,10 @@ struct ResponseData
             checksum += ptr[i];
         }
     }
-
-    QByteArray getQByteArray()
-    {
-        constexpr uint16_t size = sizeof(ResponseData);
-        addChecksum();
-        char*      ptr = reinterpret_cast<char*>(this);
-        QByteArray res(ptr, size);
-
-        return res;
-    }
 };
 #pragma pack(pop)
 
-inline QString getGasTypeString(ResponseData::GasType gasType)
+inline QString convertGasTypeToString(ResponseData::GasType gasType)
 {
     QString result;
     switch (gasType)
@@ -244,6 +235,15 @@ inline QString getGasTypeString(ResponseData::GasType gasType)
 
 struct AzsButton
 {
+    enum PriceState : uint8_t
+    {
+        updatePriceCashForFirstNode   = 0x01,
+        updatePriceCashForSecondNode  = 0x02,
+        updatePriceCashlessFirstNode  = 0x03,
+        updatePriceCashlessSecondNode = 0x04,
+
+    };
+
     int idAzs{};
     int price{};
     int button{};

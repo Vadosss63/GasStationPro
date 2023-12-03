@@ -81,7 +81,7 @@ void ServiceMenuController::setPriceCashlessToServiceMenu(size_t nodeId, uint16_
 
 void ServiceMenuController::setGasTypeToServiceMenu(size_t nodeId, ResponseData::GasType gasType)
 {
-    QString gasTypeStr = getGasTypeString(gasType);
+    QString gasTypeStr = convertGasTypeToString(gasType);
     serviceMenuWindow->setGasType(gasTypeStr, nodeId);
 }
 

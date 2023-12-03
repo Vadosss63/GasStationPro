@@ -29,3 +29,8 @@ int Price::getPriceInt() const
 {
     return priceInt;
 }
+
+double Price::convertPriceToDouble(uint16_t priceInt)
+{
+    return static_cast<double>(priceInt) / 100.;
+}

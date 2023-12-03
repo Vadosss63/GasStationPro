@@ -1,9 +1,6 @@
 #include "receipthistorywindow.h"
 
-#include <QFile>
 #include <QVBoxLayout>
-
-#include "appsettings.h"
 
 ReceiptHistoryWindow::ReceiptHistoryWindow(QWidget* parent) : QWidget(parent)
 {

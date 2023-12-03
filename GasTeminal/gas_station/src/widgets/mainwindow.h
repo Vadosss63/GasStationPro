@@ -1,14 +1,6 @@
 #pragma once
 
-#include <QGridLayout>
-#include <QLabel>
-#include <QMutex>
-#include <QObject>
-#include <QPushButton>
 #include <QTimer>
-#include <QWidget>
-#include <condition_variable>
-#include <thread>
 
 #include "configure.h"
 #include "dataprotocol.h"
@@ -23,6 +15,16 @@
 class MainWindow : public QWidget
 {
     Q_OBJECT
+
+    struct AzsNodeWidget
+    {
+        LabelWidget* gasTypeLable{nullptr};
+        LabelWidget* pricePerLitreLableCash{nullptr};
+        LabelWidget* pricePerLitreLableCashless{nullptr};
+        QPushButton* startBtn{nullptr};
+        LabelWidget* countLitresLable{nullptr};
+    };
+
 public:
     MainWindow();
     ~MainWindow() override;
@@ -98,15 +100,6 @@ private:
     LabelWidget* phoneOfSupportLable{nullptr};
 
     std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
-
-    struct AzsNodeWidget
-    {
-        LabelWidget* gasTypeLable{nullptr};
-        LabelWidget* pricePerLitreLableCash{nullptr};
-        LabelWidget* pricePerLitreLableCashless{nullptr};
-        QPushButton* startBtn{nullptr};
-        LabelWidget* countLitresLable{nullptr};
-    };
 
     std::array<AzsNodeWidget, countAzsNodeMax> azsNodeWidgets{};
 

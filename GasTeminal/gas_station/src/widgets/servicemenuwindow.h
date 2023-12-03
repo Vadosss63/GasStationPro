@@ -1,9 +1,7 @@
 #pragma once
 
 #include <QComboBox>
-#include <QGridLayout>
 #include <QLabel>
-#include <QObject>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTableWidget>

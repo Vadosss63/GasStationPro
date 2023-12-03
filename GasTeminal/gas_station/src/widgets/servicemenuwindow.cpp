@@ -1,5 +1,6 @@
 #include "servicemenuwindow.h"
 
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QStandardItemModel>
 
@@ -270,7 +271,7 @@ void ServiceMenuWindow::setupGasTypeCB(size_t nodeId)
 
     for (auto type : gasTypeMas)
     {
-        azsNodeSettings[nodeId].gasTypeCBs->addItem(getGasTypeString(type), static_cast<int>(type));
+        azsNodeSettings[nodeId].gasTypeCBs->addItem(convertGasTypeToString(type), static_cast<int>(type));
     }
 }
 

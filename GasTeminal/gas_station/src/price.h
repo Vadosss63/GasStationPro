@@ -14,6 +14,8 @@ public:
 
     int getPriceInt() const;
 
+    static double convertPriceToDouble(uint16_t priceInt);
+
 private:
     uint16_t rub{0};
     uint16_t kop{0};
