@@ -1,321 +1,15 @@
 #include "mainwindow.h"
 
-#include <QApplication>
-#include <QErrorMessage>
-#include <QKeyEvent>
-#include <iostream>
-
-#include "appsettings.h"
-#include "azsnodesettings.h"
-#include "filesystemutilities.h"
-#include "httprequest.h"
-#include "logger.h"
-#include "price.h"
-
-MainWindow::MainWindow()
+void MainWindow::setSupportPhone(const QString& phone)
 {
-    readSettings();
-    readConfig();
-
-    setCountAzsNodes(configure.activeBtn2);
-
-    port = new Port();
-    //connect(port, &Port::error_, printLog);
-    connect(port, SIGNAL(readyData()), this, SLOT(readDataFromPort()));
-
-    /// TODO: linux
-    /// grep -i 'tty' /var/log/dmesg
-    port->setSettingsPort(QString(configure.comPort), configure.baudRate);
-    port->connectPort();
-
-    serviceMenuController.createWindow(configure.showSecondPrice, countAzsNode);
-
-    createWidget();
-
-    ReceivedData data{};
-    setShowData(data);
-    phoneOfSupportLable->setText(configure.phoneOfSupport);
-    setVisibleSecondBtn(configure.activeBtn2);
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(sendToServer()));
-    timer->start(10000);
-
-    setupSecondPrice();
-
-    temporarilyUnavailableWidget = new TemporarilyUnavailableWidget("Терминал временно не работает", this);
-    temporarilyUnavailableWidget->hide();
+    phoneOfSupportLable->setText(phone);
 }
 
-MainWindow::~MainWindow()
-{
-    timer->stop();
-    port->disconnectPort();
-    delete port;
-}
+MainWindow::MainWindow() {}
 
-void MainWindow::readConfig()
-{
-    QString filePath = "settings.json";
+MainWindow::~MainWindow() {}
 
-    Configure conf;
-    if (!readConfigure(filePath, conf))
-    {
-        (new QErrorMessage(this))->showMessage("The settings.json contains invalid fields!");
-    }
-    configure = conf;
-}
-
-ReceivedData& MainWindow::getReceivedData()
-{
-    return receiveData;
-}
-
-ResponseData& MainWindow::getResponseData()
-{
-    return sendData;
-}
-
-void MainWindow::showServiceMenu()
-{
-    serviceMenuController.showServiceMenu(getReceivedData(), currentAzsNodes);
-}
-
-void MainWindow::setupSecondPrice()
-{
-    if (!configure.showSecondPrice)
-    {
-        currentAzsNodes[0].priceCashless = 0;
-        currentAzsNodes[1].priceCashless = 0;
-        setAzsNode(currentAzsNodes);
-        writeSettings();
-        setCountOfLitres();
-    }
-}
-
-bool MainWindow::isBalanceValid() const
-{
-    return AppSettings::instance().getSettings().sum > 0;
-}
-
-void MainWindow::startFirstAzsNode()
-{
-    clickedFirstHWBtn();
-    getResponseData().state = ResponseData::isPressedFirstBtn;
-}
-
-void MainWindow::startSecondAzsNode()
-{
-    clickedSecondHWBtn();
-    getResponseData().state = ResponseData::isPressedSecondBtn;
-}
-
-void MainWindow::clickedFirstHWBtn() const
-{
-    constexpr int idexBtn = 1;
-    saveReceipt(idexBtn);
-}
-
-void MainWindow::clickedSecondHWBtn() const
-{
-    constexpr int idexBtn = 2;
-    saveReceipt(idexBtn);
-}
-
-void MainWindow::sendToPort(const QString& data)
-{
-    port->writeToPort(data);
-}
-
-void MainWindow::sendToPort(const QByteArray& data)
-{
-    port->writeToPort(data);
-    printLog(data);
-}
-
-void MainWindow::sendToPort(const std::string& data)
-{
-    sendToPort(QString::fromStdString(data));
-}
-
-void MainWindow::setupPrice()
-{
-    setAzsNode(serviceMenuController.getAzsNodes());
-    writeSettings();
-}
-
-void MainWindow::setShowData(const ReceivedData& data)
-{
-    setBalance(data.balanceCash, data.balanceCashless);
-    setEnabledStart(data);
-    setCountOfLitres();
-}
-
-void MainWindow::sendReport()
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("name", configure.name);
-    params.addQueryItem("address", configure.address);
-    params.addQueryItem("token", configure.token);
-    params.addQueryItem("count_colum", QString("%1").arg((int)(countAzsNode)));
-    params.addQueryItem("is_second_price", QString("%1").arg((int)(configure.showSecondPrice)));
-
-    ReceivedData receivedData = getReceivedData();
-
-    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, getResponseData().azsNodes));
-    std::cout << sendPost(configure.host + "/azs_stats", params).msg.toStdString() << std::endl;
-}
-
-bool MainWindow::sendReceipt(const Receipt& receipt) const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-    params.addQueryItem("receipt", receipt.getReceiptJson());
-    Answer answer = sendPost(configure.host + "/azs_receipt", params);
-    std::cout << answer.msg.toStdString() << std::endl;
-
-    return answer.isOk;
-}
-
-void MainWindow::saveReceipt(int numOfAzsNode) const
-{
-    sendReceiptFiles();
-
-    if (!isBalanceValid())
-    {
-        return;
-    }
-
-    Receipt receipt = fillReceipt(numOfAzsNode);
-
-    AppSettings::instance().addTextToLogFile(receipt.getReceipt());
-
-    if (!sendReceipt(receipt))
-    {
-        writeReceiptToFile(receipt);
-    }
-}
-
-void MainWindow::sendReceiptFiles() const
-{
-    const QString     folderName      = AppSettings::instance().getReceiptFolderName();
-    const QStringList listReciptFiles = getListReciptFiles();
-
-    for (const QString& fileName : listReciptFiles)
-    {
-        const QString fileReceiptPath{folderName + fileName};
-        if (!sendReciptFromFile(fileReceiptPath))
-        {
-            qDebug() << "Failed to send receipt from file " << fileReceiptPath;
-            return;
-        }
-
-        removeFile(fileReceiptPath);
-    }
-}
-
-bool MainWindow::sendReciptFromFile(const QString& fileReceiptPath) const
-{
-    std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
-
-    if (!receipt.has_value())
-    {
-        removeFile(fileReceiptPath);
-        return false;
-    }
-
-    return sendReceipt(receipt.value());
-}
-
-AzsButton MainWindow::getServerBtn() const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-    Answer    answer = sendPost(configure.host + "/get_azs_button", params);
-    AzsButton azsButton;
-    if (!answer.isOk)
-    {
-        std::cerr << answer.msg.toStdString() << std::endl;
-    }
-    azsButton.readAzsButton(answer.msg);
-
-    return azsButton;
-}
-
-bool MainWindow::resetServerBtn() const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-
-    Answer answer = sendPost(configure.host + "/reset_azs_button", params);
-    if (!answer.isOk)
-    {
-        std::cerr << answer.msg.toStdString() << std::endl;
-    }
-    return answer.isOk;
-}
-
-void MainWindow::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
-{
-    currentAzsNodes = azsNodes;
-    for (size_t i = 0; i < azsNodes.size(); ++i)
-    {
-        getResponseData().azsNodes[i].priceCash     = azsNodes[i].priceCash;
-        getResponseData().azsNodes[i].priceCashless = azsNodes[i].priceCashless;
-        getResponseData().azsNodes[i].gasType       = azsNodes[i].gasType;
-        azsNodeWidgets[i].gasTypeLable->setText(convertGasTypeToString(azsNodes[i].gasType));
-
-        double priceCash = Price::convertPriceToDouble(azsNodes[i].priceCash);
-
-        if (configure.showSecondPrice)
-        {
-            double priceCashless = Price::convertPriceToDouble(azsNodes[i].priceCashless);
-
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("Налич: %1 Р/Л").arg(priceCash, 0, 'f', 2));
-            azsNodeWidgets[i].pricePerLitreLableCashless->setText(
-                QString("Безнал: %1 Р/Л").arg(priceCashless, 0, 'f', 2));
-        }
-        else
-        {
-            azsNodeWidgets[i].pricePerLitreLableCash->setText(QString("%1 Р/Л").arg(priceCash, 0, 'f', 2));
-        }
-    }
-}
-
-void MainWindow::setBalance(double inputBalanceCash, double inputBalanceCashless)
-{
-    balanceCash     = inputBalanceCash;
-    balanceCashless = inputBalanceCashless;
-    double price    = inputBalanceCash + inputBalanceCashless;
-    balanceLable->setText(QString("%1Р").arg(price, 0, 'f', 2));
-    AppSettings::instance().getSettings().sum = price;
-}
-
-void MainWindow::setCountOfLitres()
-{
-    for (int i = 0; i < countAzsNodeMax; ++i)
-    {
-        double priceCash     = Price::convertPriceToDouble(currentAzsNodes[i].priceCash);
-        double priceCashless = Price::convertPriceToDouble(currentAzsNodes[i].priceCashless);
-
-        double countFuelCash = (azsNodeWidgets[i].startBtn->isEnabled() && priceCash) ? balanceCash / priceCash : 0;
-        double countFuelCashless =
-            (azsNodeWidgets[i].startBtn->isEnabled() && priceCashless) ? balanceCashless / priceCashless : 0;
-
-        double countFuel = countFuelCash + countFuelCashless;
-        azsNodeWidgets[i].countLitresLable->setText(QString("%1 Л").arg(countFuel, 0, 'f', 2));
-    }
-}
-
-void MainWindow::setCountAzsNodes(bool isVisible)
-{
-    countAzsNode = isVisible ? 2 : 1;
-}
-
-void MainWindow::setVisibleSecondBtn(bool isVisible)
+void MainWindow::setVisibleSecondBtn(bool isVisible, bool showSecondPrice)
 {
     constexpr int index = 1;
     azsNodeWidgets[index].gasTypeLable->setVisible(isVisible);
@@ -323,135 +17,24 @@ void MainWindow::setVisibleSecondBtn(bool isVisible)
     azsNodeWidgets[index].startBtn->setVisible(isVisible);
     azsNodeWidgets[index].countLitresLable->setVisible(isVisible);
 
-    if (configure.showSecondPrice)
+    if (showSecondPrice)
     {
         azsNodeWidgets[index].pricePerLitreLableCashless->setVisible(isVisible);
     }
 }
 
-void MainWindow::closeServiceMenu()
+void MainWindow::setBalance(double balance)
 {
-    serviceMenuController.closeServiceMenu();
-}
-
-void MainWindow::updateStateOfBtn()
-{
-    using ClickedBtnState = ReceivedData::ClickedBtnState;
-    switch (getReceivedData().isClickedBtn)
-    {
-        case ClickedBtnState::ShowServiceMode:
-            showServiceMenu();
-            break;
-        case ClickedBtnState::CloseServiceMode:
-            closeServiceMenu();
-            break;
-        case ClickedBtnState::Button1Pressed:
-            clickedFirstHWBtn();
-            break;
-        case ClickedBtnState::Button2Pressed:
-            clickedSecondHWBtn();
-            break;
-        default:
-            break;
-    }
-}
-
-void MainWindow::readDataFromPort()
-{
-    QByteArray data = port->getData();
-    printLog(data);
-
-    ReceivedData* tmp = ReceivedData::getReceivedData(data);
-    if (!tmp)
-    {
-        printLog(QString("ReceivedData is invalid"));
-        return;
-    }
-
-    getReceivedData() = *tmp;
-    updateStateOfBtn();
-
-    setShowData(getReceivedData());
-    sendToPort(getResponseData().getQByteArray());
-    getResponseData().state = ResponseData::defaultVal;
+    balanceLable->setText(QString("%1Р").arg(balance, 0, 'f', 2));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
-    switch (event->key())
+    if (iKeyPressEvent)
     {
-        case Qt::Key_1:
-            showServiceMenu();
-            break;
-        case Qt::Key_2:
-            resetCounters();
-            break;
-        case Qt::Key_3:
-            receiptHistoryController.showDialog();
-            break;
-        case Qt::Key_Escape:
-            qApp->exit(0);
-            break;
-        default:
-            break;
+        iKeyPressEvent->keyPressEvent(event);
     }
     QWidget::keyPressEvent(event);
-}
-
-void MainWindow::setBtnFromServer(const AzsButton& azsButton)
-{
-    using State      = ResponseData::State;
-    using PriceState = AzsButton::PriceState;
-
-    constexpr size_t firstNodeId  = 0;
-    constexpr size_t secondNodeId = 1;
-
-    switch (azsButton.button)
-    {
-        case PriceState::updatePriceCashForFirstNode:
-            currentAzsNodes[firstNodeId].priceCash = azsButton.price;
-            break;
-        case PriceState::updatePriceCashForSecondNode:
-            currentAzsNodes[secondNodeId].priceCash = azsButton.price;
-            break;
-        case PriceState::updatePriceCashlessFirstNode:
-            currentAzsNodes[firstNodeId].priceCashless = azsButton.price;
-            break;
-        case PriceState::updatePriceCashlessSecondNode:
-            currentAzsNodes[secondNodeId].priceCashless = azsButton.price;
-            break;
-        case State::blockAzsNode:
-            [[fallthrough]];
-        case State::unblockAzsNode:
-            [[fallthrough]];
-        case State::isPressedServiceBtn1:
-            [[fallthrough]];
-        case State::isPressedServiceBtn2:
-            [[fallthrough]];
-        case State::isPressedServiceBtn3:
-            [[fallthrough]];
-        case State::resetCounters:
-            getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
-            break;
-        default:
-            return;
-    }
-    //TODO: to be refactored
-    if (azsButton.price)
-    {
-        setAzsNode(currentAzsNodes);
-        writeSettings();
-    }
-
-    if (State::blockAzsNode == azsButton.button)
-    {
-        disableAzs(true);
-    }
-
-    if (State::unblockAzsNode == azsButton.button)
-    {
-        disableAzs(false);
-    }
 }
 
 void MainWindow::disableAzs(bool disable)
@@ -461,29 +44,11 @@ void MainWindow::disableAzs(bool disable)
     temporarilyUnavailableWidget->setHidden(!disable);
 }
 
-void MainWindow::sendToServer()
+void MainWindow::createWidget(bool showSecondPrice)
 {
-    const AzsButton azsButton = getServerBtn();
-    if (azsButton.idAzs && azsButton.button)
-    {
-        setBtnFromServer(azsButton);
-        resetServerBtn();
-    }
-    sendReport();
-}
+    temporarilyUnavailableWidget = new TemporarilyUnavailableWidget("Терминал временно не работает", this);
+    temporarilyUnavailableWidget->hide();
 
-void MainWindow::getCounters()
-{
-    serviceMenuController.setupReportTable(getReceivedData());
-}
-
-void MainWindow::resetCounters()
-{
-    getResponseData().state = ResponseData::resetCounters;
-}
-
-void MainWindow::createWidget()
-{
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
         azsNodeWidgets[nodeId].gasTypeLable           = new LabelWidget(this);
@@ -493,7 +58,7 @@ void MainWindow::createWidget()
         azsNodeWidgets[nodeId].pricePerLitreLableCash->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
         azsNodeWidgets[nodeId].countLitresLable->setStyleSheet("color: #003EC9; font: 30px 'Arial Black';");
 
-        if (configure.showSecondPrice)
+        if (showSecondPrice)
         {
             azsNodeWidgets[nodeId].pricePerLitreLableCashless = new LabelWidget(this);
             azsNodeWidgets[nodeId].pricePerLitreLableCashless->setStyleSheet(
@@ -527,7 +92,7 @@ void MainWindow::createWidget()
         "background: #00000000 url(:/images/image/btn2_disable.png);"
         "}");
 
-    if (configure.showSecondPrice)
+    if (showSecondPrice)
     {
         indexWidget = 0;
         azsNodeWidgets[indexWidget].gasTypeLable->setGeometry(16, 604, 335, 36);
@@ -562,52 +127,66 @@ void MainWindow::createWidget()
     phoneOfSupportLable->setStyleSheet("color: #003EC9; font: 34px 'Arial Black';");
     phoneOfSupportLable->setAlignment(Qt::AlignCenter);
 
-    setAzsNode(currentAzsNodes);
-
-    setBalance(0, 0);
-    setCountOfLitres();
-
-    connect(&serviceMenuController, SIGNAL(setPrice()), this, SLOT(setupPrice()));
-    connect(&serviceMenuController, SIGNAL(readCounters()), this, SLOT(getCounters()));
-    connect(&serviceMenuController, SIGNAL(resetCounters()), this, SLOT(resetCounters()));
-    connect(&serviceMenuController, SIGNAL(showStatistics()), &receiptHistoryController, SLOT(showDialog()));
-    connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SLOT(startFirstAzsNode()));
-    connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SLOT(startSecondAzsNode()));
     QPixmap  bkgnd(":/images/image/background.png");
     QPalette palette;
     palette.setBrush(QPalette::Window, bkgnd);
     this->setPalette(palette);
+
+    connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SIGNAL(startFirstAzsNode()));
+    connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SIGNAL(startSecondAzsNode()));
 }
 
-void MainWindow::writeSettings()
+void MainWindow::setKeyPressEvent(IKeyPressEvent* newIKeyPressEvent)
 {
-    writeAzsNodeSettings(currentAzsNodes);
+    iKeyPressEvent = newIKeyPressEvent;
 }
 
-void MainWindow::readSettings()
+QString MainWindow::getSumStr() const
 {
-    currentAzsNodes = readAzsNodeSettings();
+    return balanceLable->text().replace("Р", "");
 }
 
-void MainWindow::setEnabledStart(const ReceivedData& showData)
+void MainWindow::setEnabledStartBtn(bool isEnabled, size_t nodeId)
 {
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
-    {
-        azsNodeWidgets[nodeId].startBtn->setEnabled(showData.getIsActiveBtn(nodeId));
-    }
+    azsNodeWidgets[nodeId].startBtn->setEnabled(isEnabled);
 }
 
-Receipt MainWindow::fillReceipt(int numOfAzsNode) const
+QString MainWindow::getCountLitresStr(size_t nodeId) const
 {
-    const int azsNodeIndex = numOfAzsNode - 1;
+    return azsNodeWidgets[nodeId].countLitresLable->text();
+}
 
-    Receipt receipt{};
+QString MainWindow::getGasTypeStr(size_t nodeId) const
+{
+    return azsNodeWidgets[nodeId].gasTypeLable->text();
+}
 
-    receipt.time         = static_cast<int>(QDateTime::currentSecsSinceEpoch());
-    receipt.date         = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm");
-    receipt.numOfAzsNode = numOfAzsNode;
-    receipt.gasType      = azsNodeWidgets[azsNodeIndex].gasTypeLable->text();
-    receipt.countLitres  = azsNodeWidgets[azsNodeIndex].countLitresLable->text();
-    receipt.sum          = balanceLable->text().replace("Р", "");
-    return receipt;
+void MainWindow::setGasType(QString gasType, size_t nodeId)
+{
+    azsNodeWidgets[nodeId].gasTypeLable->setText(gasType);
+}
+
+void MainWindow::setPricePerLitreLableCash(double priceCash, size_t nodeId)
+{
+    azsNodeWidgets[nodeId].pricePerLitreLableCash->setText(QString("Налич: %1 Р/Л").arg(priceCash, 0, 'f', 2));
+}
+
+void MainWindow::setPricePerLitreLableCashless(double price, size_t nodeId)
+{
+    azsNodeWidgets[nodeId].pricePerLitreLableCashless->setText(QString("Безнал: %1 Р/Л").arg(price, 0, 'f', 2));
+}
+
+void MainWindow::setPricePerLitreLable(double priceCash, size_t nodeId)
+{
+    azsNodeWidgets[nodeId].pricePerLitreLableCash->setText(QString("%1 Р/Л").arg(priceCash, 0, 'f', 2));
+}
+
+void MainWindow::setCountLitres(double countFuel, size_t nodeId)
+{
+    azsNodeWidgets[nodeId].countLitresLable->setText(QString("%1 Л").arg(countFuel, 0, 'f', 2));
+}
+
+bool MainWindow::isStartBtnEnabled(size_t nodeId)
+{
+    return azsNodeWidgets[nodeId].startBtn->isEnabled();
 }

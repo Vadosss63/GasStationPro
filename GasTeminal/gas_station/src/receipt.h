@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QFile>
 #include <QString>
 #include <optional>
 

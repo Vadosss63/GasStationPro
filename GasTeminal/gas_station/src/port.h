@@ -15,7 +15,7 @@ class Port : public QObject
     };
 
 public:
-    Port(QObject* parent = nullptr);
+    explicit Port(QObject* parent = nullptr);
     ~Port() override;
 
     void writeToPort(const QString& data);
@@ -24,7 +24,6 @@ public:
     QByteArray getData();
 
 signals:
-    void error_(QString err);
     void readyData();
 
 public slots:

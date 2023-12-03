@@ -2,17 +2,22 @@
 
 #include <iostream>
 
-void printLog(const QString& log)
+void printLogInf(const QString& log)
 {
     std::cout << log.toStdString() << std::endl;
 }
 
-void printLog(const QByteArray& data)
+void printLogInf(const QByteArray& data)
 {
     QString print;
     foreach(auto b, data)
     {
         print.append("0x" + QString::number(static_cast<uint8_t>(b), 16) + " ");
     }
-    printLog(print);
+    printLogInf(print);
+}
+
+void printLogErr(const QString& log)
+{
+    std::cerr << log.toStdString() << std::endl;
 }

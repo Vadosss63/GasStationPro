@@ -1,5 +1,7 @@
 #include "port.h"
 
+#include "logger.h"
+
 Port::Port(QObject* parent) : QObject(parent)
 {
     connect(&serialPort, SIGNAL(readyRead()), this, SLOT(readData()));
@@ -7,10 +9,7 @@ Port::Port(QObject* parent) : QObject(parent)
 
 Port::~Port()
 {
-    if (serialPort.isOpen())
-    {
-        serialPort.close();
-    }
+    disconnectPort();
 }
 
 void Port::writeToPort(const QByteArray& data)
@@ -69,7 +68,7 @@ void Port::readData()
 void Port::checkErrors()
 {
     QString errorMsg = "Error port: " + serialPort.errorString();
-    emit    error_(errorMsg);
+    printLogErr(errorMsg);
 }
 
 void Port::connectPort()
@@ -79,10 +78,10 @@ void Port::connectPort()
 
     if (!serialPort.open(QIODevice::ReadWrite))
     {
-        emit error_("No connect to port");
+        printLogErr("No connect to port");
         return;
     }
-    emit error_((settingsPort.name + " >> Open!\r"));
+    printLogInf((settingsPort.name + " >> Open!\r"));
 }
 
 void Port::disconnectPort()
@@ -90,6 +89,6 @@ void Port::disconnectPort()
     if (serialPort.isOpen())
     {
         serialPort.close();
-        emit error_(settingsPort.name.toLocal8Bit() + " >> Close!\r");
+        printLogInf(settingsPort.name.toLocal8Bit() + " >> Close!\r");
     }
 }

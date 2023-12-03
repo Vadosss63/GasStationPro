@@ -1,6 +1,6 @@
 #include <QApplication>
 
-#include "mainwindow.h"
+#include "mainwindowcontroller.h"
 
 void setQSS()
 {
@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindow w;
-    w.showFullScreen();
+    MainWindowController controller;
+    controller.showMainWindow();
     setQSS();
     return a.exec();
 }

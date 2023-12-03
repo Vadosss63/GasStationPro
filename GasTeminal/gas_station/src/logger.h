@@ -2,6 +2,8 @@
 
 #include <QString>
 
-void printLog(const QString& log);
+void printLogInf(const QString& log);
 
-void printLog(const QByteArray& data);
+void printLogInf(const QByteArray& data);
+
+void printLogErr(const QString& log);

@@ -29,6 +29,7 @@ SOURCES += \
     src/appsettings.cpp \
     src/azsnodesettings.cpp \
     src/configure.cpp \
+    src/controllers/mainwindowcontroller.cpp \
     src/controllers/receipthistorycontroller.cpp \
     src/controllers/servicemenucontroller.cpp \
     src/filesystemutilities.cpp \
@@ -45,9 +46,11 @@ SOURCES += \
     src/widgets/labelwidget.cpp
 
 HEADERS += \
+    src/IKeyPressEvent.h \
     src/appsettings.h \
     src/azsnodesettings.h \
     src/configure.h \
+    src/controllers/mainwindowcontroller.h \
     src/controllers/receipthistorycontroller.h \
     src/controllers/servicemenucontroller.h \
     src/dataprotocol.h \

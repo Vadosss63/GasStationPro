@@ -1,15 +1,10 @@
 #pragma once
 
-#include <QTimer>
+#include <QPushButton>
 
-#include "configure.h"
+#include "IKeyPressEvent.h"
 #include "dataprotocol.h"
 #include "labelwidget.h"
-#include "port.h"
-#include "receipt.h"
-#include "receipthistorycontroller.h"
-#include "receipthistorywindow.h"
-#include "servicemenucontroller.h"
 #include "temporarilyunavailablewidget.h"
 
 class MainWindow : public QWidget
@@ -29,87 +24,49 @@ public:
     MainWindow();
     ~MainWindow() override;
 
-public slots:
-    void showServiceMenu();
+    QString getSumStr() const;
+    QString getCountLitresStr(size_t nodeId) const;
+
+    QString getGasTypeStr(size_t nodeId) const;
+
+    void setGasType(QString gasType, size_t nodeId);
+
+    void setPricePerLitreLableCash(double priceCash, size_t nodeId);
+
+    void setSupportPhone(const QString& phone);
+
+    void createWidget(bool showSecondPrice);
+
+    void disableAzs(bool disable);
+
+    void setPricePerLitreLable(double priceCash, size_t nodeId);
+    void setPricePerLitreLableCashless(double price, size_t nodeId);
+
+    void setVisibleSecondBtn(bool isVisible, bool showSecondPrice);
+
+    void setBalance(double balance);
+
+    void setCountLitres(double countFuel, size_t nodeId);
+    bool isStartBtnEnabled(size_t nodeId);
+
+    void setKeyPressEvent(IKeyPressEvent* newIKeyPressEvent);
+
+    void setEnabledStartBtn(bool isEnabled, size_t nodeId);
+
+signals:
     void startFirstAzsNode();
     void startSecondAzsNode();
-    void setupPrice();
-
-    void readDataFromPort();
-
-    void getCounters();
-    void resetCounters();
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
 
-private slots:
-    void sendToServer();
-
 private:
-    void      sendReport();
-    bool      sendReceipt(const Receipt& receipt) const;
-    AzsButton getServerBtn() const;
-    bool      resetServerBtn() const;
-    void      setBtnFromServer(const AzsButton& azsButton);
-    void      disableAzs(bool disable);
-    void      createWidget();
-    void      writeSettings();
-    void      readSettings();
-    void      readConfig();
-    void      setupSecondPrice();
+    TemporarilyUnavailableWidget* temporarilyUnavailableWidget{nullptr};
 
-    bool isBalanceValid() const;
-
-    void clickedFirstHWBtn() const;
-    void clickedSecondHWBtn() const;
-    void updateStateOfBtn();
-    void closeServiceMenu();
-
-    ResponseData& getResponseData();
-    ReceivedData& getReceivedData();
-
-    void setShowData(const ReceivedData& data);
-
-    void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
-    void setBalance(double inputBalanceCash, double inputBalanceCashless);
-    void setCountOfLitres();
-
-    void setVisibleSecondBtn(bool isVisible);
-
-    void setEnabledStart(const ReceivedData& showData);
-
-    void    saveReceipt(int numOfAzsNode) const;
-    Receipt fillReceipt(int numOfAzsNode) const;
-    bool    sendReciptFromFile(const QString& fileReceipt) const;
-    void    sendReceiptFiles() const;
-
-    void sendToPort(const QString& data);
-    void sendToPort(const QByteArray& data);
-    void sendToPort(const std::string& data);
-    void setCountAzsNodes(bool isVisible);
-
-    ServiceMenuController    serviceMenuController;
-    ReceiptHistoryController receiptHistoryController;
-
-    TemporarilyUnavailableWidget* temporarilyUnavailableWidget;
+    IKeyPressEvent* iKeyPressEvent{nullptr};
 
     LabelWidget* balanceLable{nullptr};
     LabelWidget* phoneOfSupportLable{nullptr};
 
-    std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
-
     std::array<AzsNodeWidget, countAzsNodeMax> azsNodeWidgets{};
-
-    Configure configure{};
-
-    Port*   port{nullptr};
-    QTimer* timer;
-
-    double  balanceCashless{0};
-    double  balanceCash{0};
-    uint8_t countAzsNode{2};
-
-    ReceivedData receiveData{};
-    ResponseData sendData{};
 };
