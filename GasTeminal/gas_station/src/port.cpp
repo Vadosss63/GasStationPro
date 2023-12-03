@@ -1,9 +1,5 @@
 #include "port.h"
 
-#include <utility>
-
-#include <qdebug.h>
-
 Port::Port(QObject* parent) : QObject(parent)
 {
     connect(&serialPort, SIGNAL(readyRead()), this, SLOT(readData()));
@@ -55,7 +51,7 @@ QByteArray Port::getData()
     return d;
 }
 
-void Port::writeSettingsPort(const QString& name, int baudRate)
+void Port::setSettingsPort(const QString& name, int baudRate)
 {
     settingsPort.name     = name;
     settingsPort.baudRate = static_cast<QSerialPort::BaudRate>(baudRate);

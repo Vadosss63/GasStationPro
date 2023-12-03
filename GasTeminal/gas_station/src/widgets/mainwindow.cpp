@@ -20,12 +20,12 @@ MainWindow::MainWindow()
     setCountAzsNodes(configure.activeBtn2);
 
     port = new Port();
-    connect(port, SIGNAL(error_(QString)), this, SLOT(printLog(QString)));
+    //connect(port, &Port::error_, printLog);
     connect(port, SIGNAL(readyData()), this, SLOT(readDataFromPort()));
 
     /// TODO: linux
     /// grep -i 'tty' /var/log/dmesg
-    port->writeSettingsPort(QString(configure.comPort), configure.baudRate);
+    port->setSettingsPort(QString(configure.comPort), configure.baudRate);
     port->connectPort();
 
     serviceMenuController.createWindow(configure.showSecondPrice, countAzsNode);

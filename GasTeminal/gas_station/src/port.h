@@ -33,7 +33,7 @@ public slots:
 
     void disconnectPort();
 
-    void writeSettingsPort(const QString& name, int baudRate);
+    void setSettingsPort(const QString& name, int baudRate);
 
     void readData();
 
