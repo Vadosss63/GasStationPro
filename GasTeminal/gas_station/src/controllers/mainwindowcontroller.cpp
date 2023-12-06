@@ -8,7 +8,6 @@
 #include "appsettings.h"
 #include "azsnodesettings.h"
 #include "filesystemutilities.h"
-#include "httprequest.h"
 #include "logger.h"
 #include "price.h"
 
@@ -30,7 +29,8 @@ MainWindowController::MainWindowController(QObject* parent) : QObject(parent)
     setCountOfLitres();
 
     serviceMenuController.createWindow(configure.showSecondPrice, countAzsNode);
-
+    webServerController.setConfigure(configure);
+    webServerController.setAzsBtnHandler(this);
     setupSecondPrice();
 
     ReceivedData data{};
@@ -121,88 +121,6 @@ void MainWindowController::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void MainWindowController::setupSecondPrice()
-{
-    if (!configure.showSecondPrice)
-    {
-        currentAzsNodes[firstNodeId].priceCashless = 0;
-        currentAzsNodes[secondNodeId].priceCashless = 0;
-        setAzsNode(currentAzsNodes);
-        writeSettings();
-        setCountOfLitres();
-    }
-}
-
-void MainWindowController::setCountOfLitres()
-{
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
-    {
-        double priceCash     = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCash);
-        double priceCashless = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCashless);
-
-        bool isStartBtnEnabled = mainWindow.isStartBtnEnabled(nodeId);
-
-        double countFuelCash     = (isStartBtnEnabled && priceCash) ? (balanceCash / priceCash) : 0;
-        double countFuelCashless = (isStartBtnEnabled && priceCashless) ? (balanceCashless / priceCashless) : 0;
-
-        double countFuel = countFuelCash + countFuelCashless;
-
-        mainWindow.setCountLitres(countFuel, nodeId);
-    }
-}
-
-void MainWindowController::sendToServer()
-{
-    const AzsButton azsButton = getServerBtn();
-    if (azsButton.idAzs && azsButton.button)
-    {
-        setBtnFromServer(azsButton);
-        resetServerBtn();
-    }
-    sendReport();
-}
-
-void MainWindowController::writeSettings()
-{
-    writeAzsNodeSettings(currentAzsNodes);
-}
-
-void MainWindowController::readSettings()
-{
-    currentAzsNodes = readAzsNodeSettings();
-}
-
-void MainWindowController::sendReport()
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("name", configure.name);
-    params.addQueryItem("address", configure.address);
-    params.addQueryItem("token", configure.token);
-    params.addQueryItem("count_colum", QString("%1").arg((int)(countAzsNode)));
-    params.addQueryItem("is_second_price", QString("%1").arg((int)(configure.showSecondPrice)));
-
-    ReceivedData receivedData = getReceivedData();
-
-    params.addQueryItem("stats", receivedData.getJsonReport(countAzsNode, getResponseData().azsNodes));
-    QString res = sendPost(configure.host + "/azs_stats", params).msg;
-    printLogInf(res);
-}
-
-bool MainWindowController::resetServerBtn() const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-
-    Answer answer = sendPost(configure.host + "/reset_azs_button", params);
-    if (!answer.isOk)
-    {
-        printLogErr(answer.msg);
-    }
-    return answer.isOk;
-}
-
 void MainWindowController::setBtnFromServer(const AzsButton& azsButton)
 {
     using State      = ResponseData::State;
@@ -256,6 +174,46 @@ void MainWindowController::setBtnFromServer(const AzsButton& azsButton)
     }
 }
 
+void MainWindowController::setupSecondPrice()
+{
+    if (!configure.showSecondPrice)
+    {
+        currentAzsNodes[firstNodeId].priceCashless  = 0;
+        currentAzsNodes[secondNodeId].priceCashless = 0;
+        setAzsNode(currentAzsNodes);
+        writeSettings();
+        setCountOfLitres();
+    }
+}
+
+void MainWindowController::setCountOfLitres()
+{
+    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    {
+        double priceCash     = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCash);
+        double priceCashless = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCashless);
+
+        bool isStartBtnEnabled = mainWindow.isStartBtnEnabled(nodeId);
+
+        double countFuelCash     = (isStartBtnEnabled && priceCash) ? (balanceCash / priceCash) : 0;
+        double countFuelCashless = (isStartBtnEnabled && priceCashless) ? (balanceCashless / priceCashless) : 0;
+
+        double countFuel = countFuelCash + countFuelCashless;
+
+        mainWindow.setCountLitres(countFuel, nodeId);
+    }
+}
+
+void MainWindowController::writeSettings()
+{
+    writeAzsNodeSettings(currentAzsNodes);
+}
+
+void MainWindowController::readSettings()
+{
+    currentAzsNodes = readAzsNodeSettings();
+}
+
 void MainWindowController::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
 {
     currentAzsNodes = azsNodes;
@@ -285,23 +243,6 @@ void MainWindowController::setAzsNode(const std::array<ResponseData::AzsNode, co
     }
 }
 
-AzsButton MainWindowController::getServerBtn() const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-    Answer    answer = sendPost(configure.host + "/get_azs_button", params);
-    AzsButton azsButton;
-    if (!answer.isOk)
-    {
-        printLogErr(answer.msg);
-        return azsButton;
-    }
-    azsButton.readAzsButton(answer.msg);
-
-    return azsButton;
-}
-
 void MainWindowController::setEnabledStart(const ReceivedData& showData)
 {
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
@@ -326,18 +267,6 @@ void MainWindowController::readConfig()
 void MainWindowController::setCountAzsNodes(bool isVisible)
 {
     countAzsNode = isVisible ? 2 : 1;
-}
-
-bool MainWindowController::sendReceipt(const Receipt& receipt) const
-{
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-    params.addQueryItem("receipt", receipt.getReceiptJson());
-    Answer answer = sendPost(configure.host + "/azs_receipt", params);
-    printLogInf(answer.msg);
-
-    return answer.isOk;
 }
 
 Receipt MainWindowController::fillReceipt(int numOfAzsNode) const
@@ -373,6 +302,14 @@ void MainWindowController::readDataFromPort()
     setShowData(getReceivedData());
     sendToPort(getResponseData().getQByteArray());
     getResponseData().state = ResponseData::defaultVal;
+}
+
+void MainWindowController::sendToServer()
+{
+    ReceivedData receivedData = getReceivedData();
+    QString      statistics   = receivedData.getJsonReport(countAzsNode, getResponseData().azsNodes);
+
+    webServerController.sendToServer(statistics);
 }
 
 void MainWindowController::updateStateOfBtn()
@@ -434,40 +371,9 @@ void MainWindowController::resetCounters()
     getResponseData().state = ResponseData::resetCounters;
 }
 
-void MainWindowController::sendReceiptFiles() const
-{
-    const QString     folderName      = AppSettings::instance().getReceiptFolderName();
-    const QStringList listReciptFiles = getListReciptFiles();
-
-    for (const QString& fileName : listReciptFiles)
-    {
-        const QString fileReceiptPath{folderName + fileName};
-        if (!sendReciptFromFile(fileReceiptPath))
-        {
-            printLogErr(QString("Failed to send receipt from file"));
-            return;
-        }
-
-        removeFile(fileReceiptPath);
-    }
-}
-
-bool MainWindowController::sendReciptFromFile(const QString& fileReceiptPath) const
-{
-    std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
-
-    if (!receipt.has_value())
-    {
-        removeFile(fileReceiptPath);
-        return false;
-    }
-
-    return sendReceipt(receipt.value());
-}
-
 void MainWindowController::saveReceipt(int numOfAzsNode) const
 {
-    sendReceiptFiles();
+    webServerController.sendReceiptFiles();
 
     if (!isBalanceValid())
     {
@@ -478,7 +384,7 @@ void MainWindowController::saveReceipt(int numOfAzsNode) const
 
     AppSettings::instance().addTextToLogFile(receipt.getReceipt());
 
-    if (!sendReceipt(receipt))
+    if (!webServerController.sendReceipt(receipt))
     {
         writeReceiptToFile(receipt);
     }

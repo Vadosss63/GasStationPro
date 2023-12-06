@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QTimer>
 
+#include "AzsButtonHandler.h"
 #include "IKeyPressEvent.h"
 #include "configure.h"
 #include "dataprotocol.h"
@@ -11,8 +12,9 @@
 #include "receipt.h"
 #include "receipthistorycontroller.h"
 #include "servicemenucontroller.h"
+#include "webservercontroller.h"
 
-class MainWindowController : public QObject, IKeyPressEvent
+class MainWindowController : public QObject, IKeyPressEvent, AzsBtnHandler
 {
     Q_OBJECT
 public:
@@ -22,6 +24,7 @@ public:
     void showMainWindow();
 
     void keyPressEvent(QKeyEvent* event) override;
+    void setBtnFromServer(const AzsButton& azsButton) override;
 
 public slots:
     void startFirstAzsNode();
@@ -57,25 +60,12 @@ private:
 
     void setCountAzsNodes(bool isVisible);
 
-    bool sendReceipt(const Receipt& receipt) const;
-
     void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
 
     void writeSettings();
     void readSettings();
 
     void readConfig();
-
-    void      sendReport();
-    AzsButton getServerBtn() const;
-
-    void setBtnFromServer(const AzsButton& azsButton);
-
-    bool resetServerBtn() const;
-
-    void sendReceiptFiles() const;
-
-    bool sendReciptFromFile(const QString& fileReceipt) const;
 
     void setupSecondPrice();
     void setCountOfLitres();
@@ -105,8 +95,8 @@ private:
 
     ServiceMenuController    serviceMenuController;
     ReceiptHistoryController receiptHistoryController;
+    WebServerController      webServerController;
 
     static constexpr size_t firstNodeId  = 0;
     static constexpr size_t secondNodeId = 1;
-
 };

@@ -25,13 +25,18 @@ DEPENDPATH += $$PWD/src/widgets/
 INCLUDEPATH += $$PWD/src/controllers/
 DEPENDPATH += $$PWD/src/controllers/
 
+INCLUDEPATH += $$PWD/src/interfaces/
+DEPENDPATH += $$PWD/src/interfaces/
+
 SOURCES += \
     src/appsettings.cpp \
     src/azsnodesettings.cpp \
     src/configure.cpp \
+    src/controllers/comportcontroller.cpp \
     src/controllers/mainwindowcontroller.cpp \
     src/controllers/receipthistorycontroller.cpp \
     src/controllers/servicemenucontroller.cpp \
+    src/controllers/webservercontroller.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
     src/logger.cpp \
@@ -46,13 +51,16 @@ SOURCES += \
     src/widgets/labelwidget.cpp
 
 HEADERS += \
-    src/IKeyPressEvent.h \
+    src/interfaces/AzsButtonHandler.h \
+    src/interfaces/IKeyPressEvent.h \
     src/appsettings.h \
     src/azsnodesettings.h \
     src/configure.h \
+    src/controllers/comportcontroller.h \
     src/controllers/mainwindowcontroller.h \
     src/controllers/receipthistorycontroller.h \
     src/controllers/servicemenucontroller.h \
+    src/controllers/webservercontroller.h \
     src/dataprotocol.h \
     src/filesystemutilities.h \
     src/httprequest.h \
