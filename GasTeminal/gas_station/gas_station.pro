@@ -44,6 +44,7 @@ SOURCES += \
     src/port.cpp \
     src/price.cpp \
     src/receipt.cpp \
+    src/tazs.cpp \
     src/widgets/mainwindow.cpp \
     src/widgets/receipthistorywindow.cpp \
     src/widgets/servicemenuwindow.cpp \
@@ -68,6 +69,7 @@ HEADERS += \
     src/port.h \
     src/price.h \
     src/receipt.h \
+    src/tazs.h \
     src/widgets/mainwindow.h \
     src/widgets/receipthistorywindow.h \
     src/widgets/servicemenuwindow.h \

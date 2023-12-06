@@ -1,6 +1,6 @@
 #include <QApplication>
 
-#include "mainwindowcontroller.h"
+#include "tazs.h"
 
 void setQSS()
 {
@@ -14,8 +14,10 @@ int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindowController controller;
-    controller.showMainWindow();
+    Tazs tAzs;
+
+    tAzs.run();
+
     setQSS();
     return a.exec();
 }
