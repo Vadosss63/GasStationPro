@@ -2,8 +2,8 @@ QT       += core gui network
 QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++1Z
-QMAKE_CXXFLAGS += -std=c++1z
+CONFIG += c++17
+QMAKE_CXXFLAGS += -std=c++17
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -35,10 +35,12 @@ SOURCES += \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
     src/logger.cpp \
+    src/logging.cpp \
     src/main.cpp \
     src/port.cpp \
     src/price.cpp \
     src/receipt.cpp \
+    src/utilities.cpp \
     src/widgets/mainwindow.cpp \
     src/widgets/receipthistorywindow.cpp \
     src/widgets/servicemenuwindow.cpp \
@@ -57,9 +59,12 @@ HEADERS += \
     src/filesystemutilities.h \
     src/httprequest.h \
     src/logger.h \
+    src/logger_defs.h \
+    src/logging.h \
     src/port.h \
     src/price.h \
     src/receipt.h \
+    src/utilities.h \
     src/widgets/mainwindow.h \
     src/widgets/receipthistorywindow.h \
     src/widgets/servicemenuwindow.h \

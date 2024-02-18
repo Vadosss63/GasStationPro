@@ -9,7 +9,7 @@
 #include "azsnodesettings.h"
 #include "filesystemutilities.h"
 #include "httprequest.h"
-#include "logger.h"
+#include "logging.h"
 #include "price.h"
 
 MainWindowController::MainWindowController(QObject* parent) : QObject(parent)
@@ -125,7 +125,7 @@ void MainWindowController::setupSecondPrice()
 {
     if (!configure.showSecondPrice)
     {
-        currentAzsNodes[firstNodeId].priceCashless = 0;
+        currentAzsNodes[firstNodeId].priceCashless  = 0;
         currentAzsNodes[secondNodeId].priceCashless = 0;
         setAzsNode(currentAzsNodes);
         writeSettings();

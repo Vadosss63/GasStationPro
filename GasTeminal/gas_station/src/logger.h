@@ -1,9 +1,36 @@
 #pragma once
 
+#include <QIODevice>
 #include <QString>
+#include <memory>
 
-void printLogInf(const QString& log);
+#include "logger_defs.h"
 
-void printLogInf(const QByteArray& data);
+class Logger
+{
+public:
+    Logger(const QString& logDir,
+           const QString& fileNamePrefix,
+           qint64         maxLogFileSize,
+           qint64         maxLogFiles,
+           LogLevel       initLogLevel);
 
-void printLogErr(const QString& log);
+    Logger(const Logger&)            = delete;
+    Logger(Logger&&)                 = delete;
+    Logger& operator=(const Logger&) = delete;
+    Logger& operator=(Logger&&)      = delete;
+    ~Logger()                        = default;
+
+    void writeLog(LogLevel logLevel, const QString& message, const QString& funcName = "");
+
+private:
+    void changeLogFile();
+    bool isLogFileValid();
+
+    QString                    logDirectory;
+    QString                    baseFileName;
+    qint64                     maxFileSize;
+    qint64                     maxFiles;
+    LogLevel                   initialLogLevel;
+    std::unique_ptr<QIODevice> logFileStream{};
+};

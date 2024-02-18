@@ -108,5 +108,4 @@ private:
 
     static constexpr size_t firstNodeId  = 0;
     static constexpr size_t secondNodeId = 1;
-
 };
