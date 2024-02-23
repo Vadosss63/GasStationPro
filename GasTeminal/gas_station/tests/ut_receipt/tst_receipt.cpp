@@ -35,7 +35,7 @@ std::unique_ptr<QIODevice> openFile(const QString& filePath, QIODevice::OpenMode
     return buffer;
 }
 
-bool createDir(const QString& dirPath)
+bool createDirIfNeeded(const QString& dirPath)
 {
     actualCreatedDir = dirPath;
     return true;

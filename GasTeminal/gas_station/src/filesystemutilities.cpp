@@ -12,13 +12,12 @@ std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mod
     return file;
 }
 
-bool createDir(const QString& dirPath)
+bool createDirIfNeeded(const QString& dirPath)
 {
-    QDir directory{dirPath};
-
+    QDir directory(dirPath);
     if (!directory.exists())
     {
-        return directory.mkdir(dirPath);
+        return QDir().mkpath(dirPath);
     }
 
     return true;
@@ -40,4 +39,32 @@ QStringList getDirectoryFileList(const QString& dirPath)
     }
 
     return directory.entryList(QDir::Files | QDir::NoSymLinks);
+}
+
+qint64 getFileSize(const QString& filePath)
+{
+    QFile file{filePath};
+    return file.size();
+}
+
+int getNumberOfFilesInDir(const QString& dirPath)
+{
+    return getDirectoryFileList(dirPath).size();
+}
+
+void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber)
+{
+    QDir directory{dirPath};
+    if (!directory.exists())
+    {
+        return;
+    }
+
+    const QFileInfoList fileList      = directory.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Time);
+    const QFileInfoList filesToRemove = fileList.mid(maxFileNumber);
+
+    for (const auto& file : filesToRemove)
+    {
+        QFile::remove(file.absoluteFilePath());
+    }
 }
