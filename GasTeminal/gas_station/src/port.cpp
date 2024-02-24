@@ -1,6 +1,6 @@
 #include "port.h"
 
-#include "logger.h"
+#include "logging.h"
 
 Port::Port(QObject* parent) : QObject(parent)
 {

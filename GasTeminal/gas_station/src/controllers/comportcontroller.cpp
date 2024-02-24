@@ -1,6 +1,6 @@
 #include "comportcontroller.h"
 
-#include "logger.h"
+#include "logging.h"
 
 ComPortController::ComPortController(const QString& comPort, int baudRate, QObject* parent) : QObject(parent)
 {

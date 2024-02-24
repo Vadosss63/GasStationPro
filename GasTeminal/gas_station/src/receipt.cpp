@@ -37,7 +37,7 @@ void writeReceiptToFile(const Receipt& receipt)
     const QString folderPath = AppSettings::instance().getReceiptFolderName();
     const QString filePath   = QString("%1%2.json").arg(folderPath).arg(receipt.time);
 
-    if (!createDir(folderPath))
+    if (!createDirIfNeeded(folderPath))
     {
         qDebug() << "Failed to create directory: " << folderPath;
         return;

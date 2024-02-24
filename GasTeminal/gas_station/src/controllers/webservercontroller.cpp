@@ -3,7 +3,7 @@
 #include "appsettings.h"
 #include "filesystemutilities.h"
 #include "httprequest.h"
-#include "logger.h"
+#include "logging.h"
 
 WebServerController::WebServerController(QObject* parent) : QObject(parent) {}
 
