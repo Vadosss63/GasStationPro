@@ -7,6 +7,8 @@
 #include <array>
 #include <stdint.h>
 
+#include "logging.h"
+
 constexpr uint8_t countAzsNodeMax = 2;
 
 constexpr char HEADER_DATA       = 0x7F;
@@ -255,7 +257,7 @@ struct AzsButton
 
         if (document.isNull())
         {
-            qDebug() << "Failed to parse JSON!";
+            LOG_ERROR("Failed to parse JSON!");
             return false;
         }
 
@@ -263,7 +265,7 @@ struct AzsButton
 
         if (object.isEmpty() || !object.contains("id_azs") || !object.contains("price") || !object.contains("button"))
         {
-            qDebug() << "Missing or invalid field(s)!";
+            LOG_ERROR("Missing or invalid field(s)!");
             return false;
         }
 

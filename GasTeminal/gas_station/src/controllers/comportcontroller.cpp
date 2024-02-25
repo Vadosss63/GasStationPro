@@ -18,7 +18,7 @@ void ComPortController::sendToPort(const QString& data)
 void ComPortController::sendToPort(const QByteArray& data)
 {
     port.writeToPort(data);
-    printLogInf(data);
+    LOG_INFO(convertToString(data));
 }
 
 void ComPortController::sendToPort(const std::string& data)
@@ -35,12 +35,12 @@ void ComPortController::sendResponse()
 void ComPortController::readDataFromPort()
 {
     QByteArray data = port.getData();
-    printLogInf(data);
+    LOG_INFO(convertToString(data));
 
     ReceivedData* tmp = ReceivedData::getReceivedData(data);
     if (!tmp)
     {
-        printLogInf(QString("ReceivedData is invalid"));
+        LOG_ERROR("ReceivedData is invalid");
         return;
     }
     getReceivedData() = *tmp;

@@ -67,8 +67,7 @@ void Port::readData()
 
 void Port::checkErrors()
 {
-    QString errorMsg = "Error port: " + serialPort.errorString();
-    printLogErr(errorMsg);
+    LOG_ERROR("Error port: " + serialPort.errorString());
 }
 
 void Port::connectPort()
@@ -78,10 +77,10 @@ void Port::connectPort()
 
     if (!serialPort.open(QIODevice::ReadWrite))
     {
-        printLogErr("No connect to port");
+        LOG_ERROR(QString("No connect to port:%1 baudRate%2").arg(settingsPort.name).arg(settingsPort.baudRate));
         return;
     }
-    printLogInf((settingsPort.name + " >> Open!\r"));
+    LOG_INFO(settingsPort.name + " >> open");
 }
 
 void Port::disconnectPort()
@@ -89,6 +88,6 @@ void Port::disconnectPort()
     if (serialPort.isOpen())
     {
         serialPort.close();
-        printLogInf(settingsPort.name.toLocal8Bit() + " >> Close!\r");
+        LOG_INFO(settingsPort.name.toLocal8Bit() + " >> close");
     }
 }

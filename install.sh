@@ -7,11 +7,11 @@ sudo usermod -a -G dialout $USER
 if [ -d ${install_dir} ]; then
 sudo systemctl --user stop gas_station.service
 sudo systemctl --user disable gas_station
-sudo rm -rf ${install_dir}
-sudo rm -rf ~/${working_irectory}
+sudo rm -rf ${install_dir}/gas_station
+sudo rm -rf ${install_dir}/gas_station.service
 fi
-sudo mkdir ${install_dir} 
-mkdir ~/${working_irectory}
+sudo mkdir -p ${install_dir} 
+mkdir -p ~/${working_irectory}
 
 #Build GasTeminal
 cd GasTeminal/gas_station
@@ -19,7 +19,9 @@ if [ -d build ]; then
 rm -rf build
 fi
 
-cp -r settings/* ~/.GasStationPro
+if [ ! -f ~/.GasStationPro/settings.json ]; then
+cp settings/settings.json ~/.GasStationPro/settings.json
+fi
 
 mkdir build
 cd build/

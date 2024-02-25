@@ -54,7 +54,7 @@ void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& 
     }
 
     const QString formatedMsg =
-        QString("%1 %2/%3: %4\n").arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message);
+        QString("%1 %2/%3: %4\n").arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message.trimmed());
     const std::string dataToWrite{formatedMsg.toStdString()};
 
     constexpr qint64 writeError{-1};

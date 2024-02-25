@@ -5,6 +5,7 @@
 
 #include "appsettings.h"
 #include "azsnodesettings.h"
+#include "logging.h"
 
 Tazs::Tazs(QObject* parent) : QObject{parent}
 {
@@ -23,7 +24,6 @@ Tazs::Tazs(QObject* parent) : QObject{parent}
     webServerController->setConfigure(configure);
     webServerController->setAzsBtnHandler(this);
 
-    //TODO:check
     setAzsNode(currentAzsNodes);
     setupSecondPrice();
 
@@ -68,7 +68,9 @@ void Tazs::readConfig()
     if (!readConfigure(filePath, conf))
     {
         std::unique_ptr<QErrorMessage> errorMessage = std::make_unique<QErrorMessage>();
-        errorMessage->showMessage("The settings.json contains invalid fields!");
+        constexpr auto                 errorMsg     = "The settings.json contains invalid fields!";
+        LOG_ERROR(errorMsg);
+        errorMessage->showMessage(errorMsg);
     }
     configure = conf;
 }
@@ -116,9 +118,10 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
             comPortController->getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
             break;
         default:
+            LOG_ERROR(QString("Press unknown btn: %1").arg(azsButton.button));
             return;
     }
-    //TODO: to be refactored
+
     if (azsButton.price)
     {
         setAzsNode(currentAzsNodes);
@@ -134,14 +137,18 @@ void Tazs::keyPressEvent(QKeyEvent* event)
     {
         case Qt::Key_1:
             showServiceMenu();
+            LOG_INFO("Pressed: show service mode");
             break;
         case Qt::Key_2:
             resetCounters();
+            LOG_INFO("Pressed: reset counters");
             break;
         case Qt::Key_3:
             receiptHistoryController->showDialog();
+            LOG_INFO("Pressed: history receipt");
             break;
         case Qt::Key_Escape:
+            LOG_INFO("Pressed: exit app");
             qApp->exit(0);
             break;
         default:
@@ -209,13 +216,11 @@ void Tazs::clickedSecondHWBtn() const
 
 void Tazs::startFirstAzsNode()
 {
-    clickedFirstHWBtn();
     comPortController->getResponseData().state = ResponseData::isPressedFirstBtn;
 }
 
 void Tazs::startSecondAzsNode()
 {
-    clickedSecondHWBtn();
     comPortController->getResponseData().state = ResponseData::isPressedSecondBtn;
 }
 
@@ -232,17 +237,23 @@ void Tazs::updateStateOfBtn()
     {
         case ClickedBtnState::ShowServiceMode:
             showServiceMenu();
+            LOG_INFO("Pressed: show service mode");
             break;
         case ClickedBtnState::CloseServiceMode:
             closeServiceMenu();
+            LOG_INFO("Pressed: close service mode");
             break;
         case ClickedBtnState::Button1Pressed:
             clickedFirstHWBtn();
+            LOG_INFO("Pressed: button 1");
             break;
         case ClickedBtnState::Button2Pressed:
             clickedSecondHWBtn();
+            LOG_INFO("Pressed: button 2");
             break;
         default:
+            LOG_ERROR(
+                QString("Pressed: unknown %1 button").arg((int)comPortController->getReceivedData().isClickedBtn));
             break;
     }
 }
@@ -268,6 +279,7 @@ void Tazs::saveReceipt(int numOfAzsNode) const
 
     if (!isBalanceValid())
     {
+        LOG_ERROR(QString("Balance is 0 for %1 azsNode").arg(numOfAzsNode));
         return;
     }
 
@@ -277,6 +289,7 @@ void Tazs::saveReceipt(int numOfAzsNode) const
 
     if (!webServerController->sendReceipt(receipt))
     {
+        LOG_WARNING(QString("Receipt:%1 isn't sent. It'll be written to file").arg(receipt.time));
         writeReceiptToFile(receipt);
     }
 }

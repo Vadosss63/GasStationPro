@@ -29,8 +29,9 @@ void WebServerController::sendReport(const QString& statistics)
     params.addQueryItem("is_second_price", QString("%1").arg((int)(configure.showSecondPrice)));
 
     params.addQueryItem("stats", statistics);
+    //LOG_INFO(QString("Sending report: %1").arg(params.toString()));
     QString res = sendPost(configure.host + "/azs_stats", params).msg;
-    printLogInf(res);
+    LOG_INFO(res);
 }
 
 bool WebServerController::resetServerBtn() const
@@ -42,7 +43,7 @@ bool WebServerController::resetServerBtn() const
     Answer answer = sendPost(configure.host + "/reset_azs_button", params);
     if (!answer.isOk)
     {
-        printLogErr(answer.msg);
+        LOG_ERROR(answer.msg);
     }
     return answer.isOk;
 }
@@ -62,10 +63,12 @@ AzsButton WebServerController::getServerBtn() const
     AzsButton azsButton;
     if (!answer.isOk)
     {
-        printLogErr(answer.msg);
+        LOG_ERROR(answer.msg);
         return azsButton;
     }
     azsButton.readAzsButton(answer.msg);
+
+    LOG_INFO(answer.msg);
 
     return azsButton;
 }
@@ -77,7 +80,7 @@ bool WebServerController::sendReceipt(const Receipt& receipt) const
     params.addQueryItem("token", configure.token);
     params.addQueryItem("receipt", receipt.getReceiptJson());
     Answer answer = sendPost(configure.host + "/azs_receipt", params);
-    printLogInf(answer.msg);
+    LOG_INFO(answer.msg);
 
     return answer.isOk;
 }
@@ -98,7 +101,7 @@ void WebServerController::sendReceiptFiles() const
         const QString fileReceiptPath{folderName + fileName};
         if (!sendReciptFromFile(fileReceiptPath))
         {
-            printLogErr(QString("Failed to send receipt from file"));
+            LOG_ERROR(QString("Failed to send %1 receipt from file").arg(fileName));
             return;
         }
 

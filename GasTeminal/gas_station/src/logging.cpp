@@ -22,15 +22,20 @@ void printLogInf(const QString& log)
 
 void printLogInf(const QByteArray& data)
 {
-    QString print{};
-    for (const auto byte : data)
-    {
-        print.append("0x" + QString::number(static_cast<uint8_t>(byte), 16) + " ");
-    }
-    printLogInf(print);
+    printLogInf(convertToString(data));
 }
 
 void printLogErr(const QString& log)
 {
     std::cerr << log.toStdString() << std::endl;
+}
+
+QString convertToString(const QByteArray& data)
+{
+    QString res{};
+    for (const auto byte : data)
+    {
+        res.append("0x" + QString::number(static_cast<uint8_t>(byte), 16) + " ");
+    }
+    return res;
 }
