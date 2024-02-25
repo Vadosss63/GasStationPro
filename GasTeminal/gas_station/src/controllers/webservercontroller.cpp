@@ -84,7 +84,8 @@ bool WebServerController::sendReceipt(const Receipt& receipt) const
 
 void WebServerController::setConfigure(const Configure& newConfigure)
 {
-    configure = newConfigure;
+    configure    = newConfigure;
+    countAzsNode = newConfigure.activeBtn2 ? 2 : 1;
 }
 
 void WebServerController::sendReceiptFiles() const
