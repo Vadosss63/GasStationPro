@@ -4,6 +4,7 @@
 #include "filesystemutilities.h"
 #include "httprequest.h"
 #include "logging.h"
+#include <assert.h> 
 
 WebServerController::WebServerController(QObject* parent) : QObject(parent) {}
 

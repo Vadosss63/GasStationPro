@@ -6,6 +6,7 @@
 #include <QNetworkRequest>
 #include <QUrl>
 #include <functional>
+#include <memory>
 
 Answer sendReq(const QString&                                                                          urlStr,
                std::function<std::unique_ptr<QNetworkReply>(QNetworkAccessManager&, QNetworkRequest&)> funcReq)

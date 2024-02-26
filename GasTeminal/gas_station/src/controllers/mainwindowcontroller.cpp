@@ -3,6 +3,7 @@
 #include <QErrorMessage>
 #include <QKeyEvent>
 #include <QUrlQuery>
+#include <QDateTime>
 
 #include "appsettings.h"
 #include "filesystemutilities.h"
