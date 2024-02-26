@@ -10,6 +10,8 @@ struct Receipt
     int     numOfAzsNode;
     QString gasType;
     QString countLitres;
+    double  cash;
+    double  cashless;
     QString sum;
 
     QString getReceipt() const;

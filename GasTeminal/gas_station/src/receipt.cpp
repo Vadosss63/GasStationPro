@@ -7,6 +7,19 @@
 
 #include "appsettings.h"
 #include "filesystemutilities.h"
+#include "logging.h"
+
+namespace
+{
+constexpr auto timeToken         = "time";
+constexpr auto dataToken         = "data";
+constexpr auto numOfAzsNodeToken = "num_azs_node";
+constexpr auto gasTypeToken      = "gas_type";
+constexpr auto countLitresToken  = "count_litres";
+constexpr auto cashToken         = "cash";
+constexpr auto cashlessToken     = "cashless";
+constexpr auto sumToken          = "sum";
+}
 
 QString Receipt::getReceipt() const
 {
@@ -14,18 +27,22 @@ QString Receipt::getReceipt() const
                    "Колонка: %2\n"
                    "Топливо: %3\n"
                    "Литры: %4\n"
-                   "Сумма: %5 руб")
+                   "Безнал: %5\n"
+                   "Налич: %6\n"
+                   "Сумма: %7 руб")
         .arg(date, QString::number(numOfAzsNode), gasType, countLitres, sum);
 }
 
 QString Receipt::getReceiptJson() const
 {
-    const QJsonObject receipt{{"time", time},
-                              {"data", date},
-                              {"num_azs_node", numOfAzsNode},
-                              {"gas_type", gasType},
-                              {"count_litres", countLitres},
-                              {"sum", sum}};
+    const QJsonObject receipt{{timeToken, time},
+                              {dataToken, date},
+                              {numOfAzsNodeToken, numOfAzsNode},
+                              {gasTypeToken, gasType},
+                              {countLitresToken, countLitres},
+                              {cashToken, cash},
+                              {cashlessToken, cashless},
+                              {sumToken, sum}};
 
     QString receiptJson = QString::fromUtf8(QJsonDocument(receipt).toJson());
 
@@ -39,14 +56,14 @@ void writeReceiptToFile(const Receipt& receipt)
 
     if (!createDirIfNeeded(folderPath))
     {
-        qDebug() << "Failed to create directory: " << folderPath;
+        LOG_ERROR("Failed to create directory: " + folderPath);
         return;
     }
 
     std::unique_ptr<QIODevice> fileReceipt = openFile(filePath, QIODevice::WriteOnly);
     if (!fileReceipt->isOpen())
     {
-        qDebug() << "Failed to write Receipt to json";
+        LOG_ERROR("Failed to write Receipt to json");
         return;
     }
 
@@ -61,7 +78,7 @@ std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
     std::unique_ptr<QIODevice> fileReceipt = openFile(fileReceiptPath, QIODevice::ReadOnly | QIODevice::Text);
     if (!fileReceipt->isOpen())
     {
-        qDebug() << "Can not open json file";
+        LOG_ERROR("Can not open json file");
         return std::nullopt;
     }
 
@@ -71,23 +88,26 @@ std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
     const QJsonDocument doc  = QJsonDocument::fromJson(jsonData.toUtf8());
     const QJsonObject   json = doc.object();
 
-    const QList<QString> requiredFields = {"time", "data", "num_azs_node", "gas_type", "count_litres", "sum"};
+    const QList<QString> requiredFields = {
+        timeToken, dataToken, numOfAzsNodeToken, gasTypeToken, countLitresToken, cashToken, cashlessToken, sumToken};
 
     for (const QString& field : requiredFields)
     {
         if (!json.contains(field))
         {
-            qDebug() << "Missing or invalid field in settings: " << field;
+            LOG_ERROR("Missing or invalid field in settings: " + field);
             return std::nullopt;
         }
     }
 
-    Receipt receipt{.time         = json["time"].toInt(),
-                    .date         = json["data"].toString(),
-                    .numOfAzsNode = json["num_azs_node"].toInt(),
-                    .gasType      = json["gas_type"].toString(),
-                    .countLitres  = json["count_litres"].toString(),
-                    .sum          = json["sum"].toString()
+    Receipt receipt{.time         = json[timeToken].toInt(),
+                    .date         = json[dataToken].toString(),
+                    .numOfAzsNode = json[numOfAzsNodeToken].toInt(),
+                    .gasType      = json[gasTypeToken].toString(),
+                    .countLitres  = json[countLitresToken].toString(),
+                    .cash         = json[cashToken].toDouble(),
+                    .cashless     = json[cashlessToken].toDouble(),
+                    .sum          = json[sumToken].toString()
 
     };
 

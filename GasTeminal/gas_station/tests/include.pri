@@ -2,3 +2,5 @@ SOURCE_PATH = $$PWD/../src/
 
 INCLUDEPATH += $${SOURCE_PATH}
 DEPENDPATH += $${SOURCE_PATH}
+
+SOURCES += ../logging.cpp

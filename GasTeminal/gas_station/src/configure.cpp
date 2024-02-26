@@ -6,13 +6,14 @@
 #include <QJsonObject>
 
 #include "filesystemutilities.h"
+#include "logging.h"
 
 bool readConfigure(const QString& fileName, Configure& configure)
 {
     std::unique_ptr<QIODevice> file = openFile(fileName, QIODevice::ReadOnly | QIODevice::Text);
     if (!file->isOpen())
     {
-        qDebug() << "Failed to open file!";
+        LOG_ERROR("Failed to open file!");
         return false;
     }
     QByteArray    jsonData = file->readAll();
@@ -21,7 +22,7 @@ bool readConfigure(const QString& fileName, Configure& configure)
 
     if (document.isNull())
     {
-        qDebug() << "Failed to parse JSON!";
+        LOG_ERROR("Failed to parse JSON!");
         return false;
     }
 
@@ -32,7 +33,7 @@ bool readConfigure(const QString& fileName, Configure& configure)
         !object.contains("ActiveBtn2") || !object.contains("ComPort") || !object.contains("BaudRate") ||
         !object.contains("ShowSecondPrice"))
     {
-        qDebug() << "Missing or invalid field(s) in settings!";
+        LOG_ERROR("Missing or invalid field(s) in settings!");
         return false;
     }
 

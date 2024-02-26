@@ -9,7 +9,7 @@ include(../include.pri)
 SOURCES +=  \
     tst_receipt.cpp \
     $${SOURCE_PATH}/receipt.cpp \
-    $${SOURCE_PATH}/appsettings.cpp \
+    $${SOURCE_PATH}/appsettings.cpp
 
 HEADERS += \
     $${SOURCE_PATH}/receipt.h \
