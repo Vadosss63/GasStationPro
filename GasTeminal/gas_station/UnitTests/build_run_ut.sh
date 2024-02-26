@@ -11,7 +11,7 @@ mkdir -p ${BUILD_DIR}
 qmake -o ${BUILD_DIR} -r ${SCRIPT_PATH}
 make -C ${BUILD_DIR} -j4
 
-${BUILD_DIR}/LoggerTest &> ${BUILD_DIR}/LoggerTestResults.txt
+${BUILD_DIR}/LoggerTest 2>&1 | tee ${BUILD_DIR}/LoggerTestResults.txt
 
 exit_code=$?
 

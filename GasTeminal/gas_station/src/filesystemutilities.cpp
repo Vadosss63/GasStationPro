@@ -23,6 +23,11 @@ bool createDirIfNeeded(const QString& dirPath)
     return true;
 }
 
+bool isDirectoryExist(const QString& dirPath)
+{
+    return QDir(dirPath).exists();
+}
+
 void removeFile(const QString& filePath)
 {
     QFile file{filePath};
@@ -54,7 +59,7 @@ int getNumberOfFilesInDir(const QString& dirPath)
 
 void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber)
 {
-    QDir directory{dirPath};
+    const QDir directory{dirPath};
     if (!directory.exists())
     {
         return;
@@ -67,4 +72,23 @@ void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber)
     {
         QFile::remove(file.absoluteFilePath());
     }
+}
+
+std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode)
+{
+    const QDir directory{dirPath};
+    if (!directory.exists())
+    {
+        return {};
+    }
+
+    const QFileInfoList fileList = directory.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Time);
+    if (fileList.isEmpty())
+    {
+        return {};
+    }
+
+    const QFileInfo lastFile = fileList.first();
+
+    return openFile(lastFile.absoluteFilePath(), mode);
 }
