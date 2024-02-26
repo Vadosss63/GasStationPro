@@ -26,6 +26,7 @@ public:
 private:
     void changeLogFile();
     bool isLogFileValid();
+    bool tryToOpenLatestLogFile();
 
     QString                    logDirectory;
     QString                    baseFileName;

@@ -42,10 +42,17 @@ public:
 
 bool createDirIfNeeded(const QString& dirPath)
 {
-    const std::string dirPathStd = dirPath.toStdString();
     return mock("filesystemutilities")
         .actualCall("createDirIfNeeded")
-        .withStringParameter("dirPath", dirPathStd.c_str())
+        .withStringParameter("dirPath", dirPath.toStdString().c_str())
+        .returnBoolValueOrDefault(true);
+}
+
+bool isDirectoryExist(const QString& dirPath)
+{
+    return mock("filesystemutilities")
+        .actualCall("isDirectoryExist")
+        .withStringParameter("dirPath", dirPath.toStdString().c_str())
         .returnBoolValueOrDefault(true);
 }
 
@@ -54,6 +61,18 @@ std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mod
     mock("filesystemutilities")
         .actualCall("openFile")
         .withStringParameter("dirPath", path.toStdString().c_str())
+        .withParameter("OpenMode", mode);
+
+    auto device = std::make_unique<MockFileDevice>();
+    device->setMode(mode);
+    return device;
+}
+
+std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode)
+{
+    mock("filesystemutilities")
+        .actualCall("tryToOpenLatestFileInDir")
+        .withStringParameter("dirPath", dirPath.toStdString().c_str())
         .withParameter("OpenMode", mode);
 
     auto device = std::make_unique<MockFileDevice>();
@@ -101,6 +120,14 @@ protected:
             .andReturnValue(retValue);
     }
 
+    static void expectIsDirectoryExist(const std::string& expectedDirPath, bool retValue = true)
+    {
+        mock("filesystemutilities")
+            .expectOneCall("isDirectoryExist")
+            .withStringParameter("dirPath", expectedDirPath.c_str())
+            .andReturnValue(retValue);
+    }
+
     static void expectRemoveOlderFilesInDir(const std::string& expectedDirPath, qint64 expectedMaxFileNumber)
     {
         mock("filesystemutilities")
@@ -135,6 +162,14 @@ protected:
             .withStringParameter("dirPath", expectedPath.c_str())
             .withParameter("OpenMode", expectedMmode);
     }
+
+    static void expectTryToOpenLatestFileInDir(const std::string& expectedPath, QIODevice::OpenMode expectedMmode)
+    {
+        mock("filesystemutilities")
+            .expectOneCall("tryToOpenLatestFileInDir")
+            .withStringParameter("dirPath", expectedPath.c_str())
+            .withParameter("OpenMode", expectedMmode);
+    }
 };
 
 TEST (LoggerTest, FailedToCreateDir)
@@ -145,6 +180,7 @@ TEST (LoggerTest, FailedToCreateDir)
     constexpr qint64  maxLogFiles{1};
     const std::string expectedLogDir{"111"};
 
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, false);
 
     Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
@@ -160,6 +196,7 @@ TEST (LoggerTest, FilesLessThenMaxInDIr)
     const std::string     expectedLogDir{"./dir/log/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/log/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -178,6 +215,7 @@ TEST (LoggerTest, FilesMoreThenMaxInDIr)
     const std::string     expectedLogDir{"./logs/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./logs/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -197,6 +235,7 @@ TEST (LoggerTest, WriteLog)
     const std::string     expectedLogDir{"./dir/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -222,6 +261,7 @@ TEST (LoggerTest, WriteLogExpectChangeFile)
     const std::string     expectedLogDir{"./dir/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -256,6 +296,7 @@ TEST (LoggerTest, setInfoPrinDifferentLevels)
     const std::string     expectedLogDir{"./dir/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -299,6 +340,7 @@ TEST (LoggerTest, setWrnPrinDifferentLevels)
     const std::string     expectedLogDir{"./dir/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -337,6 +379,7 @@ TEST (LoggerTest, setErrPrinDifferentLevels)
     const std::string     expectedLogDir{"./dir/"};
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./dir/AZS_1980-12-31_13:42:11.log"};
+    expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
@@ -351,6 +394,51 @@ TEST (LoggerTest, setErrPrinDifferentLevels)
     logger.writeLog(LogLevel::WARNING, printMsg);
 
     const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/main: Print Message\n"};
+    expectSize(15);
+    expectGetCurrentTimestamp(expectedTimestamp);
+    expectWriteData(expectedErrLogToWrite, 1);
+
+    logger.writeLog(LogLevel::ERROR, printMsg, "main");
+}
+
+TEST (LoggerTest, OpenExistedFileOnStartup)
+{
+    const QString     logDir{"111"};
+    const QString     filePref{"AZS"};
+    constexpr qint64  maxLogSize{202};
+    constexpr qint64  maxLogFiles{1};
+    const std::string expectedLogDir{"111"};
+
+    expectIsDirectoryExist(expectedLogDir, true);
+    expectTryToOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
+    expectSize(35);
+
+    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+}
+
+TEST (LoggerTest, OpenExistedFileOnStartupSizeMoreThenMax)
+{
+    const QString     logDir{"./111/"};
+    const QString     filePref{"prefix"};
+    constexpr qint64  maxLogSize{202};
+    constexpr qint64  maxLogFiles{2};
+    const std::string expectedLogDir{"./111/"};
+
+    expectIsDirectoryExist(expectedLogDir, true);
+    expectTryToOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
+    expectSize(300);
+    constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
+    const std::string     expectedFilePath{"./111/prefix_1980-12-31_13:42:11.log"};
+    expectCreateDirIfNeeded(expectedLogDir, true);
+    expectGetCurrentTimestamp(expectedTimestamp);
+    expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
+    expectGetNumberOfFilesInDir(expectedLogDir, 15);
+    expectRemoveOlderFilesInDir(expectedLogDir, 2);
+
+    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+
+    const QString    printMsg{"1234 Message"};
+    const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/main: 1234 Message\n"};
     expectSize(15);
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedErrLogToWrite, 1);

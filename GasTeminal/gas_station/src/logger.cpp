@@ -39,7 +39,10 @@ Logger::Logger(const QString& logDir,
 {
     assert(maxLogFileSize && "Maximum log file size could not be equal to zero");
     assert(maxLogFiles && "Maximum log files could not be equal to zero");
-    changeLogFile();
+    if (!tryToOpenLatestLogFile())
+    {
+        changeLogFile();
+    }
 }
 
 void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& funcName)
@@ -110,4 +113,15 @@ bool Logger::isLogFileValid()
     }
 
     return true;
+}
+
+bool Logger::tryToOpenLatestLogFile()
+{
+    if (!isDirectoryExist(logDirectory))
+    {
+        return false;
+    }
+
+    logFileStream = tryToOpenLatestFileInDir(logDirectory, QIODevice::WriteOnly | QIODevice::Append);
+    return logFileStream ? isLogFileValid() : false;
 }
