@@ -1,7 +1,7 @@
 #include "logger.h"
 
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 
 #include "filesystemutilities.h"
 #include "utilities.h"

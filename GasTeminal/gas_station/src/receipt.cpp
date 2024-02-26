@@ -1,6 +1,5 @@
 #include "receipt.h"
 
-#include <QDebug>
 #include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -30,7 +29,13 @@ QString Receipt::getReceipt() const
                    "Безнал: %5\n"
                    "Налич: %6\n"
                    "Сумма: %7 руб")
-        .arg(date, QString::number(numOfAzsNode), gasType, countLitres, sum);
+        .arg(date,
+             QString::number(numOfAzsNode),
+             gasType,
+             countLitres,
+             QString::number(cashless, 'f', 2),
+             QString::number(cash, 'f', 2),
+             sum);
 }
 
 QString Receipt::getReceiptJson() const

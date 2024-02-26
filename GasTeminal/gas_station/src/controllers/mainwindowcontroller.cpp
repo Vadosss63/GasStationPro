@@ -1,9 +1,9 @@
 #include "mainwindowcontroller.h"
 
+#include <QDateTime>
 #include <QErrorMessage>
 #include <QKeyEvent>
 #include <QUrlQuery>
-#include <QDateTime>
 
 #include "appsettings.h"
 #include "filesystemutilities.h"
@@ -123,6 +123,8 @@ Receipt MainWindowController::fillReceipt(int numOfAzsNode) const
     receipt.numOfAzsNode = numOfAzsNode;
     receipt.gasType      = mainWindow.getGasTypeStr(azsNodeIndex);
     receipt.countLitres  = mainWindow.getCountLitresStr(azsNodeIndex);
+    receipt.cash         = balanceCash;
+    receipt.cashless     = balanceCashless;
     receipt.sum          = mainWindow.getSumStr();
     return receipt;
 }
