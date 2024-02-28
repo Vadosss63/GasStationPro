@@ -17,17 +17,16 @@ constexpr auto tokenToken           = "Token";
 constexpr auto hostToken            = "Host";
 constexpr auto phoneOfSupportToken  = "PhoneOfSupport";
 constexpr auto activeBtn2Token      = "ActiveBtn2";
-constexpr auto token                = "ComPort";
-constexpr auto comPortToken         = "BaudRate";
+constexpr auto comPortToken         = "ComPort";
+constexpr auto baudRateToken        = "BaudRate";
 constexpr auto showSecondPriceToken = "ShowSecondPrice";
 }
 
 std::optional<Configure> readConfigure(const QString& fileName)
 {
     std::unique_ptr<QIODevice> file = openFile(fileName, QIODevice::ReadOnly | QIODevice::Text);
-    if (!file->isOpen())
+    if (!file)
     {
-        LOG_ERROR("Failed to open file!");
         return std::nullopt;
     }
     QByteArray    jsonData = file->readAll();
@@ -49,8 +48,8 @@ std::optional<Configure> readConfigure(const QString& fileName)
                                            hostToken,
                                            phoneOfSupportToken,
                                            activeBtn2Token,
-                                           token,
                                            comPortToken,
+                                           baudRateToken,
                                            showSecondPriceToken};
 
     for (const QString& field : requiredFields)
@@ -68,8 +67,8 @@ std::optional<Configure> readConfigure(const QString& fileName)
                         .host            = json[hostToken].toString(),
                         .phoneOfSupport  = json[phoneOfSupportToken].toString(),
                         .activeBtn2      = json[activeBtn2Token].toInt(),
-                        .comPort         = json[token].toString(),
-                        .baudRate        = json[comPortToken].toInt(),
+                        .comPort         = json[comPortToken].toString(),
+                        .baudRate        = json[baudRateToken].toInt(),
                         .showSecondPrice = json[showSecondPriceToken].toInt()};
 
     return configure;
