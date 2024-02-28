@@ -66,7 +66,7 @@ void writeReceiptToFile(const Receipt& receipt)
     }
 
     std::unique_ptr<QIODevice> fileReceipt = openFile(filePath, QIODevice::WriteOnly);
-    if (!fileReceipt->isOpen())
+    if (!fileReceipt)
     {
         LOG_ERROR("Failed to write Receipt to json");
         return;
@@ -81,7 +81,7 @@ void writeReceiptToFile(const Receipt& receipt)
 std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
 {
     std::unique_ptr<QIODevice> fileReceipt = openFile(fileReceiptPath, QIODevice::ReadOnly | QIODevice::Text);
-    if (!fileReceipt->isOpen())
+    if (!fileReceipt)
     {
         LOG_ERROR("Can not open json file");
         return std::nullopt;

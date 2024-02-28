@@ -81,7 +81,7 @@ void Logger::changeLogFile()
 
     logFileStream = openFile(newLogFile, QIODevice::WriteOnly);
 
-    if (!logFileStream->isOpen())
+    if (!logFileStream)
     {
         std::cerr << logFileStream->errorString().toStdString() << std::endl;
         return;

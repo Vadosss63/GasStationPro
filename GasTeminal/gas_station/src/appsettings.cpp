@@ -27,7 +27,7 @@ AppSettings::Settings& AppSettings::getSettings()
 QStringList AppSettings::readLogFile()
 {
     std::unique_ptr<QIODevice> file = openFile(logsName, QIODevice::ReadOnly);
-    if (!file->isOpen())
+    if (!file)
     {
         return QStringList();
     }
@@ -40,7 +40,7 @@ void AppSettings::addTextToLogFile(const QString& text)
 {
     std::unique_ptr<QIODevice> file = openFile(logsName, QIODevice::Append | QIODevice::Text);
 
-    if (!file->isOpen())
+    if (!file)
     {
         return;
     }
