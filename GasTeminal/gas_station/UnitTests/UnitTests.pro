@@ -1,6 +1,7 @@
 TEMPLATE = app
 TARGET = LoggerTest
 
+QMAKE_CXXFLAGS += -Wall -std=c++17
 CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG += thread

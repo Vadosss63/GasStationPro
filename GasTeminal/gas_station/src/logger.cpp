@@ -83,7 +83,7 @@ void Logger::changeLogFile()
 
     if (!logFileStream)
     {
-        std::cerr << logFileStream->errorString().toStdString() << std::endl;
+        std::cerr << "Fail to open log file" << std::endl;
         return;
     }
 

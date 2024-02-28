@@ -2,7 +2,7 @@ QT -= gui
 QT += network core
 
 CONFIG += c++17 console
-QMAKE_CXXFLAGS += -std=c++17
+QMAKE_CXXFLAGS += -std=c++17 -Wall
 
 SOURCES_PATH = $$PWD/../src
 
