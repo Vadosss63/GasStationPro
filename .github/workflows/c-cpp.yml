@@ -14,4 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Run UT
-      run: ./GasStationPro/GasTeminal/gas_station/UnitTests/build_run_ut.sh
+      run: ./GasTeminal/gas_station/UnitTests/build_run_ut.sh
