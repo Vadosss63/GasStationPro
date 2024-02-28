@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <optional>
 
 struct Configure
 {
@@ -16,4 +17,4 @@ struct Configure
     int     showSecondPrice = false;
 };
 
-bool readConfigure(const QString& fileName, Configure& settings);
+std::optional<Configure> readConfigure(const QString& fileName);

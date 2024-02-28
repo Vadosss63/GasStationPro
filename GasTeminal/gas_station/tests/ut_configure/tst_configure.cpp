@@ -48,9 +48,8 @@ private slots:
 private:
     void checkMissedParams()
     {
-        Configure conf;
-        bool      isOk = readConfigure("", conf);
-        QVERIFY(!isOk);
+        auto conf = readConfigure("");
+        QVERIFY(!conf);
     }
 };
 
@@ -70,9 +69,9 @@ void ConfigureTest::testParams()
     })";
     setTestBuf(fileContent);
 
-    Configure conf;
-    bool      isOk = readConfigure("", conf);
-    QVERIFY(isOk);
+    auto confOpt = readConfigure("");
+    QVERIFY(confOpt);
+    const Configure& conf = confOpt.value();
 
     QCOMPARE(conf.id, "10111920");
     QCOMPARE(conf.name, "Автозаправка-1");

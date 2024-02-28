@@ -8,13 +8,27 @@
 #include "filesystemutilities.h"
 #include "logging.h"
 
-bool readConfigure(const QString& fileName, Configure& configure)
+namespace
+{
+constexpr auto idToken              = "Id";
+constexpr auto nameToken            = "Name";
+constexpr auto addressToken         = "Address";
+constexpr auto tokenToken           = "Token";
+constexpr auto hostToken            = "Host";
+constexpr auto phoneOfSupportToken  = "PhoneOfSupport";
+constexpr auto activeBtn2Token      = "ActiveBtn2";
+constexpr auto token                = "ComPort";
+constexpr auto comPortToken         = "BaudRate";
+constexpr auto showSecondPriceToken = "ShowSecondPrice";
+}
+
+std::optional<Configure> readConfigure(const QString& fileName)
 {
     std::unique_ptr<QIODevice> file = openFile(fileName, QIODevice::ReadOnly | QIODevice::Text);
     if (!file->isOpen())
     {
         LOG_ERROR("Failed to open file!");
-        return false;
+        return std::nullopt;
     }
     QByteArray    jsonData = file->readAll();
     QJsonDocument document = QJsonDocument::fromJson(jsonData);
@@ -23,30 +37,40 @@ bool readConfigure(const QString& fileName, Configure& configure)
     if (document.isNull())
     {
         LOG_ERROR("Failed to parse JSON!");
-        return false;
+        return std::nullopt;
     }
 
-    QJsonObject object = document.object();
+    QJsonObject json = document.object();
 
-    if (object.isEmpty() || !object.contains("Id") || !object.contains("Name") || !object.contains("Address") ||
-        !object.contains("Token") || !object.contains("Host") || !object.contains("PhoneOfSupport") ||
-        !object.contains("ActiveBtn2") || !object.contains("ComPort") || !object.contains("BaudRate") ||
-        !object.contains("ShowSecondPrice"))
+    const QList<QString> requiredFields = {idToken,
+                                           nameToken,
+                                           addressToken,
+                                           tokenToken,
+                                           hostToken,
+                                           phoneOfSupportToken,
+                                           activeBtn2Token,
+                                           token,
+                                           comPortToken,
+                                           showSecondPriceToken};
+
+    for (const QString& field : requiredFields)
     {
-        LOG_ERROR("Missing or invalid field(s) in settings!");
-        return false;
+        if (!json.contains(field))
+        {
+            LOG_ERROR("Missing or invalid field in settings: " + field);
+            return std::nullopt;
+        }
     }
+    Configure configure{.id              = json[idToken].toString(),
+                        .name            = json[nameToken].toString(),
+                        .address         = json[addressToken].toString(),
+                        .token           = json[tokenToken].toString(),
+                        .host            = json[hostToken].toString(),
+                        .phoneOfSupport  = json[phoneOfSupportToken].toString(),
+                        .activeBtn2      = json[activeBtn2Token].toInt(),
+                        .comPort         = json[token].toString(),
+                        .baudRate        = json[comPortToken].toInt(),
+                        .showSecondPrice = json[showSecondPriceToken].toInt()};
 
-    configure.id              = object["Id"].toString();
-    configure.name            = object["Name"].toString();
-    configure.address         = object["Address"].toString();
-    configure.token           = object["Token"].toString();
-    configure.host            = object["Host"].toString();
-    configure.phoneOfSupport  = object["PhoneOfSupport"].toString();
-    configure.activeBtn2      = object["ActiveBtn2"].toInt();
-    configure.comPort         = object["ComPort"].toString();
-    configure.baudRate        = object["BaudRate"].toInt();
-    configure.showSecondPrice = object["ShowSecondPrice"].toInt();
-
-    return true;
+    return configure;
 }

@@ -2,12 +2,18 @@
 
 #include <QDir>
 #include <QFile>
+#include <QProcess>
+
+#include "logging.h"
 
 std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mode)
 {
     std::unique_ptr<QIODevice> file = std::make_unique<QFile>(path);
-
-    file->open(mode);
+    if (!file->open(mode))
+    {
+        LOG_ERROR("Error open file: " + path);
+        return {};
+    }
 
     return file;
 }
@@ -35,6 +41,7 @@ QStringList getDirectoryFileList(const QString& dirPath)
 
     if (!directory.exists())
     {
+        LOG_WARNING("Directory does not exist:" + dirPath);
         return {};
     }
 
@@ -57,6 +64,7 @@ void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber)
     QDir directory{dirPath};
     if (!directory.exists())
     {
+        LOG_WARNING("Directory does not exist:" + dirPath);
         return;
     }
 
@@ -67,4 +75,38 @@ void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber)
     {
         QFile::remove(file.absoluteFilePath());
     }
+}
+
+bool archiveFolder(const QString& folderPath, const QString& archivePath)
+{
+    if (archivePath.isEmpty())
+    {
+        LOG_WARNING("Archive path is empty");
+        return false;
+    }
+
+    QDir folder(folderPath);
+    if (!folder.exists())
+    {
+        LOG_WARNING("Folder does not exist: " + folderPath);
+        return false;
+    }
+
+    QStringList arguments;
+    arguments << "-czf" << archivePath << "-C" << folderPath << ".";
+
+    QProcess process;
+    process.start("tar", arguments);
+    if (!process.waitForFinished())
+    {
+        LOG_WARNING("Failed to archive folder: " + process.errorString());
+        return false;
+    }
+
+    return true;
+}
+
+QString getFileName(const QString& filePath)
+{
+    return QFileInfo(filePath).fileName();
 }

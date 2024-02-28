@@ -62,17 +62,19 @@ void Tazs::run()
 
 void Tazs::readConfig()
 {
-    QString filePath = "settings.json";
+    constexpr auto filePath = "settings.json";
 
-    Configure conf;
-    if (!readConfigure(filePath, conf))
+    std::optional<Configure> conf = readConfigure(filePath);
+    if (!conf)
     {
+        constexpr auto errorMsg = "The settings.json contains invalid fields!";
+
         std::unique_ptr<QErrorMessage> errorMessage = std::make_unique<QErrorMessage>();
-        constexpr auto                 errorMsg     = "The settings.json contains invalid fields!";
         LOG_ERROR(errorMsg);
         errorMessage->showMessage(errorMsg);
+        return;
     }
-    configure = conf;
+    configure = conf.value();
 }
 
 void Tazs::readSettings()
