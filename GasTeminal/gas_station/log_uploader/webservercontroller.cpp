@@ -1,7 +1,5 @@
 #include "webservercontroller.h"
 
-#include <QFileInfo>
-
 #include "filesystemutilities.h"
 #include "logging.h"
 
@@ -9,27 +7,32 @@ namespace loguploader
 {
 WebServerController::WebServerController(QObject* parent) : QObject(parent) {}
 
-bool WebServerController::resetServerCmd() const
+QUrlQuery loguploader::WebServerController::getUrlQuery() const
 {
     QUrlQuery params;
     params.addQueryItem("id", configure.id);
     params.addQueryItem("token", configure.token);
 
-    Answer answer = sendPost(configure.host + "/reset_log_cmd", params);
+    return params;
+}
+
+bool WebServerController::resetServerCmd() const
+{
+    QUrlQuery params = getUrlQuery();
+
+    Answer answer = sendPost(configure.host + resetLogCmdApi, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
     }
     return answer.isOk;
-    return true;
 }
 
 std::optional<Answer> WebServerController::readServerCmd()
 {
-    QUrlQuery params;
-    params.addQueryItem("id", configure.id);
-    params.addQueryItem("token", configure.token);
-    Answer answer = sendPost(configure.host + "/get_log_cmd", params);
+    QUrlQuery params = getUrlQuery();
+
+    Answer answer = sendPost(configure.host + getLogCmdApi, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
@@ -39,7 +42,7 @@ std::optional<Answer> WebServerController::readServerCmd()
     return answer;
 }
 
-bool WebServerController::sendLogsToServer(const QString& filePath, const QString& serverUrl)
+bool WebServerController::sendLogsToServer(const QString& filePath)
 {
     std::unique_ptr<QIODevice> file = openFile(filePath, QIODevice::ReadOnly);
 
@@ -47,9 +50,11 @@ bool WebServerController::sendLogsToServer(const QString& filePath, const QStrin
     {
         return false;
     }
-    QString fileName = getFileName(filePath);
+    const auto serverUrl =
+        QString("%1%2?id=%3&token=%4").arg(configure.host, uploadLogApi, configure.id, configure.token);
 
-    Answer answer = uploadFile(fileName, std::move(file), serverUrl);
+    QString fileName = getFileName(filePath);
+    Answer  answer   = uploadFile(fileName, std::move(file), serverUrl);
 
     if (!answer.isOk)
     {

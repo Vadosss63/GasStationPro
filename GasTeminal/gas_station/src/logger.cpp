@@ -6,26 +6,6 @@
 #include "filesystemutilities.h"
 #include "utilities.h"
 
-namespace
-{
-QString logLevelToString(LogLevel level)
-{
-    switch (level)
-    {
-        case LogLevel::DEBUG:
-            return "DBG";
-        case LogLevel::INFO:
-            return "INF";
-        case LogLevel::WARNING:
-            return "WRN";
-        case LogLevel::ERROR:
-            return "ERR";
-        default:
-            return "UNKNOWN";
-    }
-}
-}
-
 Logger::Logger(const QString& logDir,
                const QString& fileNamePrefix,
                qint64         maxLogFileSize,

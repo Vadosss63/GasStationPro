@@ -134,3 +134,8 @@ std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIOD
 
     return openFile(lastFile.absoluteFilePath(), mode);
 }
+
+QString currentPath()
+{
+    return QDir::currentPath();
+}

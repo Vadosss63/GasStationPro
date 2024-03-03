@@ -3,9 +3,15 @@
 #include <iostream>
 #include <string>
 
-void printLog(LogLevel, const QString& msg, const QString&)
+#include "utilities.h"
+
+void printLog(LogLevel logLevel, const QString& message, const QString& funcName)
 {
-    printLogInf(msg);
+    const QString formatedMsg =
+        QString("%1 %2/%3: %4").arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message.trimmed());
+    const std::string dataToWrite{formatedMsg.toStdString()};
+
+    printLogInf(formatedMsg);
 }
 
 void printLogInf(const QString& log)

@@ -8,6 +8,8 @@ std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mod
 
 QString getFileName(const QString& filePath);
 
+QString currentPath();
+
 std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode);
 
 bool createDirIfNeeded(const QString& dirPath);

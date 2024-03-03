@@ -14,15 +14,22 @@ class WebServerController : public QObject
 public:
     WebServerController(QObject* parent = nullptr);
 
-    void                  setConfigure(const Configure& newConfigure);
+    void setConfigure(const Configure& newConfigure);
+
     std::optional<Answer> readServerCmd();
 
-    bool sendLogsToServer(const QString& filePath, const QString& serverUrl);
+    bool sendLogsToServer(const QString& filePath);
 
     bool resetServerCmd() const;
 
 private:
+    QUrlQuery getUrlQuery() const;
+
     Configure configure{};
+
+    constexpr static auto resetLogCmdApi = "/reset_log_cmd";
+    constexpr static auto getLogCmdApi   = "/get_log_cmd";
+    constexpr static auto uploadLogApi   = "/upload_log";
 };
 
 }
