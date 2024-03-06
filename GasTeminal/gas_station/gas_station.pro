@@ -1,3 +1,5 @@
+VERSION = 0.1.0
+
 QT       += core gui network
 QT       += serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -10,6 +12,7 @@ QMAKE_CXXFLAGS += -std=c++17 -Wall
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.

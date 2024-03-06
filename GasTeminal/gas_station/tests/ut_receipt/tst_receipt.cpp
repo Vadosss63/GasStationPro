@@ -41,8 +41,6 @@ bool createDirIfNeeded(const QString& dirPath)
     return true;
 }
 
-void removeFile(const QString& /*filePath*/) {}
-
 QStringList getDirectoryFileList(const QString& dirPath)
 {
     actualFilePathForList = dirPath;
