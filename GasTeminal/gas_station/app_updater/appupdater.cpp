@@ -1,4 +1,4 @@
-#include "loguploader.h"
+#include "appupdater.h"
 
 #include <QObject>
 
@@ -9,7 +9,7 @@
 
 namespace loguploader
 {
-LogUploader::LogUploader(QObject* parent) : QObject(parent)
+AppUpdater::AppUpdater(QObject* parent) : QObject(parent)
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(pollServer()));
     constexpr auto filePath = "settings.json";
@@ -22,19 +22,21 @@ LogUploader::LogUploader(QObject* parent) : QObject(parent)
         return;
     }
     webServerController.setConfigure(conf.value());
+
+    createDirIfNeeded(updatePath);
 }
 
-void LogUploader::run()
+void AppUpdater::run()
 {
     timer.start(10000);
 }
 
-void LogUploader::stop()
+void AppUpdater::stop()
 {
     timer.stop();
 }
 
-void LogUploader::pollServer()
+void AppUpdater::pollServer()
 {
     std::optional<Answer> answer = webServerController.readServerCmd();
     if (!answer)
@@ -43,20 +45,21 @@ void LogUploader::pollServer()
         return;
     }
 
-    std::optional<LogCommand> logCommand = LogCommand::readCommand(answer.value().msg);
+    std::optional<UpdateCommand> logCommand = UpdateCommand::readCommand(answer.value().msg);
 
     if (!logCommand)
     {
         LOG_ERROR(QString("Error to read msg: %1").arg(answer.value().msg));
         return;
     }
+    const QString& fileUrl = logCommand.value().url;
 
-    if (!logCommand.value().download)
+    if (fileUrl.isEmpty())
     {
         return;
     }
 
-    if (!LogUploader::sendLogsToServer())
+    if (!AppUpdater::downloadFile(fileUrl))
     {
         return;
     }
@@ -68,25 +71,42 @@ void LogUploader::pollServer()
     }
 }
 
-bool LogUploader::sendLogsToServer()
+bool AppUpdater::downloadFile(const QString& url)
 {
-    const auto archivePath = QString(archivePathTemplate).arg(getCurrentTimestamp());
-    QString    currentDir  = currentPath();
-    if (!archiveFolder(currentDir + "/" + folderPath, currentDir + "/" + archivePath))
+    const QUrl    fileUrl(url);
+    const QString savePath = updatePath + fileUrl.fileName();
+
+    auto data = webServerController.downloadFile(url);
+
+    if (!data)
     {
-        LOG_ERROR(QString("Error to create %1").arg(archivePath));
+        LOG_ERROR("Error to download file: " + url);
         return false;
     }
 
-    bool ok = webServerController.sendLogsToServer(archivePath);
-
-    if (!ok)
+    auto file = openFile(savePath, QIODevice::WriteOnly);
+    if (!file)
     {
-        LOG_ERROR(QString("Error to upload %1").arg(archivePath));
+        LOG_ERROR("Error to open file: " + savePath);
+        return false;
     }
 
-    removeFile(archivePath);
+    file->write(data.value());
+    file->close();
+    LOG_INFO("File is saved: " + savePath);
 
-    return ok;
+    storedFileName = savePath;
+
+    return true;
+}
+
+bool AppUpdater::updateApp()
+{
+    return true;
+}
+
+bool AppUpdater::unpackArchive()
+{
+    return true;
 }
 }

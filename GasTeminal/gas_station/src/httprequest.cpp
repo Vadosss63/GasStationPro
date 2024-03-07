@@ -10,8 +10,11 @@
 
 #include "logging.h"
 
-Answer sendReq(const QString&                                                                          urlStr,
-               std::function<std::unique_ptr<QNetworkReply>(QNetworkAccessManager&, QNetworkRequest&)> funcReq)
+namespace
+{
+std::pair<QByteArray, bool> sendReq(
+    const QString&                                                                          urlStr,
+    std::function<std::unique_ptr<QNetworkReply>(QNetworkAccessManager&, QNetworkRequest&)> funcReq)
 {
     // create custom temporary event loop on stack
     QEventLoop eventLoop{};
@@ -26,26 +29,36 @@ Answer sendReq(const QString&                                                   
     std::unique_ptr<QNetworkReply> reply(funcReq(mgr, req));
     // blocks stack until "finished()" has been called
     eventLoop.exec();
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        LOG_ERROR("Error to download data: " + reply->errorString());
+    }
+    return {reply->readAll(), reply->error() == QNetworkReply::NoError};
+}
 
-    Answer answer{reply->readAll(), reply->error() == QNetworkReply::NoError};
-    return answer;
 }
 
 Answer sendGet(const QString& urlStr)
 {
-    return sendReq(urlStr,
-                   [](QNetworkAccessManager& mgr, const QNetworkRequest& req)
-                   { return std::unique_ptr<QNetworkReply>(mgr.get(req)); });
+    auto funcReq = [](QNetworkAccessManager& mgr, const QNetworkRequest& req)
+    { return std::unique_ptr<QNetworkReply>(mgr.get(req)); };
+
+    auto [data, ok] = sendReq(urlStr, funcReq);
+
+    return {data, ok};
 }
 
 Answer sendPost(const QString& urlStr, const QUrlQuery& params)
 {
-    return sendReq(urlStr,
-                   [&](QNetworkAccessManager& mgr, QNetworkRequest& req)
-                   {
-                       req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-                       return std::unique_ptr<QNetworkReply>(mgr.post(req, params.query().toUtf8()));
-                   });
+    auto funcReq = [&](QNetworkAccessManager& mgr, QNetworkRequest& req)
+    {
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+        return std::unique_ptr<QNetworkReply>(mgr.post(req, params.query().toUtf8()));
+    };
+
+    auto [data, ok] = sendReq(urlStr, funcReq);
+
+    return {data, ok};
 }
 
 Answer uploadFile(const QString& fileName, std::unique_ptr<QIODevice> file, const QString& serverUrl)
@@ -63,14 +76,31 @@ Answer uploadFile(const QString& fileName, std::unique_ptr<QIODevice> file, cons
 
     multiPart->append(filePart);
 
-    return sendReq(serverUrl,
-                   [multiPart](QNetworkAccessManager& mgr, QNetworkRequest& req) -> std::unique_ptr<QNetworkReply>
-                   {
-                       req.setHeader(QNetworkRequest::ContentTypeHeader,
-                                     "multipart/form-data; boundary=" + multiPart->boundary());
-                       auto reply = mgr.post(req, multiPart);
-                       // Ensure multiPart is deleted with reply
-                       multiPart->setParent(reply);
-                       return std::unique_ptr<QNetworkReply>(reply);
-                   });
+    auto funcReq = [multiPart](QNetworkAccessManager& mgr, QNetworkRequest& req) -> std::unique_ptr<QNetworkReply>
+    {
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + multiPart->boundary());
+        auto reply = mgr.post(req, multiPart);
+        // Ensure multiPart is deleted with reply
+        multiPart->setParent(reply);
+        return std::unique_ptr<QNetworkReply>(reply);
+    };
+
+    auto [data, ok] = sendReq(serverUrl, funcReq);
+
+    return {data, ok};
+}
+
+std::optional<QByteArray> downloadData(const QString& urlStr)
+{
+    auto funcReq = [](QNetworkAccessManager& mgr, const QNetworkRequest& req)
+    { return std::unique_ptr<QNetworkReply>(mgr.get(req)); };
+
+    auto [data, ok] = sendReq(urlStr, funcReq);
+
+    if (!ok)
+    {
+        return std::nullopt;
+    }
+
+    return data;
 }

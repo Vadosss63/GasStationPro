@@ -139,3 +139,32 @@ QString currentPath()
 {
     return QDir::currentPath();
 }
+
+bool unpackArchive(const QString &archivePath, const QString &srcFolder)
+{
+    if (archivePath.isEmpty())
+    {
+        LOG_WARNING("Archive path is empty");
+        return false;
+    }
+
+    QDir folder(srcFolder);
+    if (!folder.exists())
+    {
+        LOG_WARNING("Folder does not exist: " + srcFolder);
+        return false;
+    }
+
+    QStringList arguments;
+    arguments << "-xzvf" << archivePath << "-C" << srcFolder;
+
+    QProcess process;
+    process.start("tar", arguments);
+    if (!process.waitForFinished())
+    {
+        LOG_WARNING("Failed to archive folder: " + process.errorString());
+        return false;
+    }
+
+    return true;
+}
