@@ -11,7 +11,7 @@ class LogUploader : public QObject
 {
     Q_OBJECT
 public:
-    LogUploader(QObject* parent = nullptr);
+    LogUploader(Configure config, QObject* parent = nullptr);
 
     void run();
     void stop();
@@ -23,7 +23,7 @@ private slots:
 private:
     bool sendLogsToServer();
 
-    WebServerController   webServerController{};
+    WebServerController   webServerController;
     QTimer                timer;
     constexpr static auto folderPath          = "azs_logs";
     constexpr static auto archivePathTemplate = "%1_azsLogs.tar.gz";

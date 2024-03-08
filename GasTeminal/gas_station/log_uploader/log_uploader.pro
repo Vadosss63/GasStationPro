@@ -29,3 +29,6 @@ HEADERS += \
     $${SOURCES_PATH}/httprequest.h \
     $${SOURCES_PATH}/utilities.h \
     webservercontroller.h
+
+target.path = /opt/GasStationPro/$${TARGET}/bin
+INSTALLS += target
