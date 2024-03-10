@@ -9,24 +9,15 @@
 
 namespace loguploader
 {
-LogUploader::LogUploader(QObject* parent) : QObject(parent)
+LogUploader::LogUploader(Configure config, QObject* parent) : QObject(parent), webServerController(std::move(config))
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(pollServer()));
-    constexpr auto filePath = "settings.json";
-
-    std::optional<Configure> conf = readConfigure(filePath);
-    if (!conf)
-    {
-        constexpr auto errorMsg = "The settings.json contains invalid fields!";
-        LOG_ERROR(errorMsg);
-        return;
-    }
-    webServerController.setConfigure(conf.value());
 }
 
 void LogUploader::run()
 {
-    timer.start(10000);
+    constexpr int defaultTimeoutMillSec{10000};
+    timer.start(defaultTimeoutMillSec);
 }
 
 void LogUploader::stop()
@@ -70,15 +61,15 @@ void LogUploader::pollServer()
 
 bool LogUploader::sendLogsToServer()
 {
-    const auto archivePath = QString(archivePathTemplate).arg(getCurrentTimestamp());
-    QString    currentDir  = currentPath();
+    const auto    archivePath = QString(archivePathTemplate).arg(getCurrentTimestamp());
+    const QString currentDir  = currentPath();
     if (!archiveFolder(currentDir + "/" + folderPath, currentDir + "/" + archivePath))
     {
         LOG_ERROR(QString("Error to create %1").arg(archivePath));
         return false;
     }
 
-    bool ok = webServerController.sendLogsToServer(archivePath);
+    const bool ok = webServerController.sendLogsToServer(archivePath);
 
     if (!ok)
     {

@@ -5,7 +5,10 @@
 
 namespace loguploader
 {
-WebServerController::WebServerController(QObject* parent) : QObject(parent) {}
+WebServerController::WebServerController(Configure newConfigure, QObject* parent)
+    : QObject(parent), configure(std::move(newConfigure))
+{
+}
 
 QUrlQuery loguploader::WebServerController::getUrlQuery() const
 {
@@ -48,13 +51,14 @@ bool WebServerController::sendLogsToServer(const QString& filePath)
 
     if (!file)
     {
+        LOG_ERROR(QString("Failed to open file: %1").arg(filePath));
         return false;
     }
     const auto serverUrl =
         QString("%1%2?id=%3&token=%4").arg(configure.host, uploadLogApi, configure.id, configure.token);
 
-    QString fileName = getFileName(filePath);
-    Answer  answer   = uploadFile(fileName, std::move(file), serverUrl);
+    const QString fileName = getFileName(filePath);
+    const Answer  answer   = uploadFile(fileName, std::move(file), serverUrl);
 
     if (!answer.isOk)
     {
@@ -62,10 +66,4 @@ bool WebServerController::sendLogsToServer(const QString& filePath)
     }
     return answer.isOk;
 }
-
-void WebServerController::setConfigure(const Configure& newConfigure)
-{
-    configure = newConfigure;
-}
-
 }
