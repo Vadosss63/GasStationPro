@@ -20,7 +20,7 @@ bool WebServerController::resetServerCmd() const
 {
     QUrlQuery params = getUrlQuery();
 
-    Answer answer = sendPost(configure.host + resetLogCmdApi, params);
+    Answer answer = sendPost(configure.host + resetCmdApi, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
@@ -32,7 +32,7 @@ std::optional<Answer> WebServerController::readServerCmd()
 {
     QUrlQuery params = getUrlQuery();
 
-    Answer answer = sendPost(configure.host + getLogCmdApi, params);
+    Answer answer = sendPost(configure.host + getGetCmdApi, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);

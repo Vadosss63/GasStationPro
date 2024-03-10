@@ -140,7 +140,7 @@ QString currentPath()
     return QDir::currentPath();
 }
 
-bool unpackArchive(const QString &archivePath, const QString &srcFolder)
+bool unpackArchive(const QString& archivePath, const QString& srcFolder)
 {
     if (archivePath.isEmpty())
     {
@@ -148,10 +148,9 @@ bool unpackArchive(const QString &archivePath, const QString &srcFolder)
         return false;
     }
 
-    QDir folder(srcFolder);
-    if (!folder.exists())
+    if (!createDirIfNeeded(srcFolder))
     {
-        LOG_WARNING("Folder does not exist: " + srcFolder);
+        LOG_WARNING("Can't create folder: " + srcFolder);
         return false;
     }
 

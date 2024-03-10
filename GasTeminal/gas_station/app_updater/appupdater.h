@@ -33,6 +33,7 @@ private:
     QString storedFileName{};
 
     static constexpr auto updatePath = "update/";
+    static constexpr auto srcFolder  = "update/src/";
 };
 
 }

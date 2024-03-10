@@ -27,9 +27,8 @@ private:
 
     Configure configure{};
 
-    constexpr static auto resetLogCmdApi = "/reset_log_cmd";
-    constexpr static auto getLogCmdApi   = "/get_log_cmd";
-    constexpr static auto uploadLogApi   = "/upload_log";
+    constexpr static auto resetCmdApi  = "/reset_app_update_button";
+    constexpr static auto getGetCmdApi = "/get_app_update_button";
 };
 
 }

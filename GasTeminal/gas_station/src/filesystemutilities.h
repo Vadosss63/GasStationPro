@@ -27,3 +27,5 @@ int getNumberOfFilesInDir(const QString& dirPath);
 void removeOlderFilesInDir(const QString& dirPath, qint64 maxFileNumber);
 
 bool archiveFolder(const QString& folderPath, const QString& archivePath);
+
+bool unpackArchive(const QString& archivePath, const QString& srcFolder);

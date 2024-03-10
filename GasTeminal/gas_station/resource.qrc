@@ -5,7 +5,5 @@
         <file>image/btn1_disable.png</file>
         <file>image/btn2.png</file>
         <file>image/btn2_disable.png</file>
-        <file>font/Rubik-Regular.ttf</file>
-        <file>font/Rubik-Italic-VariableFont_wght.ttf</file>
     </qresource>
 </RCC>

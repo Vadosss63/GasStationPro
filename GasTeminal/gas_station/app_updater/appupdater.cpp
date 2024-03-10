@@ -1,6 +1,7 @@
 #include "appupdater.h"
 
 #include <QObject>
+#include <QProcess>
 
 #include "filesystemutilities.h"
 #include "logcommand.h"
@@ -45,22 +46,36 @@ void AppUpdater::pollServer()
         return;
     }
 
-    std::optional<UpdateCommand> logCommand = UpdateCommand::readCommand(answer.value().msg);
+    std::optional<UpdateCommand> updateCommand = UpdateCommand::readCommand(answer.value().msg);
 
-    if (!logCommand)
+    if (!updateCommand)
     {
         LOG_ERROR(QString("Error to read msg: %1").arg(answer.value().msg));
         return;
     }
-    const QString& fileUrl = logCommand.value().url;
+    const QString& fileUrl = updateCommand.value().url;
 
     if (fileUrl.isEmpty())
     {
         return;
     }
 
-    if (!AppUpdater::downloadFile(fileUrl))
+    if (!downloadFile(fileUrl))
     {
+        return;
+    }
+
+    if (!unpackArchive())
+    {
+        LOG_ERROR("Error to unpack archive: " + storedFileName);
+
+        return;
+    }
+
+    if (!updateApp())
+    {
+        LOG_ERROR("Error to update app");
+
         return;
     }
 
@@ -102,11 +117,26 @@ bool AppUpdater::downloadFile(const QString& url)
 
 bool AppUpdater::updateApp()
 {
+    ///TODO: Create function for QProcess
+
+    const QString pathToUpdateScript = QString("%1/*/update.sh").arg(srcFolder);
+    QStringList   arguments;
+    arguments << "-c" << pathToUpdateScript;
+    QProcess process;
+    process.start("/bin/bash", arguments);
+    if (!process.waitForFinished())
+    {
+        LOG_WARNING("Error update: " + process.errorString());
+        return false;
+    }
+    QByteArray output = process.readAllStandardOutput();
+    ///TODO: Add write to a file and send to server result of update
+    LOG_INFO(output.trimmed());
     return true;
 }
 
 bool AppUpdater::unpackArchive()
 {
-    return true;
+    return ::unpackArchive(storedFileName, srcFolder);
 }
 }
