@@ -29,6 +29,24 @@ bool createDirIfNeeded(const QString& dirPath)
     return true;
 }
 
+bool removeDirectory(const QString& dirPath)
+{
+    QDir directory(dirPath);
+    if (!directory.exists())
+    {
+        LOG_WARNING("Failed to remove directory, does not exist: " + dirPath);
+        return false;
+    }
+
+    if (!directory.removeRecursively())
+    {
+        LOG_WARNING("Failed to remove directory: " + dirPath);
+        return false;
+    }
+
+    return true;
+}
+
 bool isDirectoryExist(const QString& dirPath)
 {
     return QDir(dirPath).exists();
@@ -155,7 +173,7 @@ bool unpackArchive(const QString& archivePath, const QString& srcFolder)
     }
 
     QStringList arguments;
-    arguments << "-xzvf" << archivePath << "-C" << srcFolder;
+    arguments << "-xzf" << archivePath << "-C" << srcFolder;
 
     QProcess process;
     process.start("tar", arguments);

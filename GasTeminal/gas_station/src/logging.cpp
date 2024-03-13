@@ -7,7 +7,7 @@
 
 void printLog(LogLevel logLevel, const QString& msg, const QString& funcName)
 {
-    constexpr const char* logDirectory = "./azs_logs/";
+    constexpr const char* logDirectory = "./azs_logs/gas_station/";
     constexpr const char* fileNamePrefix{"azs_log_file"};
     constexpr qint64      maxLogFileSize{202400};
     constexpr qint64      maxLogFiles{4};

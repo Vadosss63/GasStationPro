@@ -11,6 +11,7 @@ DEPENDPATH += $${SOURCES_PATH}/
 
 SOURCES += \
         appupdater.cpp \
+        executor.cpp \
         main.cpp \
         $${SOURCES_PATH}/configure.cpp \
         $${SOURCES_PATH}/filesystemutilities.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 
 HEADERS += \
     appupdater.h \
+    executor.h \
     logcommand.h \
     $${SOURCES_PATH}/configure.h \
     $${SOURCES_PATH}/filesystemutilities.h \
@@ -29,3 +31,6 @@ HEADERS += \
     $${SOURCES_PATH}/httprequest.h \
     $${SOURCES_PATH}/utilities.h \
     webservercontroller.h
+
+target.path = /opt/GasStationPro/$${TARGET}/bin
+INSTALLS += target

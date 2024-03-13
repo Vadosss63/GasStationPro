@@ -5,7 +5,10 @@
 
 namespace loguploader
 {
-WebServerController::WebServerController(QObject* parent) : QObject(parent) {}
+WebServerController::WebServerController(Configure config, QObject* parent)
+    : QObject(parent), configure(std::move(config))
+{
+}
 
 QUrlQuery loguploader::WebServerController::getUrlQuery() const
 {
@@ -45,11 +48,6 @@ std::optional<Answer> WebServerController::readServerCmd()
 std::optional<QByteArray> WebServerController::downloadFile(const QString& url)
 {
     return downloadData(url);
-}
-
-void WebServerController::setConfigure(const Configure& newConfigure)
-{
-    configure = newConfigure;
 }
 
 }

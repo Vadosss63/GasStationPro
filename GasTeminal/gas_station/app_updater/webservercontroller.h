@@ -12,9 +12,7 @@ class WebServerController : public QObject
 {
     Q_OBJECT
 public:
-    WebServerController(QObject* parent = nullptr);
-
-    void setConfigure(const Configure& newConfigure);
+    WebServerController(Configure config, QObject* parent = nullptr);
 
     std::optional<Answer> readServerCmd();
 
@@ -25,7 +23,7 @@ public:
 private:
     QUrlQuery getUrlQuery() const;
 
-    Configure configure{};
+    Configure configure;
 
     constexpr static auto resetCmdApi  = "/reset_app_update_button";
     constexpr static auto getGetCmdApi = "/get_app_update_button";
