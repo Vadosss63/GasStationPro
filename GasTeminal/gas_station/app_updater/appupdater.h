@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <string>
 
 #include "webservercontroller.h"
 
@@ -11,7 +12,7 @@ class AppUpdater : public QObject
 {
     Q_OBJECT
 public:
-    AppUpdater(QObject* parent = nullptr);
+    AppUpdater(Configure config, QObject* parent = nullptr);
 
     void run();
     void stop();
@@ -25,15 +26,21 @@ private:
 
     bool updateApp();
 
+    bool writeUpdateResult(const std::string& result);
+
     bool unpackArchive();
 
-    WebServerController webServerController{};
+    WebServerController webServerController;
     QTimer              timer{};
 
     QString storedFileName{};
 
-    static constexpr auto updatePath = "update/";
-    static constexpr auto srcFolder  = "update/src/";
+    static constexpr auto updatePath      = "update/";
+    static constexpr auto srcFolder       = "update/src/";
+    static constexpr auto logFolder       = "./azs_logs/update_results";
+    static constexpr auto logFileTemplate = "%1/%2_upadate_result.log";
+
+    static constexpr qint64 maxLogFileNumber = 5;
 };
 
 }

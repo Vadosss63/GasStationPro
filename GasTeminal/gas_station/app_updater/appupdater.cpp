@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QProcess>
 
+#include "executor.h"
 #include "filesystemutilities.h"
 #include "logcommand.h"
 #include "logging.h"
@@ -10,20 +11,9 @@
 
 namespace loguploader
 {
-AppUpdater::AppUpdater(QObject* parent) : QObject(parent)
+AppUpdater::AppUpdater(Configure config, QObject* parent) : QObject(parent), webServerController(std::move(config))
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(pollServer()));
-    constexpr auto filePath = "settings.json";
-
-    std::optional<Configure> conf = readConfigure(filePath);
-    if (!conf)
-    {
-        constexpr auto errorMsg = "The settings.json contains invalid fields!";
-        LOG_ERROR(errorMsg);
-        return;
-    }
-    webServerController.setConfigure(conf.value());
-
     createDirIfNeeded(updatePath);
 }
 
@@ -68,14 +58,14 @@ void AppUpdater::pollServer()
     if (!unpackArchive())
     {
         LOG_ERROR("Error to unpack archive: " + storedFileName);
-
         return;
     }
 
-    if (!updateApp())
+    const bool isUpdated = updateApp();
+    removeDirectory(updatePath);
+    if (!isUpdated)
     {
         LOG_ERROR("Error to update app");
-
         return;
     }
 
@@ -115,23 +105,60 @@ bool AppUpdater::downloadFile(const QString& url)
     return true;
 }
 
-bool AppUpdater::updateApp()
+bool AppUpdater::writeUpdateResult(const std::string& result)
 {
-    ///TODO: Create function for QProcess
-
-    const QString pathToUpdateScript = QString("%1/*/update.sh").arg(srcFolder);
-    QStringList   arguments;
-    arguments << "-c" << pathToUpdateScript;
-    QProcess process;
-    process.start("/bin/bash", arguments);
-    if (!process.waitForFinished())
+    if (!createDirIfNeeded(logFolder))
     {
-        LOG_WARNING("Error update: " + process.errorString());
+        LOG_WARNING("Failed to create directory for log files");
         return false;
     }
-    QByteArray output = process.readAllStandardOutput();
-    ///TODO: Add write to a file and send to server result of update
-    LOG_INFO(output.trimmed());
+
+    const auto logFilePath   = QString(logFileTemplate).arg(logFolder).arg(getCurrentTimestamp());
+    auto       logFileStream = openFile(logFilePath, QIODevice::WriteOnly);
+
+    if (!logFileStream)
+    {
+        LOG_WARNING("Fail to open log file: " + logFilePath);
+        return false;
+    }
+
+    constexpr qint64 writeError{-1};
+    if (logFileStream->write(result.c_str()) == writeError)
+    {
+        LOG_WARNING(logFileStream->errorString());
+        return false;
+    }
+
+    if (const int numberOfFiles = getNumberOfFilesInDir(logFolder); numberOfFiles >= maxLogFileNumber)
+    {
+        removeOlderFilesInDir(logFolder, maxLogFileNumber);
+    }
+
+    return true;
+}
+
+bool AppUpdater::updateApp()
+{
+    const QString     processToExecute{"/bin/bash"};
+    const QString     pathToUpdateScript = QString("%1/*/update.sh").arg(srcFolder);
+    const QStringList arguments{"-c", pathToUpdateScript};
+    using namespace std::chrono_literals;
+    const std::chrono::milliseconds timeout{20s};
+
+    const auto [exitCode, output] = executeProcessWithArgs(processToExecute, arguments, timeout);
+
+    if (!writeUpdateResult(output.toStdString()))
+    {
+        LOG_WARNING("Failed to write update result");
+    }
+
+    if (!exitCode)
+    {
+        LOG_WARNING("Error to update: " + output);
+        return false;
+    }
+
+    LOG_INFO("Update result: " + output);
     return true;
 }
 

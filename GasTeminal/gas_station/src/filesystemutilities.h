@@ -14,6 +14,8 @@ std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIOD
 
 bool createDirIfNeeded(const QString& dirPath);
 
+bool removeDirectory(const QString& dirPath);
+
 bool isDirectoryExist(const QString& dirPath);
 
 void removeFile(const QString& filePath);
