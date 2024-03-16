@@ -46,9 +46,6 @@ void MainWindow::disableAzs(bool disable)
 
 void MainWindow::createWidget(bool showSecondPrice)
 {
-    temporarilyUnavailableWidget = new TemporarilyUnavailableWidget("Терминал временно не работает", this);
-    temporarilyUnavailableWidget->hide();
-
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
         azsNodeWidgets[nodeId].gasTypeLable           = new LabelWidget(this);
@@ -131,6 +128,9 @@ void MainWindow::createWidget(bool showSecondPrice)
     QPalette palette;
     palette.setBrush(QPalette::Window, bkgnd);
     this->setPalette(palette);
+
+    temporarilyUnavailableWidget = new TemporarilyUnavailableWidget("Терминал временно не работает", this);
+    temporarilyUnavailableWidget->hide();
 
     connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SIGNAL(startFirstAzsNode()));
     connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SIGNAL(startSecondAzsNode()));

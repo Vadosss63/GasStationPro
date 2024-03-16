@@ -151,6 +151,10 @@ struct ResponseData
         isPressedServiceBtn1 = 0x21,
         isPressedServiceBtn2 = 0x22,
         isPressedServiceBtn3 = 0x23,
+        setFuelArrival1      = 0x31,
+        setFuelArrival2      = 0x32,
+        setLockFuelValue1    = 0x33,
+        setLockFuelValue2    = 0x34,
         resetCounters        = 0xFF
     };
 
@@ -247,7 +251,7 @@ struct AzsButton
     };
 
     int idAzs{};
-    int price{};
+    int value{};
     int button{};
 
     bool readAzsButton(const QString& jsonText)
@@ -263,14 +267,14 @@ struct AzsButton
 
         QJsonObject object = document.object();
 
-        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("price") || !object.contains("button"))
+        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("value") || !object.contains("button"))
         {
             LOG_ERROR("Missing or invalid field(s)!");
             return false;
         }
 
         idAzs  = object["id_azs"].toInt();
-        price  = object["price"].toInt();
+        value  = object["value"].toInt();
         button = object["button"].toInt();
         return true;
     }

@@ -95,16 +95,16 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
     switch (azsButton.button)
     {
         case PriceState::updatePriceCashForFirstNode:
-            currentAzsNodes[firstNodeId].priceCash = azsButton.price;
+            currentAzsNodes[firstNodeId].priceCash = azsButton.value;
             break;
         case PriceState::updatePriceCashForSecondNode:
-            currentAzsNodes[secondNodeId].priceCash = azsButton.price;
+            currentAzsNodes[secondNodeId].priceCash = azsButton.value;
             break;
         case PriceState::updatePriceCashlessFirstNode:
-            currentAzsNodes[firstNodeId].priceCashless = azsButton.price;
+            currentAzsNodes[firstNodeId].priceCashless = azsButton.value;
             break;
         case PriceState::updatePriceCashlessSecondNode:
-            currentAzsNodes[secondNodeId].priceCashless = azsButton.price;
+            currentAzsNodes[secondNodeId].priceCashless = azsButton.value;
             break;
         case State::blockAzsNode:
             [[fallthrough]];
@@ -117,6 +117,14 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
         case State::isPressedServiceBtn3:
             [[fallthrough]];
         case State::resetCounters:
+            [[fallthrough]];
+        case State::setFuelArrival1:
+            [[fallthrough]];
+        case State::setFuelArrival2:
+            [[fallthrough]];
+        case State::setLockFuelValue1:
+            [[fallthrough]];
+        case State::setLockFuelValue2:
             comPortController->getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
             break;
         default:
@@ -124,7 +132,7 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
             return;
     }
 
-    if (azsButton.price)
+    if (azsButton.value)
     {
         setAzsNode(currentAzsNodes);
         writeSettings();

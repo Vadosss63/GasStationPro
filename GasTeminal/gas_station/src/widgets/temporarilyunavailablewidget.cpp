@@ -17,8 +17,7 @@ TemporarilyUnavailableWidget::TemporarilyUnavailableWidget(const QString& msg, Q
     layout->addWidget(label);
     layout->setAlignment(Qt::AlignCenter);
 
-    QScreen* primaryScreen = QApplication::primaryScreen();
-    QRect    screenRect    = primaryScreen->geometry();
+    QRect screenRect(0, 0, 1280, 1024);
 
     setGeometry(screenRect);
 }
