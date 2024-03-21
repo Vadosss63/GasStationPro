@@ -48,6 +48,7 @@ SOURCES += \
     src/port.cpp \
     src/price.cpp \
     src/receipt.cpp \
+    src/report.cpp \
     src/tazs.cpp \
     src/utilities.cpp \
     src/widgets/mainwindow.cpp \
@@ -76,6 +77,7 @@ HEADERS += \
     src/port.h \
     src/price.h \
     src/receipt.h \
+    src/report.h \
     src/tazs.h \
     src/utilities.h \
     src/widgets/mainwindow.h \

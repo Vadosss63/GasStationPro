@@ -11,8 +11,10 @@ class ComPortController : public QObject
     Q_OBJECT
 public:
     ComPortController(const QString& comPort, int baudRate, QObject* parent = nullptr);
-    ResponseData& getResponseData();
+
     ReceivedData& getReceivedData();
+
+    void setCommand(ResponseData::Command cmd, uint32_t data = 0);
 
     void sendResponse();
 
@@ -29,5 +31,5 @@ private:
 
     ReceivedData receiveData{};
     ResponseData sendData{};
-    Port         port;
+    Port         port{};
 };

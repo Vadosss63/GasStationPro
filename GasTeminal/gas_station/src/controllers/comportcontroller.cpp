@@ -28,8 +28,8 @@ void ComPortController::sendToPort(const std::string& data)
 
 void ComPortController::sendResponse()
 {
-    sendToPort(getResponseData().getQByteArray());
-    getResponseData().state = ResponseData::defaultVal;
+    sendToPort(sendData.getQByteArray());
+    setCommand(ResponseData::defaultVal);
 }
 
 void ComPortController::readDataFromPort()
@@ -52,7 +52,8 @@ ReceivedData& ComPortController::getReceivedData()
     return receiveData;
 }
 
-ResponseData& ComPortController::getResponseData()
+void ComPortController::setCommand(ResponseData::Command cmd, uint32_t data)
 {
-    return sendData;
+    sendData.command = cmd;
+    sendData.data    = data;
 }

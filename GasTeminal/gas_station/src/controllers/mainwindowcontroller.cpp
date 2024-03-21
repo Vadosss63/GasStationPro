@@ -48,22 +48,22 @@ void MainWindowController::showMainWindow()
     mainWindow.showFullScreen();
 }
 
-void MainWindowController::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes,
-                                      bool                                                      showSecondPrice)
+void MainWindowController::setAzsNode(const AzsNodeSettings& azsNodes, bool showSecondPrice)
 {
-    for (size_t nodeId = 0; nodeId < azsNodes.size(); ++nodeId)
+    for (size_t nodeId = 0; nodeId < azsNodes.nodes.size(); ++nodeId)
     {
-        QString gasTypeStr = convertGasTypeToString(azsNodes[nodeId].gasType);
+        auto    type       = convertIntToGasType(azsNodes.nodes[nodeId].gasType);
+        QString gasTypeStr = convertGasTypeToString(type);
 
         mainWindow.setGasType(gasTypeStr, nodeId);
 
-        double priceCash = Price::convertPriceToDouble(azsNodes[nodeId].priceCash);
+        double priceCash = Price::convertPriceToDouble(azsNodes.nodes[nodeId].priceCash);
 
         if (showSecondPrice)
         {
             mainWindow.setPricePerLitreLableCash(priceCash, nodeId);
 
-            double priceCashless = Price::convertPriceToDouble(azsNodes[nodeId].priceCashless);
+            double priceCashless = Price::convertPriceToDouble(azsNodes.nodes[nodeId].priceCashless);
             mainWindow.setPricePerLitreLableCashless(priceCashless, nodeId);
         }
         else
@@ -73,24 +73,17 @@ void MainWindowController::setAzsNode(const std::array<ResponseData::AzsNode, co
     }
 }
 
-void MainWindowController::checkNeedToDisableAzs(ResponseData::State state)
+void MainWindowController::disableAzs(bool state)
 {
-    if (ResponseData::State::blockAzsNode == state)
-    {
-        mainWindow.disableAzs(true);
-    }
-    else if (ResponseData::State::unblockAzsNode == state)
-    {
-        mainWindow.disableAzs(false);
-    }
+    mainWindow.disableAzs(state);
 }
 
-void MainWindowController::setCountOfLitres(const std::array<ResponseData::AzsNode, countAzsNodeMax>& currentAzsNodes)
+void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNodes)
 {
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
-        double priceCash     = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCash);
-        double priceCashless = Price::convertPriceToDouble(currentAzsNodes[nodeId].priceCashless);
+        double priceCash     = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCash);
+        double priceCashless = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
 
         bool isStartBtnEnabled = mainWindow.isStartBtnEnabled(nodeId);
 

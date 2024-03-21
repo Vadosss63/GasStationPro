@@ -84,45 +84,6 @@ struct ReceivedData
         return indexBtn < countAzsNodeMax ? isActiveBtn & (1 << indexBtn) : false;
     }
 
-    template <typename T>
-    QString getJsonReport(int countNode, const std::array<T, countAzsNodeMax>& azsNode)
-    {
-        QJsonObject mainInfo;
-        mainInfo.insert("commonCash", static_cast<int>(commonCashSum + commonCoinsSum));
-        mainInfo.insert("dailyCash", static_cast<int>(dailyCashSum + dailyCoinsSum));
-
-        mainInfo.insert("commonCashless", static_cast<int>(commonCashlessSum));
-        mainInfo.insert("dailyCashless", static_cast<int>(dailyCashlessSum));
-
-        mainInfo.insert("commonOnline", static_cast<int>(commonOnlineSum));
-        mainInfo.insert("dailyOnline", static_cast<int>(dailyOnlineSum));
-
-        QJsonArray jsonAzsNodes;
-        for (int i = 0; i < countNode; ++i)
-        {
-            QJsonObject jsonAzsNode;
-            jsonAzsNode.insert("commonLiters",
-                               QString("%1").arg(static_cast<double>(azsNodes[i].common) / 100., 0, 'f', 2));
-            jsonAzsNode.insert("dailyLiters",
-                               QString("%1").arg(static_cast<double>(azsNodes[i].daily) / 100., 0, 'f', 2));
-
-            jsonAzsNode.insert("typeFuel", convertGasTypeToString(azsNode[i].gasType));
-            jsonAzsNode.insert("price", static_cast<int>(azsNode[i].priceCash));
-            jsonAzsNode.insert("priceCashless", static_cast<int>(azsNode[i].priceCashless));
-            jsonAzsNode.insert("fuelVolume", QString("%1").arg(azsNodes[i].fuelVolume, 0, 'f', 2));
-            jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(azsNodes[i].fuelVolumePerc, 0, 'f', 2));
-            jsonAzsNode.insert("density", QString("%1").arg(azsNodes[i].density, 0, 'f', 2));
-            jsonAzsNode.insert("averageTemperature", QString("%1").arg(azsNodes[i].averageTemperature, 0, 'f', 2));
-            jsonAzsNodes.append(jsonAzsNode);
-        }
-        QJsonObject infoJson;
-        infoJson.insert("azs_nodes", jsonAzsNodes);
-        infoJson.insert("main_info", mainInfo);
-
-        QString infoText = QString::fromUtf8(QJsonDocument(infoJson).toJson());
-        return infoText;
-    }
-
     static ReceivedData* getReceivedData(QByteArray& data)
     {
         ReceivedData* receivedData{nullptr};
@@ -141,21 +102,28 @@ struct ReceivedData
 #pragma pack(push, 1)
 struct ResponseData
 {
-    enum State : uint8_t
+    enum Command : uint8_t
     {
         defaultVal           = 0x00,
-        isPressedFirstBtn    = 0x01,
-        isPressedSecondBtn   = 0x02,
+        isPressedServiceBtn1 = 0x01,
+        isPressedServiceBtn2 = 0x02,
+        isPressedServiceBtn3 = 0x03,
+        resetCounters        = 0x10,
         blockAzsNode         = 0x11,
         unblockAzsNode       = 0x12,
-        isPressedServiceBtn1 = 0x21,
-        isPressedServiceBtn2 = 0x22,
-        isPressedServiceBtn3 = 0x23,
-        setFuelArrival1      = 0x31,
-        setFuelArrival2      = 0x32,
-        setLockFuelValue1    = 0x33,
-        setLockFuelValue2    = 0x34,
-        resetCounters        = 0xFF
+        isPressedFirstBtn    = 0x20,
+        isPressedSecondBtn   = 0x21,
+        setGasType1          = 0x28,
+        setGasType2          = 0x29,
+        setPriceCash1        = 0x30,
+        setPriceCash2        = 0x31,
+        setPriceCashless1    = 0x38,
+        setPriceCashless2    = 0x39,
+        setLockFuelValue1    = 0x40,
+        setLockFuelValue2    = 0x41,
+        setFuelArrival1      = 0x48,
+        setFuelArrival2      = 0x49
+
     };
 
     enum GasType : uint8_t
@@ -168,39 +136,24 @@ struct ResponseData
         Propane = 0x06
     };
 
-    struct AzsNode
-    {
-        //Тип топлива, колонка
-        GasType gasType;
-        //Дискрет 0,01 руб
-        uint16_t priceCash;
-        //Дискрет 0,01 руб
-        uint16_t priceCashless;
-    };
-
-    using AzsNodes = std::array<AzsNode, countAzsNodeMax>;
-
     uint8_t  header{0x7F};
-    uint8_t  command{0x01};
-    State    state{0};
-    AzsNodes azsNodes;
+    Command  command{0x01};
+    uint32_t data{0};
     uint8_t  checksum{0};
 
     QByteArray getQByteArray()
     {
         constexpr uint16_t size = sizeof(ResponseData);
-        addChecksum();
-        char*      ptr = reinterpret_cast<char*>(this);
-        QByteArray res(ptr, size);
+        addChecksum(size);
 
-        return res;
+        const char* ptr = reinterpret_cast<const char*>(this);
+
+        return {ptr, size};
     }
 
 private:
-    void addChecksum()
+    void addChecksum(uint16_t size)
     {
-        constexpr uint16_t size = sizeof(ResponseData);
-
         checksum     = 0;
         uint8_t* ptr = reinterpret_cast<uint8_t*>(this);
 
@@ -211,6 +164,11 @@ private:
     }
 };
 #pragma pack(pop)
+
+inline ResponseData::GasType convertIntToGasType(int type)
+{
+    return static_cast<ResponseData::GasType>(type);
+}
 
 inline QString convertGasTypeToString(ResponseData::GasType gasType)
 {
@@ -241,15 +199,6 @@ inline QString convertGasTypeToString(ResponseData::GasType gasType)
 
 struct AzsButton
 {
-    enum PriceState : uint8_t
-    {
-        updatePriceCashForFirstNode   = 0x01,
-        updatePriceCashForSecondNode  = 0x02,
-        updatePriceCashlessFirstNode  = 0x03,
-        updatePriceCashlessSecondNode = 0x04,
-
-    };
-
     int idAzs{};
     int value{};
     int button{};

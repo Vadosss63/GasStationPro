@@ -3,6 +3,7 @@
 #include <QObject>
 #include <memory>
 
+#include <azsnodesettings.h>
 #include <servicemenuwindow.h>
 
 class ServiceMenuController : public QObject
@@ -15,9 +16,9 @@ public:
 
     void setupReportTable(const ReceivedData& info);
 
-    std::array<ResponseData::AzsNode, countAzsNodeMax> getAzsNodes() const;
+    AzsNodeSettings getAzsNodes() const;
 
-    void showServiceMenu(const ReceivedData& info, const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
+    void showServiceMenu(const ReceivedData& info, const AzsNodeSettings& azsNodes);
     void closeServiceMenu();
 
 public slots:
@@ -31,7 +32,7 @@ signals:
     void showStatistics();
 
 private:
-    void setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
+    void setAzsNodes(const AzsNodeSettings& azsNodes);
 
     void setPriceCashlessToAzsNodes(size_t nodeId);
     void setPriceCashToAzsNodes(size_t nodeId);
@@ -43,7 +44,7 @@ private:
 
     std::unique_ptr<ServiceMenuWindow> serviceMenuWindow{nullptr};
 
-    std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
+    AzsNodeSettings azsNodes;
 
     int     showSecondPrice{false};
     uint8_t countAzsNode{0};

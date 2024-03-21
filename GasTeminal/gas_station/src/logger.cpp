@@ -39,10 +39,11 @@ void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& 
 
     const QString formatedMsg =
         QString("%1 %2/%3: %4\n").arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message.trimmed());
-    const std::string dataToWrite{formatedMsg.toStdString()};
+    const std::string dataToWrite{formatedMsg.toUtf8().constData()};
 
     constexpr qint64 writeError{-1};
-    if (logFileStream->write(dataToWrite.c_str()) == writeError)
+    auto writedBytes= logFileStream->write(dataToWrite.c_str());
+    if (writedBytes == writeError)
     {
         std::cerr << logFileStream->errorString().toStdString() << std::endl;
         return;

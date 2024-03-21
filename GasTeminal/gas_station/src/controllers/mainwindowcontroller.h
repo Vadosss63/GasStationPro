@@ -22,10 +22,10 @@ public:
 
     void showMainWindow();
 
-    void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes, bool showSecondPrice);
+    void setAzsNode(const AzsNodeSettings& azsNodes, bool showSecondPrice);
 
-    void checkNeedToDisableAzs(ResponseData::State state);
-    void setCountOfLitres(const std::array<ResponseData::AzsNode, countAzsNodeMax>& currentAzsNodes);
+    void disableAzs(bool state);
+    void setCountOfLitres(const AzsNodeSettings& currentAzsNodes);
 
     void setShowData(const ReceivedData& data);
 

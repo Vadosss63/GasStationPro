@@ -31,9 +31,11 @@ void WebServerController::sendReport(const QString& statistics)
     params.addQueryItem("is_second_price", QString("%1").arg((int)(configure.showSecondPrice)));
 
     params.addQueryItem("stats", statistics);
-    //LOG_INFO(QString("Sending report: %1").arg(params.toString()));
-    QString res = sendPost(configure.host + "/azs_stats", params).msg;
-    LOG_INFO(res);
+    Answer answer = sendPost(configure.host + "/azs_stats", params);
+    if (!answer.isOk)
+    {
+        LOG_ERROR(answer.msg);
+    }
 }
 
 bool WebServerController::resetServerBtn() const
@@ -69,8 +71,6 @@ AzsButton WebServerController::getServerBtn() const
         return azsButton;
     }
     azsButton.readAzsButton(answer.msg);
-
-    LOG_INFO(answer.msg);
 
     return azsButton;
 }

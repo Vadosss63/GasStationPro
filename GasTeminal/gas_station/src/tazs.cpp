@@ -6,6 +6,7 @@
 #include "appsettings.h"
 #include "azsnodesettings.h"
 #include "logging.h"
+#include "report.h"
 
 Tazs::Tazs(QObject* parent) : QObject{parent}
 {
@@ -50,7 +51,7 @@ void Tazs::sendToServer()
 {
     ReceivedData receivedData = comPortController->getReceivedData();
 
-    QString statistics = receivedData.getJsonReport(countAzsNode, comPortController->getResponseData().azsNodes);
+    QString statistics = getJsonReport(countAzsNode, receivedData, currentAzsNodes);
 
     webServerController->sendToServer(statistics);
 }
@@ -89,27 +90,40 @@ void Tazs::setCountAzsNodes(bool isVisible)
 
 void Tazs::setBtnFromServer(const AzsButton& azsButton)
 {
-    using State      = ResponseData::State;
-    using PriceState = AzsButton::PriceState;
+    using State = ResponseData::Command;
 
     switch (azsButton.button)
     {
-        case PriceState::updatePriceCashForFirstNode:
-            currentAzsNodes[firstNodeId].priceCash = azsButton.value;
+        case State::setPriceCash1:
+            currentAzsNodes.nodes[firstNodeId].priceCash = azsButton.value;
             break;
-        case PriceState::updatePriceCashForSecondNode:
-            currentAzsNodes[secondNodeId].priceCash = azsButton.value;
+        case State::setPriceCash2:
+            currentAzsNodes.nodes[secondNodeId].priceCash = azsButton.value;
             break;
-        case PriceState::updatePriceCashlessFirstNode:
-            currentAzsNodes[firstNodeId].priceCashless = azsButton.value;
+        case State::setPriceCashless1:
+            currentAzsNodes.nodes[firstNodeId].priceCashless = azsButton.value;
             break;
-        case PriceState::updatePriceCashlessSecondNode:
-            currentAzsNodes[secondNodeId].priceCashless = azsButton.value;
+        case State::setPriceCashless2:
+            currentAzsNodes.nodes[secondNodeId].priceCashless = azsButton.value;
+            break;
+        case State::setFuelArrival1:
+            currentAzsNodes.nodes[firstNodeId].fuelArrival = azsButton.value;
+            break;
+        case State::setFuelArrival2:
+            currentAzsNodes.nodes[secondNodeId].fuelArrival = azsButton.value;
+            break;
+        case State::setLockFuelValue1:
+            currentAzsNodes.nodes[firstNodeId].lockFuelValue = azsButton.value;
+            break;
+        case State::setLockFuelValue2:
+            currentAzsNodes.nodes[secondNodeId].lockFuelValue = azsButton.value;
             break;
         case State::blockAzsNode:
-            [[fallthrough]];
+            mainWindowController->disableAzs(true);
+            break;
         case State::unblockAzsNode:
-            [[fallthrough]];
+            mainWindowController->disableAzs(false);
+            break;
         case State::isPressedServiceBtn1:
             [[fallthrough]];
         case State::isPressedServiceBtn2:
@@ -117,20 +131,13 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
         case State::isPressedServiceBtn3:
             [[fallthrough]];
         case State::resetCounters:
-            [[fallthrough]];
-        case State::setFuelArrival1:
-            [[fallthrough]];
-        case State::setFuelArrival2:
-            [[fallthrough]];
-        case State::setLockFuelValue1:
-            [[fallthrough]];
-        case State::setLockFuelValue2:
-            comPortController->getResponseData().state = static_cast<ResponseData::State>(azsButton.button);
             break;
         default:
             LOG_ERROR(QString("Press unknown btn: %1").arg(azsButton.button));
             return;
     }
+
+    comPortController->setCommand(static_cast<ResponseData::Command>(azsButton.button), azsButton.value);
 
     if (azsButton.value)
     {
@@ -138,7 +145,7 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
         writeSettings();
     }
 
-    mainWindowController->checkNeedToDisableAzs(static_cast<State>(azsButton.button));
+    LOG_INFO(QString("Recived button: %1, value:2%").arg(azsButton.button).arg(azsButton.value));
 }
 
 void Tazs::keyPressEvent(QKeyEvent* event)
@@ -175,8 +182,8 @@ void Tazs::setupSecondPrice()
 {
     if (!configure.showSecondPrice)
     {
-        currentAzsNodes[firstNodeId].priceCashless  = 0;
-        currentAzsNodes[secondNodeId].priceCashless = 0;
+        currentAzsNodes.nodes[firstNodeId].priceCashless  = 0;
+        currentAzsNodes.nodes[secondNodeId].priceCashless = 0;
         setAzsNode(currentAzsNodes);
         writeSettings();
 
@@ -184,11 +191,11 @@ void Tazs::setupSecondPrice()
     }
 }
 
-void Tazs::setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
+void Tazs::setAzsNode(const AzsNodeSettings& azsNodes)
 {
     currentAzsNodes = azsNodes;
-
-    comPortController->getResponseData().azsNodes = azsNodes;
+    ///TODO: Как установить все значения?
+    //comPortController->getResponseData().azsNodes = azsNodes;
 
     mainWindowController->setAzsNode(azsNodes, configure.showSecondPrice);
 }
@@ -226,12 +233,12 @@ void Tazs::clickedSecondHWBtn() const
 
 void Tazs::startFirstAzsNode()
 {
-    comPortController->getResponseData().state = ResponseData::isPressedFirstBtn;
+    comPortController->setCommand(ResponseData::isPressedFirstBtn);
 }
 
 void Tazs::startSecondAzsNode()
 {
-    comPortController->getResponseData().state = ResponseData::isPressedSecondBtn;
+    comPortController->setCommand(ResponseData::isPressedSecondBtn);
 }
 
 void Tazs::setupPrice()
@@ -280,7 +287,7 @@ void Tazs::getCounters()
 
 void Tazs::resetCounters()
 {
-    comPortController->getResponseData().state = ResponseData::resetCounters;
+    comPortController->setCommand(ResponseData::resetCounters);
 }
 
 void Tazs::saveReceipt(int numOfAzsNode) const

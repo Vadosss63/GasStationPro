@@ -52,8 +52,7 @@ void ServiceMenuController::setupReportTable(const ReceivedData& info)
     }
 }
 
-void ServiceMenuController::showServiceMenu(const ReceivedData&                                       info,
-                                            const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
+void ServiceMenuController::showServiceMenu(const ReceivedData& info, const AzsNodeSettings& azsNodes)
 {
     setAzsNodes(azsNodes);
     setupReportTable(info);
@@ -85,13 +84,13 @@ void ServiceMenuController::setGasTypeToServiceMenu(size_t nodeId, ResponseData:
     serviceMenuWindow->setGasType(gasTypeStr, nodeId);
 }
 
-void ServiceMenuController::setAzsNodes(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
+void ServiceMenuController::setAzsNodes(const AzsNodeSettings& azsNodes)
 {
     for (int nodeId = 0; nodeId < countAzsNode; ++nodeId)
     {
-        setPriceCashToServiceMenu(nodeId, azsNodes[nodeId].priceCash);
-        setPriceCashlessToServiceMenu(nodeId, azsNodes[nodeId].priceCashless);
-        setGasTypeToServiceMenu(nodeId, azsNodes[nodeId].gasType);
+        setPriceCashToServiceMenu(nodeId, azsNodes.nodes[nodeId].priceCash);
+        setPriceCashlessToServiceMenu(nodeId, azsNodes.nodes[nodeId].priceCashless);
+        setGasTypeToServiceMenu(nodeId, convertIntToGasType(azsNodes.nodes[nodeId].gasType));
     }
 }
 
@@ -107,7 +106,7 @@ void ServiceMenuController::setupPrice()
     closeServiceMenu();
 }
 
-std::array<ResponseData::AzsNode, countAzsNodeMax> ServiceMenuController::getAzsNodes() const
+AzsNodeSettings ServiceMenuController::getAzsNodes() const
 {
     return azsNodes;
 }
@@ -121,7 +120,7 @@ void ServiceMenuController::setPriceCashlessToAzsNodes(size_t nodeId)
     uint16_t rub = serviceMenuWindow->getPriceCashlessRub(nodeId);
     uint16_t kop = serviceMenuWindow->getPriceCashlessKop(nodeId);
     Price    priceCashless(rub, kop);
-    azsNodes[nodeId].priceCashless = priceCashless.getPriceInt();
+    azsNodes.nodes[nodeId].priceCashless = priceCashless.getPriceInt();
 }
 
 void ServiceMenuController::setPriceCashToAzsNodes(size_t nodeId)
@@ -129,14 +128,14 @@ void ServiceMenuController::setPriceCashToAzsNodes(size_t nodeId)
     uint16_t rub = serviceMenuWindow->getPriceCashRub(nodeId);
     uint16_t kop = serviceMenuWindow->getPriceCashKop(nodeId);
     Price    priceCash(rub, kop);
-    azsNodes[nodeId].priceCash = priceCash.getPriceInt();
+    azsNodes.nodes[nodeId].priceCash = priceCash.getPriceInt();
 }
 
 void ServiceMenuController::setGasTypeToAzsNode(size_t nodeId)
 {
     int type = serviceMenuWindow->getGasType(nodeId);
 
-    azsNodes[nodeId].gasType = static_cast<ResponseData::GasType>(type);
+    azsNodes.nodes[nodeId].gasType = convertIntToGasType(type);
 }
 
 void ServiceMenuController::closeServiceMenu()

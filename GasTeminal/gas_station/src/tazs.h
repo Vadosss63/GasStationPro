@@ -5,6 +5,7 @@
 
 #include "AzsButtonHandler.h"
 #include "IKeyPressEvent.h"
+#include "azsnodesettings.h"
 #include "mainwindowcontroller.h"
 
 class Tazs : public QObject, public AzsBtnHandler, public IKeyPressEvent
@@ -42,7 +43,7 @@ private:
 
     void setupSecondPrice();
 
-    void setAzsNode(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes);
+    void setAzsNode(const AzsNodeSettings& azsNodes);
 
     void updateStateOfBtn();
 
@@ -51,6 +52,7 @@ private:
     void closeServiceMenu();
 
     void saveReceipt(int numOfAzsNode) const;
+    bool isBalanceValid() const;
 
     std::unique_ptr<MainWindowController>     mainWindowController{nullptr};
     std::unique_ptr<ComPortController>        comPortController{nullptr};
@@ -63,9 +65,8 @@ private:
     Configure configure{};
     uint8_t   countAzsNode{2};
 
-    std::array<ResponseData::AzsNode, countAzsNodeMax> currentAzsNodes{};
+    AzsNodeSettings currentAzsNodes{};
 
     static constexpr size_t firstNodeId  = 0;
     static constexpr size_t secondNodeId = 1;
-    bool                    isBalanceValid() const;
 };

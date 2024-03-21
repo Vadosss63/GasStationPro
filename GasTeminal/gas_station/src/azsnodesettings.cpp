@@ -4,43 +4,46 @@
 
 namespace
 {
-constexpr auto appName   = "Gas Station";
+constexpr auto appName   = "Gas_Station";
 constexpr auto groupName = "parms";
 
-constexpr auto priceCashTemplate     = "currentPriceCash%1";
-constexpr auto priceCashlessTemplate = "currentPriceCashless%1";
-constexpr auto gasTypesTemplate      = "gasTypes%1";
+constexpr auto gasTypeTemplate       = "gasType%1";
+constexpr auto priceCashTemplate     = "priceCash%1";
+constexpr auto priceCashlessTemplate = "priceCashless%1";
+constexpr auto lockFuelValueTemplate = "lockFuelValue%1";
+constexpr auto fuelArrivalTemplate   = "fuelArrival%1";
 
 }
 
-void writeAzsNodeSettings(const std::array<ResponseData::AzsNode, countAzsNodeMax>& azsNodes)
+void writeAzsNodeSettings(const AzsNodeSettings& azsNodes)
 {
     QSettings settings(appName);
     settings.beginGroup(groupName);
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
-        settings.setValue(QString(priceCashTemplate).arg(nodeId), azsNodes[nodeId].priceCash);
-        settings.setValue(QString(priceCashlessTemplate).arg(nodeId), azsNodes[nodeId].priceCashless);
-        settings.setValue(QString(gasTypesTemplate).arg(nodeId), azsNodes[nodeId].gasType);
+        settings.setValue(QString(gasTypeTemplate).arg(nodeId), azsNodes.nodes[nodeId].gasType);
+        settings.setValue(QString(priceCashTemplate).arg(nodeId), azsNodes.nodes[nodeId].priceCash);
+        settings.setValue(QString(priceCashlessTemplate).arg(nodeId), azsNodes.nodes[nodeId].priceCashless);
+        settings.setValue(QString(lockFuelValueTemplate).arg(nodeId), azsNodes.nodes[nodeId].lockFuelValue);
+        settings.setValue(QString(fuelArrivalTemplate).arg(nodeId), azsNodes.nodes[nodeId].fuelArrival);
     }
     settings.endGroup();
 }
 
-std::array<ResponseData::AzsNode, countAzsNodeMax> readAzsNodeSettings()
+AzsNodeSettings readAzsNodeSettings()
 {
-    std::array<ResponseData::AzsNode, countAzsNodeMax> azsNodes;
+    AzsNodeSettings azsNodes;
 
     QSettings settings(appName);
     settings.beginGroup(groupName);
 
-    bool ok = false;
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
     {
-        azsNodes[nodeId].priceCash     = settings.value(QString(priceCashTemplate).arg(nodeId)).toInt();
-        azsNodes[nodeId].priceCashless = settings.value(QString(priceCashlessTemplate).arg(nodeId)).toInt();
-
-        int gasTypeInt           = QString(gasTypesTemplate).arg(nodeId).toUInt(&ok);
-        azsNodes[nodeId].gasType = static_cast<ResponseData::GasType>(gasTypeInt);
+        azsNodes.nodes[nodeId].gasType       = settings.value(QString(gasTypeTemplate).arg(nodeId)).toInt();
+        azsNodes.nodes[nodeId].priceCash     = settings.value(QString(priceCashTemplate).arg(nodeId)).toInt();
+        azsNodes.nodes[nodeId].priceCashless = settings.value(QString(priceCashlessTemplate).arg(nodeId)).toInt();
+        azsNodes.nodes[nodeId].lockFuelValue = settings.value(QString(lockFuelValueTemplate).arg(nodeId)).toInt();
+        azsNodes.nodes[nodeId].fuelArrival   = settings.value(QString(fuelArrivalTemplate).arg(nodeId)).toInt();
     }
 
     settings.endGroup();
