@@ -49,9 +49,7 @@ Tazs::~Tazs()
 
 void Tazs::sendToServer()
 {
-    ReceivedData receivedData = comPortController->getReceivedData();
-
-    QString statistics = getJsonReport(countAzsNode, receivedData, currentAzsNodes);
+    QString statistics = getJsonReport(getReport());
 
     webServerController->sendToServer(statistics);
 }
@@ -88,7 +86,7 @@ void Tazs::setCountAzsNodes(bool isVisible)
     countAzsNode = isVisible ? 2 : 1;
 }
 
-void Tazs::setBtnFromServer(const AzsButton& azsButton)
+void Tazs::handleAzsBtn(const AzsButton& azsButton)
 {
     using State = ResponseData::Command;
 
@@ -118,6 +116,12 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
         case State::setLockFuelValue2:
             currentAzsNodes.nodes[secondNodeId].lockFuelValue = azsButton.value;
             break;
+        case State::setGasType1:
+            currentAzsNodes.nodes[firstNodeId].gasType = azsButton.value;
+            break;
+        case State::setGasType2:
+            currentAzsNodes.nodes[secondNodeId].gasType = azsButton.value;
+            break;
         case State::blockAzsNode:
             mainWindowController->disableAzs(true);
             break;
@@ -145,7 +149,7 @@ void Tazs::setBtnFromServer(const AzsButton& azsButton)
         writeSettings();
     }
 
-    LOG_INFO(QString("Recived button: %1, value:2%").arg(azsButton.button).arg(azsButton.value));
+    LOG_INFO(QString("Recived button: %1, value:2%").arg(azsButton.button, azsButton.value));
 }
 
 void Tazs::keyPressEvent(QKeyEvent* event)
@@ -209,9 +213,14 @@ void Tazs::updateData()
     comPortController->sendResponse();
 }
 
+AzsReport Tazs::getReport() const
+{
+    return {countAzsNode, comPortController->getReceivedData(), currentAzsNodes};
+}
+
 void Tazs::showServiceMenu()
 {
-    serviceMenuController->showServiceMenu(comPortController->getReceivedData(), currentAzsNodes);
+    serviceMenuController->showServiceMenu(getReport());
 }
 
 void Tazs::closeServiceMenu()
@@ -243,8 +252,7 @@ void Tazs::startSecondAzsNode()
 
 void Tazs::setupPrice()
 {
-    setAzsNode(serviceMenuController->getAzsNodes());
-    writeSettings();
+    handleAzsBtn(serviceMenuController->getAzsButton());
 }
 
 void Tazs::updateStateOfBtn()

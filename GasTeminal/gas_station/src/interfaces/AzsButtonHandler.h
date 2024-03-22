@@ -1,8 +1,8 @@
 #pragma once
-#include "dataprotocol.h"
+#include "azsbutton.h"
 
 class AzsBtnHandler
 {
 public:
-    virtual void setBtnFromServer(const AzsButton& azsButton) = 0;
+    virtual void handleAzsBtn(const AzsButton& azsButton) = 0;
 };

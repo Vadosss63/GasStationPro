@@ -123,7 +123,6 @@ struct ResponseData
         setLockFuelValue2    = 0x41,
         setFuelArrival1      = 0x48,
         setFuelArrival2      = 0x49
-
     };
 
     enum GasType : uint8_t
@@ -196,35 +195,3 @@ inline QString convertGasTypeToString(ResponseData::GasType gasType)
     }
     return result;
 }
-
-struct AzsButton
-{
-    int idAzs{};
-    int value{};
-    int button{};
-
-    bool readAzsButton(const QString& jsonText)
-    {
-        const QByteArray jsonData = QByteArray::fromStdString(jsonText.toStdString());
-        QJsonDocument    document = QJsonDocument::fromJson(jsonData);
-
-        if (document.isNull())
-        {
-            LOG_ERROR("Failed to parse JSON!");
-            return false;
-        }
-
-        QJsonObject object = document.object();
-
-        if (object.isEmpty() || !object.contains("id_azs") || !object.contains("value") || !object.contains("button"))
-        {
-            LOG_ERROR("Missing or invalid field(s)!");
-            return false;
-        }
-
-        idAzs  = object["id_azs"].toInt();
-        value  = object["value"].toInt();
-        button = object["button"].toInt();
-        return true;
-    }
-};

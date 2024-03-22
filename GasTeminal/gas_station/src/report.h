@@ -2,4 +2,11 @@
 
 #include "azsnodesettings.h"
 
-QString getJsonReport(size_t countNode, const ReceivedData& rec, const AzsNodeSettings& azsNode);
+struct AzsReport
+{
+    size_t          countNode;
+    ReceivedData    rec;
+    AzsNodeSettings azsNode;
+};
+
+QString getJsonReport(const AzsReport& azsReport);

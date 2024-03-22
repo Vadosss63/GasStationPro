@@ -42,7 +42,7 @@ void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& 
     const std::string dataToWrite{formatedMsg.toUtf8().constData()};
 
     constexpr qint64 writeError{-1};
-    auto writedBytes= logFileStream->write(dataToWrite.c_str());
+    auto             writedBytes = logFileStream->write(dataToWrite.c_str());
     if (writedBytes == writeError)
     {
         std::cerr << logFileStream->errorString().toStdString() << std::endl;

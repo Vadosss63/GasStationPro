@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "appsettings.h"
+#include "azsbutton.h"
 #include "filesystemutilities.h"
 #include "httprequest.h"
 #include "logging.h"
@@ -55,7 +56,7 @@ bool WebServerController::resetServerBtn() const
 void WebServerController::setBtnFromServer(const AzsButton& azsButton)
 {
     assert(azsBtnHandler);
-    azsBtnHandler->setBtnFromServer(azsButton);
+    azsBtnHandler->handleAzsBtn(azsButton);
 }
 
 AzsButton WebServerController::getServerBtn() const
@@ -63,16 +64,23 @@ AzsButton WebServerController::getServerBtn() const
     QUrlQuery params;
     params.addQueryItem("id", configure.id);
     params.addQueryItem("token", configure.token);
-    Answer    answer = sendPost(configure.host + "/get_azs_button", params);
-    AzsButton azsButton;
+    Answer answer = sendPost(configure.host + "/get_azs_button", params);
+
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
-        return azsButton;
+        return {};
     }
-    azsButton.readAzsButton(answer.msg);
 
-    return azsButton;
+    std::optional<AzsButton> azsButton = readAzsButton(answer.msg);
+
+    if (!azsButton)
+    {
+        LOG_ERROR("Error porsing azs button: " + answer.msg);
+        return {};
+    }
+
+    return *azsButton;
 }
 
 bool WebServerController::sendReceipt(const Receipt& receipt) const

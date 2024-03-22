@@ -1,7 +1,12 @@
 #include "report.h"
 
-QString getJsonReport(size_t countNode, const ReceivedData& rec, const AzsNodeSettings& azsNode)
+QString getJsonReport(const AzsReport& azsReport)
 {
+    const size_t countNode = azsReport.countNode;
+
+    const ReceivedData&    rec     = azsReport.rec;
+    const AzsNodeSettings& azsNode = azsReport.azsNode;
+
     QJsonObject mainInfo;
     mainInfo.insert("commonCash", static_cast<int>(rec.commonCashSum + rec.commonCoinsSum));
     mainInfo.insert("dailyCash", static_cast<int>(rec.dailyCashSum + rec.dailyCoinsSum));

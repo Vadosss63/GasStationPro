@@ -3,8 +3,11 @@
 #include <QObject>
 #include <memory>
 
-#include <azsnodesettings.h>
-#include <servicemenuwindow.h>
+#include "azsbutton.h"
+#include "azsnodesettings.h"
+#include "buttonwidget.h"
+#include "report.h"
+#include "servicemenuwindow.h"
 
 class ServiceMenuController : public QObject
 {
@@ -16,14 +19,16 @@ public:
 
     void setupReportTable(const ReceivedData& info);
 
-    AzsNodeSettings getAzsNodes() const;
+    AzsButton getAzsButton() const;
 
-    void showServiceMenu(const ReceivedData& info, const AzsNodeSettings& azsNodes);
+    void showServiceMenu(const AzsReport& azsReport);
     void closeServiceMenu();
+
+    void setCurrentButtonWidget(QWidget* newCurrentButtonWidget);
 
 public slots:
 
-    void setupPrice();
+    void pressedButton();
 
 signals:
     void setPrice();
@@ -34,18 +39,13 @@ signals:
 private:
     void setAzsNodes(const AzsNodeSettings& azsNodes);
 
-    void setPriceCashlessToAzsNodes(size_t nodeId);
-    void setPriceCashToAzsNodes(size_t nodeId);
-    void setGasTypeToAzsNode(size_t nodeId);
-
-    void setPriceCashToServiceMenu(size_t nodeId, uint16_t price);
-    void setPriceCashlessToServiceMenu(size_t nodeId, uint16_t price);
-    void setGasTypeToServiceMenu(size_t nodeId, ResponseData::GasType gasType);
-
     std::unique_ptr<ServiceMenuWindow> serviceMenuWindow{nullptr};
 
-    AzsNodeSettings azsNodes;
+    AzsButton azsButton;
 
-    int     showSecondPrice{false};
+    int showSecondPrice{false};
+
+    ButtonWidget* currentButtonWidget{nullptr};
+
     uint8_t countAzsNode{0};
 };

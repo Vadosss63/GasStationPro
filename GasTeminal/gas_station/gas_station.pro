@@ -33,6 +33,7 @@ DEPENDPATH += $$PWD/src/interfaces/
 
 SOURCES += \
     src/appsettings.cpp \
+    src/azsbutton.cpp \
     src/azsnodesettings.cpp \
     src/configure.cpp \
     src/controllers/comportcontroller.cpp \
@@ -51,13 +52,18 @@ SOURCES += \
     src/report.cpp \
     src/tazs.cpp \
     src/utilities.cpp \
+    src/widgets/azsbuttonwidget.cpp \
+    src/widgets/buttonwidget.cpp \
+    src/widgets/gastypeinputwidget.cpp \
     src/widgets/mainwindow.cpp \
+    src/widgets/priceinputwidget.cpp \
     src/widgets/receipthistorywindow.cpp \
     src/widgets/servicemenuwindow.cpp \
     src/widgets/temporarilyunavailablewidget.cpp \
     src/widgets/labelwidget.cpp
 
 HEADERS += \
+    src/azsbutton.h \
     src/interfaces/AzsButtonHandler.h \
     src/interfaces/IKeyPressEvent.h \
     src/appsettings.h \
@@ -80,7 +86,11 @@ HEADERS += \
     src/report.h \
     src/tazs.h \
     src/utilities.h \
+    src/widgets/azsbuttonwidget.h \
+    src/widgets/buttonwidget.h \
+    src/widgets/gastypeinputwidget.h \
     src/widgets/mainwindow.h \
+    src/widgets/priceinputwidget.h \
     src/widgets/receipthistorywindow.h \
     src/widgets/servicemenuwindow.h \
     src/widgets/temporarilyunavailablewidget.h \

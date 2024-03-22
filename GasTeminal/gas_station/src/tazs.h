@@ -17,7 +17,7 @@ public:
 
     void run();
 
-    void setBtnFromServer(const AzsButton& azsButton) override;
+    void handleAzsBtn(const AzsButton& azsButton) override;
     void keyPressEvent(QKeyEvent* event) override;
 
 public slots:
@@ -51,8 +51,9 @@ private:
     void clickedSecondHWBtn() const;
     void closeServiceMenu();
 
-    void saveReceipt(int numOfAzsNode) const;
-    bool isBalanceValid() const;
+    void      saveReceipt(int numOfAzsNode) const;
+    bool      isBalanceValid() const;
+    AzsReport getReport() const;
 
     std::unique_ptr<MainWindowController>     mainWindowController{nullptr};
     std::unique_ptr<ComPortController>        comPortController{nullptr};

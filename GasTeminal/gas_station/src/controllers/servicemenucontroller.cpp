@@ -1,34 +1,73 @@
 #include "servicemenucontroller.h"
 
+#include "gastypeinputwidget.h"
 #include "price.h"
+#include "priceinputwidget.h"
+
+namespace
+{
+template <typename InputWidget>
+void addInputWidget(AzsButtonWidget* azsButtonWidget, const QString& text, int val)
+{
+    InputWidget* price1Input = new InputWidget(val);
+    azsButtonWidget->addItem(text, price1Input);
+}
+}
 
 ServiceMenuController::ServiceMenuController(QObject* parent) : QObject(parent) {}
 
 void ServiceMenuController::createWindow(int showSecondPrice, uint8_t countAzsNode)
 {
     serviceMenuWindow = std::make_unique<ServiceMenuWindow>();
-    //TODO: make refactoring
+
+    AzsButtonWidget* azsButtonWidget = new AzsButtonWidget;
+
     if (countAzsNode == 1 && showSecondPrice == false)
     {
-        serviceMenuWindow->createOnePriceOneNode();
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Цена", ResponseData::setPriceCash1);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо", ResponseData::setGasType1);
     }
     else if (countAzsNode == 2 && showSecondPrice == false)
     {
-        serviceMenuWindow->createOnePriceTwoNode();
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Цена-1", ResponseData::setPriceCash1);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо-1", ResponseData::setGasType1);
+
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Цена-2", ResponseData::setPriceCash2);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо-2", ResponseData::setGasType2);
     }
     else if (countAzsNode == 1 && showSecondPrice == true)
     {
-        serviceMenuWindow->createTwoPriceOneNode();
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Наличн", ResponseData::setPriceCash1);
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Безнал", ResponseData::setPriceCashless1);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо", ResponseData::setGasType1);
     }
     else if (countAzsNode == 2 && showSecondPrice == true)
     {
-        serviceMenuWindow->createTwoPriceTwoNode();
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Наличн-1", ResponseData::setPriceCash1);
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Безнал-1", ResponseData::setPriceCashless1);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо-1", ResponseData::setGasType1);
+
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Наличн-2", ResponseData::setPriceCash2);
+        addInputWidget<PriceInputWidget>(azsButtonWidget, "Безнал-2", ResponseData::setPriceCashless2);
+        addInputWidget<GasTypeInputWidget>(azsButtonWidget, "Топливо-2", ResponseData::setGasType2);
     }
 
+    serviceMenuWindow->createNodes(azsButtonWidget, countAzsNode);
+
+    connect(azsButtonWidget,
+            &AzsButtonWidget::widgetChanged,
+            this,
+            [&](QWidget* newWidget)
+            {
+                ///TODO: update val
+                setCurrentButtonWidget(newWidget);
+            });
+
+    setCurrentButtonWidget(azsButtonWidget->getCurrentWidget());
     this->showSecondPrice = showSecondPrice;
     this->countAzsNode    = countAzsNode;
 
-    connect(serviceMenuWindow.get(), SIGNAL(setPrice()), this, SLOT(setupPrice()));
+    connect(serviceMenuWindow.get(), SIGNAL(pressedButton()), this, SLOT(pressedButton()));
     connect(serviceMenuWindow.get(), SIGNAL(readCounters()), this, SIGNAL(readCounters()));
     connect(serviceMenuWindow.get(), SIGNAL(resetCounters()), this, SIGNAL(resetCounters()));
     connect(serviceMenuWindow.get(), SIGNAL(showStatistics()), this, SIGNAL(showStatistics()));
@@ -52,90 +91,38 @@ void ServiceMenuController::setupReportTable(const ReceivedData& info)
     }
 }
 
-void ServiceMenuController::showServiceMenu(const ReceivedData& info, const AzsNodeSettings& azsNodes)
+void ServiceMenuController::showServiceMenu(const AzsReport& azsReport)
 {
-    setAzsNodes(azsNodes);
-    setupReportTable(info);
+    setAzsNodes(azsReport.azsNode);
+    setupReportTable(azsReport.rec);
     serviceMenuWindow->show();
     serviceMenuWindow->setFocus();
 }
 
-void ServiceMenuController::setPriceCashToServiceMenu(size_t nodeId, uint16_t price)
-{
-    Price priceCash(price);
-    serviceMenuWindow->setPriceCashRub(priceCash.getRub(), nodeId);
-    serviceMenuWindow->setPriceCashKop(priceCash.getKop(), nodeId);
-}
-
-void ServiceMenuController::setPriceCashlessToServiceMenu(size_t nodeId, uint16_t price)
-{
-    if (!showSecondPrice)
-    {
-        return;
-    }
-    Price priceCashless(price);
-    serviceMenuWindow->setPriceCashlessRub(priceCashless.getRub(), nodeId);
-    serviceMenuWindow->setPriceCashlessKop(priceCashless.getKop(), nodeId);
-}
-
-void ServiceMenuController::setGasTypeToServiceMenu(size_t nodeId, ResponseData::GasType gasType)
-{
-    QString gasTypeStr = convertGasTypeToString(gasType);
-    serviceMenuWindow->setGasType(gasTypeStr, nodeId);
-}
-
 void ServiceMenuController::setAzsNodes(const AzsNodeSettings& azsNodes)
 {
-    for (int nodeId = 0; nodeId < countAzsNode; ++nodeId)
+    ///TODO: implement settup
+}
+
+void ServiceMenuController::setCurrentButtonWidget(QWidget* newCurrentButtonWidget)
+{
+    if (newCurrentButtonWidget)
     {
-        setPriceCashToServiceMenu(nodeId, azsNodes.nodes[nodeId].priceCash);
-        setPriceCashlessToServiceMenu(nodeId, azsNodes.nodes[nodeId].priceCashless);
-        setGasTypeToServiceMenu(nodeId, convertIntToGasType(azsNodes.nodes[nodeId].gasType));
+        currentButtonWidget = static_cast<ButtonWidget*>(newCurrentButtonWidget);
     }
 }
 
-void ServiceMenuController::setupPrice()
+void ServiceMenuController::pressedButton()
 {
-    for (int nodeId = 0; nodeId < countAzsNode; ++nodeId)
-    {
-        setPriceCashToAzsNodes(nodeId);
-        setPriceCashlessToAzsNodes(nodeId);
-        setGasTypeToAzsNode(nodeId);
-    }
+    azsButton = {-1, currentButtonWidget->getValue(), currentButtonWidget->getCommand()};
+
     emit setPrice();
     closeServiceMenu();
 }
 
-AzsNodeSettings ServiceMenuController::getAzsNodes() const
+AzsButton ServiceMenuController::getAzsButton() const
 {
-    return azsNodes;
-}
-
-void ServiceMenuController::setPriceCashlessToAzsNodes(size_t nodeId)
-{
-    if (!showSecondPrice)
-    {
-        return;
-    }
-    uint16_t rub = serviceMenuWindow->getPriceCashlessRub(nodeId);
-    uint16_t kop = serviceMenuWindow->getPriceCashlessKop(nodeId);
-    Price    priceCashless(rub, kop);
-    azsNodes.nodes[nodeId].priceCashless = priceCashless.getPriceInt();
-}
-
-void ServiceMenuController::setPriceCashToAzsNodes(size_t nodeId)
-{
-    uint16_t rub = serviceMenuWindow->getPriceCashRub(nodeId);
-    uint16_t kop = serviceMenuWindow->getPriceCashKop(nodeId);
-    Price    priceCash(rub, kop);
-    azsNodes.nodes[nodeId].priceCash = priceCash.getPriceInt();
-}
-
-void ServiceMenuController::setGasTypeToAzsNode(size_t nodeId)
-{
-    int type = serviceMenuWindow->getGasType(nodeId);
-
-    azsNodes.nodes[nodeId].gasType = convertIntToGasType(type);
+    return azsButton;
 }
 
 void ServiceMenuController::closeServiceMenu()
