@@ -10,7 +10,7 @@ struct Configure
     QString address         = "";
     QString token           = "";
     QString host            = "http://t-azs.ru:8080";
-    QString phoneOfSupport  = "8(999)000-00-00";
+    QString phoneOfSupport  = "8(000)111-66-77";
     int     activeBtn2      = true;
     QString comPort         = "/dev/ttyS4";
     int     baudRate        = 115200;
