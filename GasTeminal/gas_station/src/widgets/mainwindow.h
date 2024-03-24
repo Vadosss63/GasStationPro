@@ -39,6 +39,8 @@ public:
 
     void disableAzs(bool disable);
 
+    bool isBlock();
+
     void setPricePerLitreLable(double priceCash, size_t nodeId);
     void setPricePerLitreLableCashless(double price, size_t nodeId);
 

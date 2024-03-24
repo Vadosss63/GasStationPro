@@ -25,6 +25,9 @@ public:
     void setAzsNode(const AzsNodeSettings& azsNodes, bool showSecondPrice);
 
     void disableAzs(bool state);
+
+    bool isBlock();
+
     void setCountOfLitres(const AzsNodeSettings& currentAzsNodes);
 
     void setShowData(const ReceivedData& data);

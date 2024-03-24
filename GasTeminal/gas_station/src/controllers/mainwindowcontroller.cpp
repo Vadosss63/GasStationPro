@@ -78,6 +78,11 @@ void MainWindowController::disableAzs(bool state)
     mainWindow.disableAzs(state);
 }
 
+bool MainWindowController::isBlock()
+{
+    return mainWindow.isBlock();
+}
+
 void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNodes)
 {
     for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)

@@ -54,6 +54,9 @@ void ServiceMenuWindow::createNodes(AzsButtonWidget* azsButtonWidget, size_t cou
     gl->addLayout(hbl, 1, 0, Qt::AlignCenter);
     createInfoTable(countNodes);
     gl->addWidget(infoTable, 2, 0, Qt::AlignCenter);
+    version = new QLabel();
+    gl->addWidget(version, 3, 0, Qt::AlignCenter);
+
     setLayout(gl);
     setupConnects();
 }
@@ -96,6 +99,11 @@ void ServiceMenuWindow::setLiters(double common, double daily, size_t nodeId, si
 
     infoTable->item(shift, 0)->setData(Qt::DisplayRole, QString("%1").arg(common, 0, 'f', 2));
     infoTable->item(shift, 1)->setData(Qt::DisplayRole, QString("%1").arg(daily, 0, 'f', 2));
+}
+
+void ServiceMenuWindow::setVersion(const QString& ver)
+{
+    version->setText(QString("Версия программы: %1").arg(ver));
 }
 
 void ServiceMenuWindow::setupButtons()

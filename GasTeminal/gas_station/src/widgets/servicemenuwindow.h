@@ -29,6 +29,8 @@ public:
 
     void setLiters(double common, double daily, size_t nodeId, size_t countAzsNode);
 
+    void setVersion(const QString& ver);
+
 signals:
     void pressedButton();
     void readCounters();
@@ -46,4 +48,5 @@ private:
     QPushButton*  resetCountersBtn{nullptr};
     QPushButton*  statisticsBtn{nullptr};
     QTableWidget* infoTable{nullptr};
+    QLabel*       version{nullptr};
 };

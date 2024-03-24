@@ -12,7 +12,6 @@
 constexpr uint8_t countAzsNodeMax = 2;
 
 constexpr char HEADER_DATA       = 0x7F;
-constexpr char RECEIVED_DATA_CMD = 0x81;
 
 #pragma pack(push, 1)
 struct ReceivedData
@@ -88,7 +87,7 @@ struct ReceivedData
     {
         ReceivedData* receivedData{nullptr};
 
-        if ((data[0] != HEADER_DATA) or (data[1] != RECEIVED_DATA_CMD) or (data.size() != sizeof(ReceivedData)))
+        if ((data[0] != HEADER_DATA) or (data.size() != sizeof(ReceivedData)))
         {
             return receivedData;
         }

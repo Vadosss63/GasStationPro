@@ -17,6 +17,9 @@ QString getJsonReport(const AzsReport& azsReport)
     mainInfo.insert("commonOnline", static_cast<int>(rec.commonOnlineSum));
     mainInfo.insert("dailyOnline", static_cast<int>(rec.dailyOnlineSum));
 
+    mainInfo.insert("version", azsReport.version);
+    mainInfo.insert("isBlock", azsReport.isBlock);
+
     QJsonArray jsonAzsNodes;
     for (size_t i = 0; i < countNode; ++i)
     {
@@ -30,6 +33,9 @@ QString getJsonReport(const AzsReport& azsReport)
         jsonAzsNode.insert("typeFuel", convertGasTypeToString(type));
         jsonAzsNode.insert("price", static_cast<int>(azsNode.nodes[i].priceCash));
         jsonAzsNode.insert("priceCashless", static_cast<int>(azsNode.nodes[i].priceCashless));
+        jsonAzsNode.insert("lockFuelValue", static_cast<int>(azsNode.nodes[i].lockFuelValue));
+        jsonAzsNode.insert("fuelArrival", static_cast<int>(azsNode.nodes[i].fuelArrival));
+
         jsonAzsNode.insert("fuelVolume", QString("%1").arg(rec.azsNodes[i].fuelVolume, 0, 'f', 2));
         jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(rec.azsNodes[i].fuelVolumePerc, 0, 'f', 2));
         jsonAzsNode.insert("density", QString("%1").arg(rec.azsNodes[i].density, 0, 'f', 2));

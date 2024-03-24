@@ -2,9 +2,8 @@
 
 #include <QObject>
 
-#include <port.h>
-
 #include "dataprotocol.h"
+#include "port.h"
 
 class ComPortController : public QObject
 {

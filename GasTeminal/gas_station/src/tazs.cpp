@@ -215,7 +215,11 @@ void Tazs::updateData()
 
 AzsReport Tazs::getReport() const
 {
-    return {countAzsNode, comPortController->getReceivedData(), currentAzsNodes};
+    return {countAzsNode,
+            APP_VERSION,
+            mainWindowController->isBlock(),
+            comPortController->getReceivedData(),
+            currentAzsNodes};
 }
 
 void Tazs::showServiceMenu()

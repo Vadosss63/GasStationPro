@@ -108,6 +108,8 @@ void ServiceMenuController::showServiceMenu(const AzsReport& azsReport)
 {
     setAzsNodes(azsReport.azsNode);
     setupReportTable(azsReport.rec);
+
+    serviceMenuWindow->setVersion(azsReport.version);
     serviceMenuWindow->show();
     serviceMenuWindow->setFocus();
 }

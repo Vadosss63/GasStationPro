@@ -39,7 +39,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 void MainWindow::disableAzs(bool disable)
 {
-    //setDisabled(disable);
     temporarilyUnavailableWidget->setFocusPolicy(Qt::StrongFocus);
     if (disable)
     {
@@ -50,6 +49,11 @@ void MainWindow::disableAzs(bool disable)
     {
         temporarilyUnavailableWidget->setVisible(false);
     }
+}
+
+bool MainWindow::isBlock()
+{
+    return temporarilyUnavailableWidget->isVisible();
 }
 
 void MainWindow::createWidget(bool showSecondPrice)
