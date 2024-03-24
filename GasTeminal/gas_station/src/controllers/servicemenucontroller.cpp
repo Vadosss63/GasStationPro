@@ -66,6 +66,9 @@ void ServiceMenuController::createWindow(int showSecondPrice, uint8_t countAzsNo
         addInputWidget<FuelValueInputWidget>(azsButtonWidget, "Блок-2 при", ResponseData::setLockFuelValue2);
     }
 
+    addInputWidget<ButtonWidget>(azsButtonWidget, "Блок АЗС", ResponseData::blockAzsNode);
+    addInputWidget<ButtonWidget>(azsButtonWidget, "Разблок АЗС", ResponseData::unblockAzsNode);
+
     serviceMenuWindow->createNodes(azsButtonWidget, countAzsNode);
 
     connect(azsButtonWidget, &AzsButtonWidget::widgetChanged, this, &ServiceMenuController::setCurrentButtonWidget);

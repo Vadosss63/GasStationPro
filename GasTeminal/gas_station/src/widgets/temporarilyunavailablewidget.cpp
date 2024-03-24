@@ -1,8 +1,6 @@
 #include "temporarilyunavailablewidget.h"
 
-#include <QApplication>
 #include <QLabel>
-#include <QScreen>
 #include <QVBoxLayout>
 
 TemporarilyUnavailableWidget::TemporarilyUnavailableWidget(const QString& msg, QWidget* parent) : QWidget(parent)

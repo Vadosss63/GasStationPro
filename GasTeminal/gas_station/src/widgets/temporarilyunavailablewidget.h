@@ -2,6 +2,8 @@
 
 #include <QWidget>
 
+#include "IKeyPressEvent.h"
+
 class TemporarilyUnavailableWidget : public QWidget
 {
 public:

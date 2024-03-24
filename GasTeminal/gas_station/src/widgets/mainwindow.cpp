@@ -39,9 +39,17 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 void MainWindow::disableAzs(bool disable)
 {
-    setDisabled(disable);
-    temporarilyUnavailableWidget->showFullScreen();
-    temporarilyUnavailableWidget->setHidden(!disable);
+    //setDisabled(disable);
+    temporarilyUnavailableWidget->setFocusPolicy(Qt::StrongFocus);
+    if (disable)
+    {
+        temporarilyUnavailableWidget->showFullScreen();
+        temporarilyUnavailableWidget->setFocus();
+    }
+    else
+    {
+        temporarilyUnavailableWidget->setVisible(false);
+    }
 }
 
 void MainWindow::createWidget(bool showSecondPrice)
