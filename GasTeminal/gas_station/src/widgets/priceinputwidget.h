@@ -15,33 +15,12 @@ public:
     explicit PriceInputWidget(int command, QWidget* parent = nullptr);
     ~PriceInputWidget() override = default;
 
-    int getValue() const override
-    {
-        uint16_t rub = priceRub->value();
-        uint16_t kop = priceKop->value();
-        Price    priceCash(rub, kop);
-        return priceCash.getPriceInt();
-    }
+    int getValue() const override;
 
-    void setValue(int val) override
-    {
-        Price price{val};
-        priceRub->setValue(price.getRub());
-        priceKop->setValue(price.getKop());
-    }
+    void setValue(int val) override;
 
 private:
-    void createWidget()
-    {
-        priceRub = new QSpinBox;
-        priceRub->setRange(0, 200);
-        priceKop = new QSpinBox;
-        priceKop->setRange(0, 99);
-
-        auto layout = new QHBoxLayout(this);
-        layout->addWidget(priceRub);
-        layout->addWidget(priceKop);
-    }
+    void createWidget();
 
     QSpinBox* priceRub{nullptr};
     QSpinBox* priceKop{nullptr};

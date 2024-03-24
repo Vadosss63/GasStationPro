@@ -37,15 +37,15 @@ signals:
     void showStatistics();
 
 private:
+    void setupAzsNodeSettingsGetter();
     void setAzsNodes(const AzsNodeSettings& azsNodes);
+    void setButtonValue();
 
+    QHash<int, std::function<int()>>   azsNodeSettingsGetter{};
     std::unique_ptr<ServiceMenuWindow> serviceMenuWindow{nullptr};
-
-    AzsButton azsButton;
-
-    int showSecondPrice{false};
-
-    ButtonWidget* currentButtonWidget{nullptr};
-
-    uint8_t countAzsNode{0};
+    AzsNodeSettings                    azsNodeSettings{};
+    AzsButton                          azsButton;
+    int                                showSecondPrice{false};
+    ButtonWidget*                      currentButtonWidget{nullptr};
+    uint8_t                            countAzsNode{0};
 };

@@ -17,35 +17,12 @@ public:
     explicit GasTypeInputWidget(int command, QWidget* parent = nullptr);
     ~GasTypeInputWidget() override = default;
 
-    int getValue() const override { return gasTypeCBs->currentData().toInt(); }
+    int getValue() const override;
 
-    void setValue(int val) override
-    {
-        QString gasType = convertGasTypeToString(static_cast<ResponseData::GasType>(val));
-        gasTypeCBs->setCurrentText(gasType);
-    }
+    void setValue(int val) override;
 
 private:
-    void createWidget()
-    {
-        const auto gasTypeMas = {ResponseData::GasType::DT,
-                                 ResponseData::GasType::Gas92,
-                                 ResponseData::GasType::Gas95,
-                                 ResponseData::GasType::Gas98,
-                                 ResponseData::GasType::Methane,
-                                 ResponseData::GasType::Propane};
-
-        gasTypeCBs = new QComboBox;
-        gasTypeCBs->setModel(new QStandardItemModel);
-
-        for (auto type : gasTypeMas)
-        {
-            gasTypeCBs->addItem(convertGasTypeToString(type), static_cast<int>(type));
-        }
-
-        auto layout = new QHBoxLayout(this);
-        layout->addWidget(gasTypeCBs);
-    }
+    void createWidget();
 
     QComboBox* gasTypeCBs{nullptr};
 };

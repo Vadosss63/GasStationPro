@@ -54,6 +54,7 @@ SOURCES += \
     src/utilities.cpp \
     src/widgets/azsbuttonwidget.cpp \
     src/widgets/buttonwidget.cpp \
+    src/widgets/fuelvalueinputwidget.cpp \
     src/widgets/gastypeinputwidget.cpp \
     src/widgets/mainwindow.cpp \
     src/widgets/priceinputwidget.cpp \
@@ -88,6 +89,7 @@ HEADERS += \
     src/utilities.h \
     src/widgets/azsbuttonwidget.h \
     src/widgets/buttonwidget.h \
+    src/widgets/fuelvalueinputwidget.h \
     src/widgets/gastypeinputwidget.h \
     src/widgets/mainwindow.h \
     src/widgets/priceinputwidget.h \
