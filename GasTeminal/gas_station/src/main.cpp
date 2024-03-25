@@ -1,4 +1,6 @@
 #include <QApplication>
+#include <QErrorMessage>
+#include "logging.h"
 
 #include "tazs.h"
 
@@ -13,6 +15,18 @@ void setQSS()
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
+
+    constexpr auto filePath = "settings.json";
+
+    std::optional<Configure> conf = readConfigure(filePath);
+    if (!conf)
+    {
+        constexpr auto errorMsg = "The settings.json contains invalid fields!";
+
+        std::unique_ptr<QErrorMessage> errorMessage = std::make_unique<QErrorMessage>();
+        LOG_ERROR(errorMsg);
+        errorMessage->showMessage(errorMsg);
+    }
 
     Tazs tAzs;
 

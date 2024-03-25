@@ -1,6 +1,11 @@
 #include "gastypeinputwidget.h"
 
-GasTypeInputWidget::GasTypeInputWidget(int command, QWidget* parent) : ButtonWidget(command, parent)
+#include <QHBoxLayout>
+#include <QStandardItemModel>
+
+#include "responsedata.h"
+
+GasTypeInputWidget::GasTypeInputWidget(int command, QWidget* parent) : InputWidget(command, parent)
 {
     createWidget();
 }

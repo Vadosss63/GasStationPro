@@ -1,6 +1,7 @@
 #pragma once
 
 #include "azsnodesettings.h"
+#include "receiveddata.h"
 
 struct AzsReport
 {

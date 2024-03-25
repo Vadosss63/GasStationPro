@@ -1,11 +1,12 @@
 #pragma once
 
-#include <QObject>
+#include <QHash>
 #include <memory>
 
 #include "azsbutton.h"
 #include "azsnodesettings.h"
-#include "buttonwidget.h"
+#include "inputwidget.h"
+#include "receiveddata.h"
 #include "report.h"
 #include "servicemenuwindow.h"
 
@@ -41,11 +42,12 @@ private:
     void setAzsNodes(const AzsNodeSettings& azsNodes);
     void setButtonValue();
 
+    uint8_t countAzsNode{0};
+    int     showSecondPrice{false};
+
     QHash<int, std::function<int()>>   azsNodeSettingsGetter{};
     std::unique_ptr<ServiceMenuWindow> serviceMenuWindow{nullptr};
     AzsNodeSettings                    azsNodeSettings{};
     AzsButton                          azsButton;
-    int                                showSecondPrice{false};
-    ButtonWidget*                      currentButtonWidget{nullptr};
-    uint8_t                            countAzsNode{0};
+    InputWidget*                       currentButtonWidget{nullptr};
 };

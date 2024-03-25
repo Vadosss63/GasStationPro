@@ -1,6 +1,9 @@
 #include "fuelvalueinputwidget.h"
 
-FuelValueInputWidget::FuelValueInputWidget(int command, QWidget* parent) : ButtonWidget(command, parent)
+#include <QHBoxLayout>
+#include <QLabel>
+
+FuelValueInputWidget::FuelValueInputWidget(int command, QWidget* parent) : InputWidget(command, parent)
 {
     createWidget();
 }

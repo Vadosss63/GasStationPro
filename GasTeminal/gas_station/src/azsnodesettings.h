@@ -1,6 +1,8 @@
 #pragma once
 
-#include "dataprotocol.h"
+#include <array>
+
+#include "constants.h"
 
 struct AzsNodeSettings
 {
@@ -13,7 +15,7 @@ struct AzsNodeSettings
         uint32_t fuelArrival;
     };
 
-    std::array<Node, countAzsNodeMax> nodes{};
+    std::array<Node, maxAzsNodeCount> nodes{};
 };
 
 void writeAzsNodeSettings(const AzsNodeSettings& azsNodes);

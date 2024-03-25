@@ -1,12 +1,16 @@
 #pragma once
-
-#include <QKeyEvent>
 #include <QObject>
+#include <QTimer>
 
-#include "AzsButtonHandler.h"
-#include "IKeyPressEvent.h"
+#include "azsbuttonhandler.h"
 #include "azsnodesettings.h"
+#include "comportcontroller.h"
+#include "ikeypressevent.h"
 #include "mainwindowcontroller.h"
+#include "receipthistorycontroller.h"
+#include "report.h"
+#include "servicemenucontroller.h"
+#include "webservercontroller.h"
 
 class Tazs : public QObject, public AzsBtnHandler, public IKeyPressEvent
 {
@@ -67,7 +71,4 @@ private:
     uint8_t   countAzsNode{2};
 
     AzsNodeSettings currentAzsNodes{};
-
-    static constexpr size_t firstNodeId  = 0;
-    static constexpr size_t secondNodeId = 1;
 };

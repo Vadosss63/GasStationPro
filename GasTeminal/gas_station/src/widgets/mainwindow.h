@@ -2,8 +2,8 @@
 
 #include <QPushButton>
 
-#include "IKeyPressEvent.h"
-#include "dataprotocol.h"
+#include "constants.h"
+#include "ikeypressevent.h"
 #include "labelwidget.h"
 #include "temporarilyunavailablewidget.h"
 
@@ -70,5 +70,5 @@ private:
     LabelWidget* balanceLable{nullptr};
     LabelWidget* phoneOfSupportLable{nullptr};
 
-    std::array<AzsNodeWidget, countAzsNodeMax> azsNodeWidgets{};
+    std::array<AzsNodeWidget, maxAzsNodeCount> azsNodeWidgets{};
 };

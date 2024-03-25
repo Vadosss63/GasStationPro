@@ -1,12 +1,10 @@
 #pragma once
 
-#include <QLabel>
 #include <QSpinBox>
-#include <QVBoxLayout>
 
-#include "buttonwidget.h"
+#include "inputwidget.h"
 
-class FuelValueInputWidget : public ButtonWidget
+class FuelValueInputWidget : public InputWidget
 {
     Q_OBJECT
 public:

@@ -19,7 +19,7 @@ void writeAzsNodeSettings(const AzsNodeSettings& azsNodes)
 {
     QSettings settings(appName);
     settings.beginGroup(groupName);
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
         settings.setValue(QString(gasTypeTemplate).arg(nodeId), azsNodes.nodes[nodeId].gasType);
         settings.setValue(QString(priceCashTemplate).arg(nodeId), azsNodes.nodes[nodeId].priceCash);
@@ -37,7 +37,7 @@ AzsNodeSettings readAzsNodeSettings()
     QSettings settings(appName);
     settings.beginGroup(groupName);
 
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
         azsNodes.nodes[nodeId].gasType       = settings.value(QString(gasTypeTemplate).arg(nodeId)).toInt();
         azsNodes.nodes[nodeId].priceCash     = settings.value(QString(priceCashTemplate).arg(nodeId)).toInt();

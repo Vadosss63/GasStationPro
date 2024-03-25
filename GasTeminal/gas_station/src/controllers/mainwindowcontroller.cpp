@@ -1,14 +1,10 @@
 #include "mainwindowcontroller.h"
 
 #include <QDateTime>
-#include <QErrorMessage>
-#include <QKeyEvent>
-#include <QUrlQuery>
 
 #include "appsettings.h"
-#include "filesystemutilities.h"
-#include "logger.h"
 #include "price.h"
+#include "responsedata.h"
 
 MainWindowController::MainWindowController(const Configure& configure, IKeyPressEvent* iKeyPressEvent, QObject* parent)
     : QObject(parent)
@@ -85,7 +81,7 @@ bool MainWindowController::isBlock()
 
 void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNodes)
 {
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
         double priceCash     = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCash);
         double priceCashless = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
@@ -103,7 +99,7 @@ void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNod
 
 void MainWindowController::setEnabledStart(const ReceivedData& showData)
 {
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
         bool isEnabled = showData.getIsActiveBtn(nodeId);
         mainWindow.setEnabledStartBtn(isEnabled, nodeId);

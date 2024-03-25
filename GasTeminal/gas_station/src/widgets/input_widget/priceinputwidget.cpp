@@ -1,6 +1,10 @@
 #include "priceinputwidget.h"
 
-PriceInputWidget::PriceInputWidget(int command, QWidget* parent) : ButtonWidget(command, parent)
+#include <QHBoxLayout>
+
+#include "price.h"
+
+PriceInputWidget::PriceInputWidget(int command, QWidget* parent) : InputWidget(command, parent)
 {
     createWidget();
 }

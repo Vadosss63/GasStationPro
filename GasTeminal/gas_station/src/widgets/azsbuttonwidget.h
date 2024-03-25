@@ -1,11 +1,7 @@
 #pragma once
 
 #include <QComboBox>
-#include <QLineEdit>
 #include <QStackedWidget>
-#include <QStandardItemModel>
-#include <QVBoxLayout>
-#include <QWidget>
 
 class AzsButtonWidget : public QWidget
 {

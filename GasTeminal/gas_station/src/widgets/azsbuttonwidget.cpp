@@ -1,5 +1,8 @@
 #include "azsbuttonwidget.h"
 
+#include <QHBoxLayout>
+#include <QStandardItemModel>
+
 AzsButtonWidget::AzsButtonWidget(QWidget* parent) : QWidget(parent)
 {
     auto layout = new QHBoxLayout(this);

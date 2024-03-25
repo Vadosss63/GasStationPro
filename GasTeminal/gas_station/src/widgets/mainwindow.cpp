@@ -58,7 +58,7 @@ bool MainWindow::isBlock()
 
 void MainWindow::createWidget(bool showSecondPrice)
 {
-    for (int nodeId = 0; nodeId < countAzsNodeMax; ++nodeId)
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
         azsNodeWidgets[nodeId].gasTypeLable           = new LabelWidget(this);
         azsNodeWidgets[nodeId].pricePerLitreLableCash = new LabelWidget(this);

@@ -2,9 +2,8 @@
 
 #include <QObject>
 
-#include "AzsButtonHandler.h"
+#include "azsbuttonhandler.h"
 #include "configure.h"
-#include "dataprotocol.h"
 #include "receipt.h"
 
 class WebServerController : public QObject

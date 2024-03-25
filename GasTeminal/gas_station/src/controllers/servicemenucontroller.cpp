@@ -2,8 +2,8 @@
 
 #include "fuelvalueinputwidget.h"
 #include "gastypeinputwidget.h"
-#include "price.h"
 #include "priceinputwidget.h"
+#include "responsedata.h"
 
 namespace
 {
@@ -66,8 +66,8 @@ void ServiceMenuController::createWindow(int showSecondPrice, uint8_t countAzsNo
         addInputWidget<FuelValueInputWidget>(azsButtonWidget, "Блок-2 при", ResponseData::setLockFuelValue2);
     }
 
-    addInputWidget<ButtonWidget>(azsButtonWidget, "Блок АЗС", ResponseData::blockAzsNode);
-    addInputWidget<ButtonWidget>(azsButtonWidget, "Разблок АЗС", ResponseData::unblockAzsNode);
+    addInputWidget<InputWidget>(azsButtonWidget, "Блок АЗС", ResponseData::blockAzsNode);
+    addInputWidget<InputWidget>(azsButtonWidget, "Разблок АЗС", ResponseData::unblockAzsNode);
 
     serviceMenuWindow->createNodes(azsButtonWidget, countAzsNode);
 
@@ -133,7 +133,7 @@ void ServiceMenuController::setCurrentButtonWidget(QWidget* newCurrentButtonWidg
 {
     if (newCurrentButtonWidget)
     {
-        currentButtonWidget = static_cast<ButtonWidget*>(newCurrentButtonWidget);
+        currentButtonWidget = static_cast<InputWidget*>(newCurrentButtonWidget);
         setButtonValue();
     }
 }

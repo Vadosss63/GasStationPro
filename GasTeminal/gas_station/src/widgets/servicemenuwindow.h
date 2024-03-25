@@ -1,14 +1,10 @@
 #pragma once
 
-#include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QSpinBox>
 #include <QTableWidget>
-#include <QWidget>
 
 #include "azsbuttonwidget.h"
-#include "dataprotocol.h"
 
 class ServiceMenuWindow : public QWidget
 {

@@ -1,16 +1,10 @@
 #pragma once
 
 #include <QComboBox>
-#include <QObject>
-#include <QSpinBox>
-#include <QStandardItemModel>
-#include <QVBoxLayout>
-#include <QWidget>
 
-#include "buttonwidget.h"
-#include "dataprotocol.h"
+#include "inputwidget.h"
 
-class GasTypeInputWidget : public ButtonWidget
+class GasTypeInputWidget : public InputWidget
 {
     Q_OBJECT
 public:

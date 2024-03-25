@@ -1,5 +1,11 @@
 #include "report.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include "responsedata.h"
+
 QString getJsonReport(const AzsReport& azsReport)
 {
     const size_t countNode = azsReport.countNode;

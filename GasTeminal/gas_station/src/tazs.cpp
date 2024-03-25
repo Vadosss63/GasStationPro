@@ -2,11 +2,10 @@
 
 #include <QApplication>
 #include <QErrorMessage>
+#include <QKeyEvent>
 
 #include "appsettings.h"
-#include "azsnodesettings.h"
 #include "logging.h"
-#include "report.h"
 
 Tazs::Tazs(QObject* parent) : QObject{parent}
 {

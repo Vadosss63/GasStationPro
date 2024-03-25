@@ -1,14 +1,10 @@
 #pragma once
 
-#include <QObject>
 #include <QSpinBox>
-#include <QVBoxLayout>
-#include <QWidget>
 
-#include "buttonwidget.h"
-#include "price.h"
+#include "inputwidget.h"
 
-class PriceInputWidget : public ButtonWidget
+class PriceInputWidget : public InputWidget
 {
     Q_OBJECT
 public:

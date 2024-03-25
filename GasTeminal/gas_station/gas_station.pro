@@ -25,11 +25,17 @@ DEPENDPATH += $$PWD/src/
 INCLUDEPATH += $$PWD/src/widgets/
 DEPENDPATH += $$PWD/src/widgets/
 
+INCLUDEPATH += $$PWD/src/widgets/input_widget/
+DEPENDPATH += $$PWD/src/widgets/input_widget/
+
 INCLUDEPATH += $$PWD/src/controllers/
 DEPENDPATH += $$PWD/src/controllers/
 
 INCLUDEPATH += $$PWD/src/interfaces/
 DEPENDPATH += $$PWD/src/interfaces/
+
+INCLUDEPATH += $$PWD/src/dataprotocol/
+DEPENDPATH += $$PWD/src/dataprotocol/
 
 SOURCES += \
     src/appsettings.cpp \
@@ -53,11 +59,11 @@ SOURCES += \
     src/tazs.cpp \
     src/utilities.cpp \
     src/widgets/azsbuttonwidget.cpp \
-    src/widgets/buttonwidget.cpp \
-    src/widgets/fuelvalueinputwidget.cpp \
-    src/widgets/gastypeinputwidget.cpp \
+    src/widgets/input_widget/fuelvalueinputwidget.cpp \
+    src/widgets/input_widget/gastypeinputwidget.cpp \
+    src/widgets/input_widget/inputwidget.cpp \
     src/widgets/mainwindow.cpp \
-    src/widgets/priceinputwidget.cpp \
+    src/widgets/input_widget/priceinputwidget.cpp \
     src/widgets/receipthistorywindow.cpp \
     src/widgets/servicemenuwindow.cpp \
     src/widgets/temporarilyunavailablewidget.cpp \
@@ -65,8 +71,9 @@ SOURCES += \
 
 HEADERS += \
     src/azsbutton.h \
-    src/interfaces/AzsButtonHandler.h \
-    src/interfaces/IKeyPressEvent.h \
+    src/dataprotocol/constants.h \
+    src/dataprotocol/receiveddata.h \
+    src/dataprotocol/responsedata.h \
     src/appsettings.h \
     src/azsnodesettings.h \
     src/configure.h \
@@ -75,9 +82,10 @@ HEADERS += \
     src/controllers/receipthistorycontroller.h \
     src/controllers/servicemenucontroller.h \
     src/controllers/webservercontroller.h \
-    src/dataprotocol.h \
     src/filesystemutilities.h \
     src/httprequest.h \
+    src/interfaces/azsbuttonhandler.h \
+    src/interfaces/ikeypressevent.h \
     src/logger.h \
     src/logger_defs.h \
     src/logging.h \
@@ -88,11 +96,11 @@ HEADERS += \
     src/tazs.h \
     src/utilities.h \
     src/widgets/azsbuttonwidget.h \
-    src/widgets/buttonwidget.h \
-    src/widgets/fuelvalueinputwidget.h \
-    src/widgets/gastypeinputwidget.h \
+    src/widgets/input_widget/fuelvalueinputwidget.h \
+    src/widgets/input_widget/gastypeinputwidget.h \
+    src/widgets/input_widget/inputwidget.h \
     src/widgets/mainwindow.h \
-    src/widgets/priceinputwidget.h \
+    src/widgets/input_widget/priceinputwidget.h \
     src/widgets/receipthistorywindow.h \
     src/widgets/servicemenuwindow.h \
     src/widgets/temporarilyunavailablewidget.h \

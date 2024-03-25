@@ -1,17 +1,10 @@
 #pragma once
 
-#include <QObject>
-#include <QTimer>
-
-#include "comportcontroller.h"
+#include "azsnodesettings.h"
 #include "configure.h"
-#include "dataprotocol.h"
 #include "mainwindow.h"
-#include "port.h"
 #include "receipt.h"
-#include "receipthistorycontroller.h"
-#include "servicemenucontroller.h"
-#include "webservercontroller.h"
+#include "receiveddata.h"
 
 class MainWindowController : public QObject
 {
