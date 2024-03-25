@@ -5,6 +5,16 @@
 #include <QJsonObject>
 
 #include "responsedata.h"
+#include "volumeconvertor.h"
+
+namespace
+{
+
+QString convertFromDouble(double val)
+{
+    return QString("%1").arg(val, 0, 'f', 2);
+}
+}
 
 QString getJsonReport(const AzsReport& azsReport)
 {
@@ -30,10 +40,8 @@ QString getJsonReport(const AzsReport& azsReport)
     for (size_t i = 0; i < countNode; ++i)
     {
         QJsonObject jsonAzsNode;
-        jsonAzsNode.insert("commonLiters",
-                           QString("%1").arg(static_cast<double>(rec.azsNodes[i].common) / 100., 0, 'f', 2));
-        jsonAzsNode.insert("dailyLiters",
-                           QString("%1").arg(static_cast<double>(rec.azsNodes[i].daily) / 100., 0, 'f', 2));
+        jsonAzsNode.insert("commonLiters", convertFromDouble(convertIntToLiter(rec.azsNodes[i].common)));
+        jsonAzsNode.insert("dailyLiters", convertFromDouble(convertIntToLiter(rec.azsNodes[i].daily)));
 
         auto type = convertIntToGasType(azsNode.nodes[i].gasType);
         jsonAzsNode.insert("typeFuel", convertGasTypeToString(type));
@@ -42,10 +50,10 @@ QString getJsonReport(const AzsReport& azsReport)
         jsonAzsNode.insert("lockFuelValue", static_cast<int>(azsNode.nodes[i].lockFuelValue));
         jsonAzsNode.insert("fuelArrival", static_cast<int>(azsNode.nodes[i].fuelArrival));
 
-        jsonAzsNode.insert("fuelVolume", QString("%1").arg(rec.azsNodes[i].fuelVolume, 0, 'f', 2));
-        jsonAzsNode.insert("fuelVolumePerc", QString("%1").arg(rec.azsNodes[i].fuelVolumePerc, 0, 'f', 2));
-        jsonAzsNode.insert("density", QString("%1").arg(rec.azsNodes[i].density, 0, 'f', 2));
-        jsonAzsNode.insert("averageTemperature", QString("%1").arg(rec.azsNodes[i].averageTemperature, 0, 'f', 2));
+        jsonAzsNode.insert("fuelVolume", convertFromDouble(rec.azsNodes[i].fuelVolume));
+        jsonAzsNode.insert("fuelVolumePerc", convertFromDouble(rec.azsNodes[i].fuelVolumePerc));
+        jsonAzsNode.insert("density", convertFromDouble(rec.azsNodes[i].density));
+        jsonAzsNode.insert("averageTemperature", convertFromDouble(rec.azsNodes[i].averageTemperature));
         jsonAzsNodes.append(jsonAzsNode);
     }
 

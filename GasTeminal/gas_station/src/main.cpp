@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QErrorMessage>
-#include "logging.h"
 
+#include "logging.h"
 #include "tazs.h"
 
 void setQSS()

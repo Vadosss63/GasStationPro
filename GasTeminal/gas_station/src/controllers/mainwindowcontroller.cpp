@@ -3,7 +3,7 @@
 #include <QDateTime>
 
 #include "appsettings.h"
-#include "price.h"
+#include "priceconvertor.h"
 #include "responsedata.h"
 
 MainWindowController::MainWindowController(const Configure& configure, IKeyPressEvent* iKeyPressEvent, QObject* parent)
@@ -53,13 +53,13 @@ void MainWindowController::setAzsNode(const AzsNodeSettings& azsNodes, bool show
 
         mainWindow.setGasType(gasTypeStr, nodeId);
 
-        double priceCash = Price::convertPriceToDouble(azsNodes.nodes[nodeId].priceCash);
+        double priceCash = PriceConvertor::convertToDouble(azsNodes.nodes[nodeId].priceCash);
 
         if (showSecondPrice)
         {
             mainWindow.setPricePerLitreLableCash(priceCash, nodeId);
 
-            double priceCashless = Price::convertPriceToDouble(azsNodes.nodes[nodeId].priceCashless);
+            double priceCashless = PriceConvertor::convertToDouble(azsNodes.nodes[nodeId].priceCashless);
             mainWindow.setPricePerLitreLableCashless(priceCashless, nodeId);
         }
         else
@@ -83,8 +83,8 @@ void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNod
 {
     for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
-        double priceCash     = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCash);
-        double priceCashless = Price::convertPriceToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
+        double priceCash     = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCash);
+        double priceCashless = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
 
         bool isStartBtnEnabled = mainWindow.isStartBtnEnabled(nodeId);
 

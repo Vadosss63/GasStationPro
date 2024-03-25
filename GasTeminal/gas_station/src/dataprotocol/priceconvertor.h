@@ -2,11 +2,11 @@
 
 #include <stdint.h>
 
-class Price
+class PriceConvertor
 {
 public:
-    Price(uint16_t rub, uint16_t kop);
-    Price(int priceInt);
+    PriceConvertor(uint16_t rub, uint16_t kop);
+    PriceConvertor(int priceInt);
 
     uint16_t getRub() const;
 
@@ -14,7 +14,7 @@ public:
 
     int getPriceInt() const;
 
-    static double convertPriceToDouble(uint32_t priceInt);
+    static double convertToDouble(uint32_t priceInt);
 
 private:
     uint16_t rub{0};

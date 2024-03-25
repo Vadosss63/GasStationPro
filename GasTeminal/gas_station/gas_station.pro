@@ -47,13 +47,14 @@ SOURCES += \
     src/controllers/receipthistorycontroller.cpp \
     src/controllers/servicemenucontroller.cpp \
     src/controllers/webservercontroller.cpp \
+    src/dataprotocol/volumeconvertor.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
     src/logger.cpp \
     src/logging.cpp \
     src/main.cpp \
     src/port.cpp \
-    src/price.cpp \
+    src/dataprotocol/priceconvertor.cpp \
     src/receipt.cpp \
     src/report.cpp \
     src/tazs.cpp \
@@ -82,6 +83,7 @@ HEADERS += \
     src/controllers/receipthistorycontroller.h \
     src/controllers/servicemenucontroller.h \
     src/controllers/webservercontroller.h \
+    src/dataprotocol/volumeconvertor.h \
     src/filesystemutilities.h \
     src/httprequest.h \
     src/interfaces/azsbuttonhandler.h \
@@ -90,7 +92,7 @@ HEADERS += \
     src/logger_defs.h \
     src/logging.h \
     src/port.h \
-    src/price.h \
+    src/dataprotocol/priceconvertor.h \
     src/receipt.h \
     src/report.h \
     src/tazs.h \

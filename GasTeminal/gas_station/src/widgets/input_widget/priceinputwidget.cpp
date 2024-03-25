@@ -2,7 +2,7 @@
 
 #include <QHBoxLayout>
 
-#include "price.h"
+#include "priceconvertor.h"
 
 PriceInputWidget::PriceInputWidget(int command, QWidget* parent) : InputWidget(command, parent)
 {
@@ -11,15 +11,15 @@ PriceInputWidget::PriceInputWidget(int command, QWidget* parent) : InputWidget(c
 
 int PriceInputWidget::getValue() const
 {
-    uint16_t rub = priceRub->value();
-    uint16_t kop = priceKop->value();
-    Price    priceCash(rub, kop);
+    uint16_t       rub = priceRub->value();
+    uint16_t       kop = priceKop->value();
+    PriceConvertor priceCash(rub, kop);
     return priceCash.getPriceInt();
 }
 
 void PriceInputWidget::setValue(int val)
 {
-    Price price{val};
+    PriceConvertor price{val};
     priceRub->setValue(price.getRub());
     priceKop->setValue(price.getKop());
 }
