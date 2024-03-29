@@ -47,6 +47,7 @@ SOURCES += \
     src/controllers/receipthistorycontroller.cpp \
     src/controllers/servicemenucontroller.cpp \
     src/controllers/webservercontroller.cpp \
+    src/dataprotocol/fuelutility.cpp \
     src/dataprotocol/volumeconvertor.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
@@ -73,6 +74,7 @@ SOURCES += \
 HEADERS += \
     src/azsbutton.h \
     src/dataprotocol/constants.h \
+    src/dataprotocol/fuelutility.h \
     src/dataprotocol/receiveddata.h \
     src/dataprotocol/responsedata.h \
     src/appsettings.h \

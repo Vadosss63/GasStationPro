@@ -192,19 +192,21 @@ TEST (ReceiptTest, getReceipt)
     const QString expectedStrReceipt = {"Дата: 29.11.2023 10:00\n"
                                         "Колонка: 1\n"
                                         "Топливо: АИ 92\n"
-                                        "Литры: 45 Л\n"
+                                        "Литры: 45.00\n"
                                         "Безнал: 230.00\n"
                                         "Налич: 1000.00\n"
-                                        "Сумма: 10230 руб"};
+                                        "Онлайн: 100.00\n"
+                                        "Сумма: 10330.00 руб"};
 
     const Receipt receipt{.time         = 2131231,
                           .date         = "29.11.2023 10:00",
                           .numOfAzsNode = 1,
                           .gasType      = "АИ 92",
-                          .countLitres  = "45 Л",
+                          .countLitres  = 45,
                           .cash         = 1000.0,
                           .cashless     = 230.0,
-                          .sum          = "10230"};
+                          .online       = 100.0,
+                          .sum          = 10330};
 
     const QString retStrReceipt = receipt.getReceipt();
 
@@ -217,11 +219,12 @@ TEST (ReceiptTest, getReceiptJson)
     QString expectedJson = R"({
     "cash": 1000.67,
     "cashless": 230.56,
-    "count_litres": "22 Л",
-    "data": "29.11.2025 12:22",
+    "count_litres": 22,
+    "date": "29.11.2025 12:22",
     "gas_type": "АИ 95",
     "num_azs_node": 2,
-    "sum": "10230",
+    "online": 100,
+    "sum": 10230,
     "time": 2131231
 }
 )";
@@ -230,10 +233,11 @@ TEST (ReceiptTest, getReceiptJson)
                           .date         = "29.11.2025 12:22",
                           .numOfAzsNode = 2,
                           .gasType      = "АИ 95",
-                          .countLitres  = "22 Л",
+                          .countLitres  = 22,
                           .cash         = 1000.67,
                           .cashless     = 230.56,
-                          .sum          = "10230"};
+                          .online       = 100.00,
+                          .sum          = 10230};
 
     const QString retStrJson = receipt.getReceiptJson();
     CHECK_EQUAL(expectedJson, retStrJson);
@@ -247,10 +251,11 @@ TEST (ReceiptTest, failedToCreateDir)
                                  .date         = "29.11.2025 12:22",
                                  .numOfAzsNode = 2,
                                  .gasType      = "АИ 95",
-                                 .countLitres  = "22 Л",
+                                 .countLitres  = 22,
                                  .cash         = 1000,
                                  .cashless     = 230,
-                                 .sum          = "10230"};
+                                 .online       = 100.0,
+                                 .sum          = 10230};
     writeReceiptToFile(receiptToWrite);
 }
 
@@ -259,11 +264,12 @@ TEST (ReceiptTest, receiptToFile)
     std::string_view           expectedFileContent = R"({
     "cash": 1000,
     "cashless": 230,
-    "count_litres": "22 Л",
-    "data": "29.11.2025 12:22",
+    "count_litres": 22,
+    "date": "29.11.2025 12:22",
     "gas_type": "АИ 95",
     "num_azs_node": 2,
-    "sum": "10230",
+    "online": 100,
+    "sum": 10230,
     "time": 2348320
 }
 )";
@@ -276,10 +282,11 @@ TEST (ReceiptTest, receiptToFile)
                                  .date         = "29.11.2025 12:22",
                                  .numOfAzsNode = 2,
                                  .gasType      = "АИ 95",
-                                 .countLitres  = "22 Л",
+                                 .countLitres  = 22,
                                  .cash         = 1000,
                                  .cashless     = 230,
-                                 .sum          = "10230"};
+                                 .online       = 100,
+                                 .sum          = 10230};
     writeReceiptToFile(receiptToWrite);
 }
 
@@ -289,19 +296,21 @@ TEST (ReceiptTest, receiptFromFile)
                                   .date         = "01.11.1999 18:22",
                                   .numOfAzsNode = 2,
                                   .gasType      = "ДТ",
-                                  .countLitres  = "840 Л",
+                                  .countLitres  = 840,
                                   .cash         = 1000,
                                   .cashless     = 230,
-                                  .sum          = "45677"};
+                                  .online       = 100,
+                                  .sum          = 45677};
 
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -321,6 +330,7 @@ TEST (ReceiptTest, receiptFromFile)
     CHECK_EQUAL(actualReceipt.countLitres, expectedReceipt.countLitres);
     CHECK_EQUAL(actualReceipt.cash, expectedReceipt.cash);
     CHECK_EQUAL(actualReceipt.cashless, expectedReceipt.cashless);
+    CHECK_EQUAL(actualReceipt.online, expectedReceipt.online);
     CHECK_EQUAL(actualReceipt.sum, expectedReceipt.sum);
 }
 
@@ -341,11 +351,12 @@ TEST (ReceiptTest, receiptFromFileMissedTime)
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
     })";
 
     constexpr std::string_view expectedFilePath{"/path/"};
@@ -361,10 +372,11 @@ TEST (ReceiptTest, receiptFromFileMissedSum)
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
+        "online": 100,
         "time": 2131231
     })";
 
@@ -381,10 +393,11 @@ TEST (ReceiptTest, receiptFromFileMissedNumAzs)
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -401,10 +414,11 @@ TEST (ReceiptTest, receiptFromFileMissedGasType)
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -416,15 +430,16 @@ TEST (ReceiptTest, receiptFromFileMissedGasType)
     CHECK_FALSE(actualReceiptOpt.has_value());
 }
 
-TEST (ReceiptTest, receiptFromFileMissedData)
+TEST (ReceiptTest, receiptFromFileMissedDate)
 {
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "count_litres": "840 Л",
+        "count_litres": 840,
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -441,10 +456,11 @@ TEST (ReceiptTest, receiptFromFileMissedLiters)
     QByteArray jsonToWrite = R"({
         "cash": 1000,
         "cashless": 230,
-        "data": "01.11.1999 18:22",
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -460,11 +476,12 @@ TEST (ReceiptTest, receiptFromFileMissedCash)
 {
     QByteArray jsonToWrite = R"({
         "cashless": 230,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
         "time": 2131231
     })";
 
@@ -480,11 +497,33 @@ TEST (ReceiptTest, receiptFromFileMissedCashless)
 {
     QByteArray jsonToWrite = R"({
         "cash": 1000,
-        "count_litres": "840 Л",
-        "data": "01.11.1999 18:22",
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
         "gas_type": "ДТ",
         "num_azs_node": 2,
-        "sum": "45677",
+        "online": 100,
+        "sum": 45677,
+        "time": 2131231
+    })";
+
+    constexpr std::string_view expectedFilePath{""};
+    expectReadFromFile(jsonToWrite, expectedFilePath);
+
+    const auto actualReceiptOpt = readReceiptFromFile("");
+
+    CHECK_FALSE(actualReceiptOpt.has_value());
+}
+
+TEST (ReceiptTest, receiptFromFileMissedOnline)
+{
+    QByteArray jsonToWrite = R"({
+        "cashless": 230,
+        "cash": 1000,
+        "count_litres": 840,
+        "date": "01.11.1999 18:22",
+        "gas_type": "ДТ",
+        "num_azs_node": 2,
+        "sum": 45677,
         "time": 2131231
     })";
 

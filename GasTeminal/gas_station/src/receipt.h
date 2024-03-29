@@ -10,10 +10,11 @@ struct Receipt
     QString date;
     int     numOfAzsNode;
     QString gasType;
-    QString countLitres;
+    double  countLitres;
     double  cash;
     double  cashless;
-    QString sum;
+    double  online;
+    double  sum;
 
     QString getReceipt() const;
     QString getReceiptJson() const;

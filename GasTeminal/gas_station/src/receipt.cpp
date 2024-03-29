@@ -11,13 +11,24 @@
 namespace
 {
 constexpr auto timeToken         = "time";
-constexpr auto dataToken         = "data";
+constexpr auto dateToken         = "date";
 constexpr auto numOfAzsNodeToken = "num_azs_node";
 constexpr auto gasTypeToken      = "gas_type";
 constexpr auto countLitresToken  = "count_litres";
 constexpr auto cashToken         = "cash";
 constexpr auto cashlessToken     = "cashless";
+constexpr auto onlineToken       = "online";
 constexpr auto sumToken          = "sum";
+
+constexpr auto requiredFields = {timeToken,
+                                 dateToken,
+                                 numOfAzsNodeToken,
+                                 gasTypeToken,
+                                 countLitresToken,
+                                 cashToken,
+                                 cashlessToken,
+                                 onlineToken,
+                                 sumToken};
 }
 
 QString Receipt::getReceipt() const
@@ -28,25 +39,28 @@ QString Receipt::getReceipt() const
                    "Литры: %4\n"
                    "Безнал: %5\n"
                    "Налич: %6\n"
-                   "Сумма: %7 руб")
+                   "Онлайн: %7\n"
+                   "Сумма: %8 руб")
         .arg(date,
              QString::number(numOfAzsNode),
              gasType,
-             countLitres,
+             QString::number(countLitres, 'f', 2),
              QString::number(cashless, 'f', 2),
              QString::number(cash, 'f', 2),
-             sum);
+             QString::number(online, 'f', 2),
+             QString::number(sum, 'f', 2));
 }
 
 QString Receipt::getReceiptJson() const
 {
     const QJsonObject receipt{{timeToken, time},
-                              {dataToken, date},
+                              {dateToken, date},
                               {numOfAzsNodeToken, numOfAzsNode},
                               {gasTypeToken, gasType},
                               {countLitresToken, countLitres},
                               {cashToken, cash},
                               {cashlessToken, cashless},
+                              {onlineToken, online},
                               {sumToken, sum}};
 
     QString receiptJson = QString::fromUtf8(QJsonDocument(receipt).toJson());
@@ -93,26 +107,24 @@ std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
     const QJsonDocument doc  = QJsonDocument::fromJson(jsonData.toUtf8());
     const QJsonObject   json = doc.object();
 
-    const QList<QString> requiredFields = {
-        timeToken, dataToken, numOfAzsNodeToken, gasTypeToken, countLitresToken, cashToken, cashlessToken, sumToken};
-
-    for (const QString& field : requiredFields)
+    for (const auto& field : requiredFields)
     {
         if (!json.contains(field))
         {
-            LOG_ERROR("Missing or invalid field in settings: " + field);
+            LOG_ERROR("Missing or invalid field in settings: " + QString(field));
             return std::nullopt;
         }
     }
 
     Receipt receipt{.time         = json[timeToken].toInt(),
-                    .date         = json[dataToken].toString(),
+                    .date         = json[dateToken].toString(),
                     .numOfAzsNode = json[numOfAzsNodeToken].toInt(),
                     .gasType      = json[gasTypeToken].toString(),
-                    .countLitres  = json[countLitresToken].toString(),
+                    .countLitres  = json[countLitresToken].toDouble(),
                     .cash         = json[cashToken].toDouble(),
                     .cashless     = json[cashlessToken].toDouble(),
-                    .sum          = json[sumToken].toString()
+                    .online       = json[onlineToken].toDouble(),
+                    .sum          = json[sumToken].toDouble()
 
     };
 

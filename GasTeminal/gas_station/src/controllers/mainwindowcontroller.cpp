@@ -3,8 +3,10 @@
 #include <QDateTime>
 
 #include "appsettings.h"
+#include "fuelutility.h"
 #include "priceconvertor.h"
 #include "responsedata.h"
+#include "utilities.h"
 
 MainWindowController::MainWindowController(const Configure& configure, IKeyPressEvent* iKeyPressEvent, QObject* parent)
     : QObject(parent)
@@ -15,28 +17,27 @@ MainWindowController::MainWindowController(const Configure& configure, IKeyPress
     mainWindow.setVisibleSecondBtn(configure.activeBtn2, configure.showSecondPrice);
     mainWindow.setKeyPressEvent(iKeyPressEvent);
 
-    setBalance(0, 0);
+    //setShowData(ReceivedData{.isActiveBtn = 3, .balanceCash = 500});
     setShowData(ReceivedData{});
 
     connect(&mainWindow, SIGNAL(startFirstAzsNode()), this, SIGNAL(startFirstAzsNode()));
     connect(&mainWindow, SIGNAL(startFirstAzsNode()), this, SIGNAL(startSecondAzsNode()));
 }
 
-MainWindowController::~MainWindowController() {}
-
 void MainWindowController::setShowData(const ReceivedData& data)
 {
-    setBalance(data.balanceCash, data.balanceCashless);
+    setBalance(data.balanceCash, data.balanceCashless, data.balanceOnline);
     setEnabledStart(data);
 }
 
-void MainWindowController::setBalance(double inputBalanceCash, double inputBalanceCashless)
+void MainWindowController::setBalance(double inputBalanceCash, double inputBalanceCashless, double inputBalanceOnline)
 {
     balanceCash     = inputBalanceCash;
     balanceCashless = inputBalanceCashless;
-    double price    = inputBalanceCash + inputBalanceCashless;
-    mainWindow.setBalance(price);
-    AppSettings::instance().getSettings().sum = price;
+    balanceOnline   = inputBalanceOnline;
+    double balance  = getBalance();
+    mainWindow.setBalance(balance);
+    AppSettings::instance().getSettings().sum = balance;
 }
 
 void MainWindowController::showMainWindow()
@@ -83,15 +84,22 @@ void MainWindowController::setCountOfLitres(const AzsNodeSettings& currentAzsNod
 {
     for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
     {
-        double priceCash     = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCash);
-        double priceCashless = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
+        double countFuel = 0.f;
 
-        bool isStartBtnEnabled = mainWindow.isStartBtnEnabled(nodeId);
+        if (mainWindow.isStartBtnEnabled(nodeId))
+        {
+            double priceCash     = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCash);
+            double priceCashless = PriceConvertor::convertToDouble(currentAzsNodes.nodes[nodeId].priceCashless);
 
-        double countFuelCash     = (isStartBtnEnabled && priceCash) ? (balanceCash / priceCash) : 0;
-        double countFuelCashless = (isStartBtnEnabled && priceCashless) ? (balanceCashless / priceCashless) : 0;
+            double countFuelCash     = calculateFuelQuantity(priceCash, balanceCash);
+            double countFuelCashless = calculateFuelQuantity(priceCashless, balanceCashless);
+            double countFuelOnline   = calculateFuelQuantity(priceCashless, balanceOnline);
+            //Price for online is the same like cashless
 
-        double countFuel = countFuelCash + countFuelCashless;
+            countFuel = countFuelCash + countFuelCashless + countFuelOnline;
+        }
+
+        countLitres[nodeId] = countFuel;
 
         mainWindow.setCountLitres(countFuel, nodeId);
     }
@@ -110,15 +118,18 @@ Receipt MainWindowController::fillReceipt(int numOfAzsNode) const
 {
     const int azsNodeIndex = numOfAzsNode - 1;
 
-    Receipt receipt{};
+    return {.time         = currentSecsSinceEpoch(),
+            .date         = currentDateTime(),
+            .numOfAzsNode = numOfAzsNode,
+            .gasType      = mainWindow.getGasTypeStr(azsNodeIndex),
+            .countLitres  = countLitres[azsNodeIndex],
+            .cash         = balanceCash,
+            .cashless     = balanceCashless,
+            .online       = balanceOnline,
+            .sum          = getBalance()};
+}
 
-    receipt.time         = static_cast<int>(QDateTime::currentSecsSinceEpoch());
-    receipt.date         = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm");
-    receipt.numOfAzsNode = numOfAzsNode;
-    receipt.gasType      = mainWindow.getGasTypeStr(azsNodeIndex);
-    receipt.countLitres  = mainWindow.getCountLitresStr(azsNodeIndex);
-    receipt.cash         = balanceCash;
-    receipt.cashless     = balanceCashless;
-    receipt.sum          = mainWindow.getSumStr();
-    return receipt;
+double MainWindowController::getBalance() const
+{
+    return balanceCash + balanceCashless + balanceOnline;
 }

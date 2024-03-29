@@ -1,13 +1,13 @@
 #include "mainwindow.h"
 
+MainWindow::MainWindow() {}
+
+MainWindow::~MainWindow() {}
+
 void MainWindow::setSupportPhone(const QString& phone)
 {
     phoneOfSupportLable->setText(phone);
 }
-
-MainWindow::MainWindow() {}
-
-MainWindow::~MainWindow() {}
 
 void MainWindow::setVisibleSecondBtn(bool isVisible, bool showSecondPrice)
 {
@@ -151,11 +151,6 @@ void MainWindow::createWidget(bool showSecondPrice)
 void MainWindow::setKeyPressEvent(IKeyPressEvent* newIKeyPressEvent)
 {
     iKeyPressEvent = newIKeyPressEvent;
-}
-
-QString MainWindow::getSumStr() const
-{
-    return balanceLable->text().replace("Р", "");
 }
 
 void MainWindow::setEnabledStartBtn(bool isEnabled, size_t nodeId)

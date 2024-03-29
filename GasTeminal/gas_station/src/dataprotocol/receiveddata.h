@@ -30,6 +30,8 @@ struct ReceivedData
     uint16_t balanceCash{0};
     //Внесенная сумма безналичными, дискрет – 1 руб.
     uint16_t balanceCashless{0};
+    //Внесенная сумма онлайн, дискрет – 1 руб.
+    uint16_t balanceOnline{0};
 
     //Купюры, общий счётчик, дискрет – 1 руб
     uint32_t commonCashSum{0};

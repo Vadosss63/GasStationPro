@@ -2,6 +2,7 @@
 
 #include "azsnodesettings.h"
 #include "configure.h"
+#include "constants.h"
 #include "mainwindow.h"
 #include "receipt.h"
 #include "receiveddata.h"
@@ -11,7 +12,7 @@ class MainWindowController : public QObject
     Q_OBJECT
 public:
     MainWindowController(const Configure& configure, IKeyPressEvent* iKeyPressEvent, QObject* parent = nullptr);
-    ~MainWindowController() override;
+    ~MainWindowController() override = default;
 
     void showMainWindow();
 
@@ -32,12 +33,16 @@ signals:
     void startSecondAzsNode();
 
 private:
+    double getBalance() const;
+
     void setEnabledStart(const ReceivedData& showData);
 
-    void setBalance(double inputBalanceCash, double inputBalanceCashless);
+    void setBalance(double inputBalanceCash, double inputBalanceCashless, double inputBalanceOnline);
 
     MainWindow mainWindow;
 
-    double balanceCashless{0};
-    double balanceCash{0};
+    double                              balanceCashless{0};
+    double                              balanceCash{0};
+    double                              balanceOnline{0};
+    std::array<double, maxAzsNodeCount> countLitres{};
 };

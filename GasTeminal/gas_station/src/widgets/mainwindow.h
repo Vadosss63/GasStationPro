@@ -24,7 +24,6 @@ public:
     MainWindow();
     ~MainWindow() override;
 
-    QString getSumStr() const;
     QString getCountLitresStr(size_t nodeId) const;
 
     QString getGasTypeStr(size_t nodeId) const;
