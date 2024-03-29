@@ -17,11 +17,8 @@ MainWindowController::MainWindowController(const Configure& configure, IKeyPress
     mainWindow.setVisibleSecondBtn(configure.activeBtn2, configure.showSecondPrice);
     mainWindow.setKeyPressEvent(iKeyPressEvent);
 
-    //setShowData(ReceivedData{.isActiveBtn = 3, .balanceCash = 500});
-    setShowData(ReceivedData{});
-
     connect(&mainWindow, SIGNAL(startFirstAzsNode()), this, SIGNAL(startFirstAzsNode()));
-    connect(&mainWindow, SIGNAL(startFirstAzsNode()), this, SIGNAL(startSecondAzsNode()));
+    connect(&mainWindow, SIGNAL(startSecondAzsNode()), this, SIGNAL(startSecondAzsNode()));
 }
 
 void MainWindowController::setShowData(const ReceivedData& data)

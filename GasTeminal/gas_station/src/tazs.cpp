@@ -34,11 +34,12 @@ Tazs::Tazs(QObject* parent) : QObject{parent}
     connect(comPortController.get(), SIGNAL(readyData()), this, SLOT(updateData()));
 
     connect(mainWindowController.get(), SIGNAL(startFirstAzsNode()), this, SLOT(startFirstAzsNode()));
-    connect(mainWindowController.get(), SIGNAL(startFirstAzsNode()), this, SLOT(startSecondAzsNode()));
+    connect(mainWindowController.get(), SIGNAL(startSecondAzsNode()), this, SLOT(startSecondAzsNode()));
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(sendToServer()));
     timer->start(10000);
+    updateData();
 }
 
 Tazs::~Tazs()
