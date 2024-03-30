@@ -103,6 +103,7 @@ HEADERS += \
     src/widgets/input_widget/fuelvalueinputwidget.h \
     src/widgets/input_widget/gastypeinputwidget.h \
     src/widgets/input_widget/inputwidget.h \
+    src/widgets/itemdelegate.h \
     src/widgets/mainwindow.h \
     src/widgets/input_widget/priceinputwidget.h \
     src/widgets/receipthistorywindow.h \

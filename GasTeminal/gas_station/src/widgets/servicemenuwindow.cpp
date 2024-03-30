@@ -5,24 +5,36 @@
 
 ServiceMenuWindow::ServiceMenuWindow(QWidget* parent) : QWidget(parent, Qt::Tool)
 {
-    QString style = "QPushButton, QSpinBox{"
-                    "color: #111;"
-                    "font-size: 35px;"
-                    "background-color: qlineargradient( x1: 0, y1: 0, x2: 0, y2: 1,"
-                    "stop: 0 #4287ff, stop: 1 #356ccc);}"
-                    "QPushButton:pressed {"
-                    "color: #111;"
-                    "background: #fff;"
-                    "}"
-                    "QComboBox{"
-                    "color: #111;"
-                    "background-color: #356ccc;"
-                    "font-size: 35px;"
-                    "}"
-                    "QLabel {"
-                    "color: #ddd;"
-                    "font-size: 35px;"
-                    "}";
+    QString style = R"(
+QPushButton, QSpinBox {
+    color: #111;
+    font-size: 35px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4287ff, stop: 1 #356ccc);
+}
+QPushButton:pressed {
+    color: #111;
+    background: #fff;
+}
+QComboBox {
+    min-height: 50px;
+    color: #111;
+    background-color: #356ccc;
+    font-size: 35px;
+    padding: 4px 8px;
+}
+QComboBox QAbstractItemView::item {
+    min-height: 50px; /* Попробуйте направить стиль конкретно на элемент */
+}
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 35px;
+}
+QLabel {
+    color: #ddd;
+    font-size: 35px;
+}
+)";
 
     setStyleSheet(style);
     setWindowTitle("Сервисное меню");

@@ -3,12 +3,16 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
+#include "itemdelegate.h"
+
 AzsButtonWidget::AzsButtonWidget(QWidget* parent) : QWidget(parent)
 {
     auto layout = new QHBoxLayout(this);
 
     cmdCB = new QComboBox;
     cmdCB->setModel(new QStandardItemModel);
+    ItemDelegate* delegate = new ItemDelegate(cmdCB);
+    cmdCB->setItemDelegate(delegate);
 
     stackedWidgets = new QStackedWidget;
 

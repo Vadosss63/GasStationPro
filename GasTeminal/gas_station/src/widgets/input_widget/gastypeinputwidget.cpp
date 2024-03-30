@@ -3,6 +3,7 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
+#include "itemdelegate.h"
 #include "responsedata.h"
 
 GasTypeInputWidget::GasTypeInputWidget(int command, QWidget* parent) : InputWidget(command, parent)
@@ -32,6 +33,9 @@ void GasTypeInputWidget::createWidget()
 
     gasTypeCBs = new QComboBox;
     gasTypeCBs->setModel(new QStandardItemModel);
+
+    ItemDelegate* delegate = new ItemDelegate(gasTypeCBs);
+    gasTypeCBs->setItemDelegate(delegate);
 
     for (auto type : gasTypeMas)
     {
