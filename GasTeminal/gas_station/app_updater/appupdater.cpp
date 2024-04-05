@@ -140,10 +140,10 @@ bool AppUpdater::writeUpdateResult(const std::string& result)
 bool AppUpdater::updateApp()
 {
     const QString     processToExecute{"/bin/bash"};
-    const QString     pathToUpdateScript = QString("%1/*/update.sh").arg(srcFolder);
+    const QString     pathToUpdateScript = QString("%1/*/install_t_azs.sh").arg(srcFolder);
     const QStringList arguments{"-c", pathToUpdateScript};
     using namespace std::chrono_literals;
-    const std::chrono::milliseconds timeout{20s};
+    const std::chrono::milliseconds timeout{120s};
 
     const auto [exitCode, output] = executeProcessWithArgs(processToExecute, arguments, timeout);
 
@@ -152,7 +152,7 @@ bool AppUpdater::updateApp()
         LOG_WARNING("Failed to write update result");
     }
 
-    if (!exitCode)
+    if (exitCode)
     {
         LOG_WARNING("Error to update: " + output);
         return false;
