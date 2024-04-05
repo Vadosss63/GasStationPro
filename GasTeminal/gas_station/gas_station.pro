@@ -112,8 +112,8 @@ HEADERS += \
     src/widgets/labelwidget.h
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
+qnx: target.path = /tmp/GasStationPro/$${TARGET}/bin
+else: unix:!android: target.path = /opt/GasStationPro/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
