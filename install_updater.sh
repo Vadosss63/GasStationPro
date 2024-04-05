@@ -14,9 +14,10 @@ SERVICE_FILE_DIR="$INSTALL_DIR/service"
 SERVICE_FILE_PATH="$SERVICE_FILE_DIR/$SERVICE_NAME"
 SERVICE_FILE_LINK_PATH="/etc/systemd/system/$SERVICE_NAME"
 
-COMPONENT_USER=makarov
+COMPONENT_USER=$(get_user)
 HOME_DIR="/home/$COMPONENT_USER"
 WORK_DIR="$HOME_DIR/.GasStationPro"
+SETTINGS_DEST=${WORK_DIR}/settings.json
 
 SERVICE_FILE_TEMPLATE="[Unit]
 Description=GasStationPro updater service
@@ -41,8 +42,8 @@ disable_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH}
 
 install_project ${INSTALL_DIR} ${BUILD_DIR}
 create_directories ${WORK_DIR} ${SERVICE_FILE_DIR}
+install_file_if_not_exist ${SETTINGS_FILE} ${SETTINGS_DEST}
 change_folder_owner ${COMPONENT_USER} ${WORK_DIR}
-install_file_if_not_exist ${SETTINGS_FILE} ${WORK_DIR}/settings.json
 
 install_service_file "$SERVICE_FILE_TEMPLATE" "$SERVICE_FILE_PATH"
 create_symbolic_link ${SERVICE_FILE_PATH} ${SERVICE_FILE_LINK_PATH}

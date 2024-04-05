@@ -85,6 +85,10 @@ function enable_service() {
     systemctl restart "$SERVICE_NAME"
 }
 
+function get_user() {
+    who | awk '{print $1}' | sort | uniq | head -n 1;
+}
+
 function remove_directories() {
     for dir in "$@"; do
         if [ -d ${dir} ]; then
@@ -151,7 +155,7 @@ function change_folder_owner() {
     local NEW_OWNER="$1"
     local FOLDER_PATH="$2"
 
-    chown $NEW_OWNER: $FOLDER_PATH
+    chown -R $NEW_OWNER: $FOLDER_PATH
 }
 
 function backup_project_if_exist() {
