@@ -26,10 +26,24 @@ void ComPortController::sendToPort(const std::string& data)
     sendToPort(QString::fromStdString(data));
 }
 
+void ComPortController::getCmd()
+{
+    if (cmdList.empty())
+    {
+        sendData.command = ResponseData::Command::defaultVal;
+        sendData.data    = 0;
+        return;
+    }
+    const auto& [cmd, data] = cmdList.front();
+    sendData.command        = cmd;
+    sendData.data           = data;
+    cmdList.pop_back();
+}
+
 void ComPortController::sendResponse()
 {
+    getCmd();
     sendToPort(sendData.getQByteArray());
-    setCommand(ResponseData::defaultVal);
 }
 
 void ComPortController::readDataFromPort()
@@ -54,6 +68,5 @@ ReceivedData& ComPortController::getReceivedData()
 
 void ComPortController::setCommand(ResponseData::Command cmd, uint32_t data)
 {
-    sendData.command = cmd;
-    sendData.data    = data;
+    cmdList.push_back({cmd, data});
 }

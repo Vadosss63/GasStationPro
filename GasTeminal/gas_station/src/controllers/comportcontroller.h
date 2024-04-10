@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <utility>
 
 #include "port.h"
 #include "receiveddata.h"
@@ -29,7 +30,9 @@ private:
     void sendToPort(const QByteArray& data);
     void sendToPort(const std::string& data);
 
-    ReceivedData receiveData{};
-    ResponseData sendData{};
-    Port         port{};
+    ReceivedData                                      receiveData{};
+    ResponseData                                      sendData{};
+    Port                                              port{};
+    QList<std::pair<ResponseData::Command, uint32_t>> cmdList{};
+    void                                              getCmd();
 };
