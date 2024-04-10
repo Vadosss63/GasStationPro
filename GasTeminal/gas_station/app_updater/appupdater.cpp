@@ -8,18 +8,19 @@
 #include "logcommand.h"
 #include "logging.h"
 #include "utilities.h"
+#include "workdirectory.h"
 
 namespace loguploader
 {
 AppUpdater::AppUpdater(Configure config, QObject* parent) : QObject(parent), webServerController(std::move(config))
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(pollServer()));
-    createDirIfNeeded(updatePath);
 }
 
 void AppUpdater::run()
 {
-    timer.start(10000);
+    constexpr std::chrono::milliseconds timerInterval{10000};
+    timer.start(timerInterval);
 }
 
 void AppUpdater::stop()
@@ -37,35 +38,20 @@ void AppUpdater::pollServer()
     }
 
     std::optional<UpdateCommand> updateCommand = UpdateCommand::readCommand(answer.value().msg);
-
     if (!updateCommand)
     {
         LOG_ERROR(QString("Error to read msg: %1").arg(answer.value().msg));
         return;
     }
-    const QString& fileUrl = updateCommand.value().url;
 
+    const QString& fileUrl = updateCommand->url;
     if (fileUrl.isEmpty())
     {
         return;
     }
 
-    if (!downloadFile(fileUrl))
+    if (!handleUpdateRequest(fileUrl))
     {
-        return;
-    }
-
-    if (!unpackArchive())
-    {
-        LOG_ERROR("Error to unpack archive: " + storedFileName);
-        return;
-    }
-
-    const bool isUpdated = updateApp();
-    removeDirectory(updatePath);
-    if (!isUpdated)
-    {
-        LOG_ERROR("Error to update app");
         return;
     }
 
@@ -76,45 +62,72 @@ void AppUpdater::pollServer()
     }
 }
 
-bool AppUpdater::downloadFile(const QString& url)
+bool AppUpdater::handleUpdateRequest(const QString& fileUrl)
 {
-    const QUrl    fileUrl(url);
-    const QString savePath = updatePath + fileUrl.fileName();
-
-    auto data = webServerController.downloadFile(url);
-
-    if (!data)
+    std::unique_ptr<WorkDirectory> workDir = WorkDirectory::create();
+    if (!workDir)
     {
-        LOG_ERROR("Error to download file: " + url);
         return false;
     }
 
-    auto file = openFile(savePath, QIODevice::WriteOnly);
-    if (!file)
+    const QString          updateDir     = workDir->getWorkDirectory();
+    std::optional<QString> savedFilePath = downloadFile(fileUrl, updateDir);
+    if (!savedFilePath)
     {
-        LOG_ERROR("Error to open file: " + savePath);
         return false;
     }
 
-    file->write(data.value());
-    file->close();
-    LOG_INFO("File is saved: " + savePath);
+    if (!unpackArchive(*savedFilePath, updateDir))
+    {
+        LOG_ERROR("Error to unpack archive: " + *savedFilePath);
+        return false;
+    }
 
-    storedFileName = savePath;
+    if (!updateApp(updateDir))
+    {
+        LOG_ERROR("Error to update the app");
+        return false;
+    }
 
     return true;
 }
 
+std::optional<QString> AppUpdater::downloadFile(const QString& url, const QString& updateDir)
+{
+    auto data = webServerController.downloadFile(url);
+    if (!data)
+    {
+        LOG_ERROR("Error to download file: " + url);
+        return std::nullopt;
+    }
+
+    const QUrl    fileUrl{url};
+    const QString savedFilePath{updateDir + '/' + fileUrl.fileName()};
+
+    auto file = openFile(savedFilePath, QIODevice::WriteOnly);
+    if (!file)
+    {
+        LOG_ERROR("Error to open file: " + savedFilePath);
+        return std::nullopt;
+    }
+
+    file->write(data.value());
+    file->close();
+    LOG_INFO("File is saved: " + savedFilePath);
+
+    return {savedFilePath};
+}
+
 bool AppUpdater::writeUpdateResult(const std::string& result)
 {
-    if (!createDirIfNeeded(logFolder))
+    if (!createDirWithFullPermission(logFolder))
     {
         LOG_WARNING("Failed to create directory for log files");
         return false;
     }
 
     const auto logFilePath   = QString(logFileTemplate).arg(logFolder).arg(getCurrentTimestamp());
-    auto       logFileStream = openFile(logFilePath, QIODevice::WriteOnly);
+    auto       logFileStream = openFileWithFullPermissions(logFilePath, QIODevice::WriteOnly);
 
     if (!logFileStream)
     {
@@ -137,13 +150,13 @@ bool AppUpdater::writeUpdateResult(const std::string& result)
     return true;
 }
 
-bool AppUpdater::updateApp()
+bool AppUpdater::updateApp(const QString& updateDir)
 {
     const QString     processToExecute{"/bin/bash"};
-    const QString     pathToUpdateScript = QString("%1/*/install_t_azs.sh").arg(srcFolder);
+    const QString     pathToUpdateScript = QString(pathToScript).arg(updateDir);
     const QStringList arguments{"-c", pathToUpdateScript};
     using namespace std::chrono_literals;
-    const std::chrono::milliseconds timeout{120s};
+    constexpr auto timeout{120s};
 
     const auto [exitCode, output] = executeProcessWithArgs(processToExecute, arguments, timeout);
 
@@ -154,16 +167,11 @@ bool AppUpdater::updateApp()
 
     if (exitCode)
     {
-        LOG_WARNING("Error to update: " + output);
+        LOG_WARNING("Update was ended with an error: " + output);
         return false;
     }
 
-    LOG_INFO("Update result: " + output);
+    LOG_INFO("Update was successful");
     return true;
-}
-
-bool AppUpdater::unpackArchive()
-{
-    return ::unpackArchive(storedFileName, srcFolder);
 }
 }

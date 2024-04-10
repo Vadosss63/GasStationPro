@@ -22,21 +22,18 @@ private slots:
     void pollServer();
 
 private:
-    bool downloadFile(const QString& url);
+    bool                   handleUpdateRequest(const QString& fileUrl);
+    std::optional<QString> downloadFile(const QString& url, const QString& updateDir);
 
-    bool updateApp();
-
+    bool updateApp(const QString& updateDir);
     bool writeUpdateResult(const std::string& result);
-
-    bool unpackArchive();
 
     WebServerController webServerController;
     QTimer              timer{};
 
     QString storedFileName{};
 
-    static constexpr auto updatePath      = "update/";
-    static constexpr auto srcFolder       = "update/src/";
+    static constexpr auto pathToScript    = "%1/*/install_t_azs.sh";
     static constexpr auto logFolder       = "./azs_logs/update_results";
     static constexpr auto logFileTemplate = "%1/%2_upadate_result.log";
 

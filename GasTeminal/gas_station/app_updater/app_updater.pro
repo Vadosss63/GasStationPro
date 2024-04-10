@@ -18,7 +18,8 @@ SOURCES += \
         $${SOURCES_PATH}/httprequest.cpp \
         $${SOURCES_PATH}/utilities.cpp \
         logging.cpp \
-        webservercontroller.cpp
+        webservercontroller.cpp \
+        workdirectory.cpp
 
 HEADERS += \
     appupdater.h \
@@ -30,7 +31,8 @@ HEADERS += \
     $${SOURCES_PATH}/logging.h \
     $${SOURCES_PATH}/httprequest.h \
     $${SOURCES_PATH}/utilities.h \
-    webservercontroller.h
+    webservercontroller.h \
+    workdirectory.h
 
 target.path = /opt/GasStationPro/$${TARGET}/bin
 INSTALLS += target

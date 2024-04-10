@@ -10,6 +10,6 @@ struct ExecuteResult
     QString output{};
 };
 
-ExecuteResult executeProcessWithArgs(const QString&                   program,
-                                     const QStringList&               arguments,
-                                     const std::chrono::milliseconds& timeout);
+ExecuteResult executeProcessWithArgs(const QString&            program,
+                                     const QStringList&        arguments,
+                                     std::chrono::milliseconds timeout);
