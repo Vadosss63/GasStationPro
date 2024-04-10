@@ -21,7 +21,7 @@ void FuelValueInputWidget::setValue(int val)
 void FuelValueInputWidget::createWidget()
 {
     value = new QSpinBox;
-    value->setRange(0, 1000000);
+    value->setRange(-100000, 100000);
 
     auto layout = new QHBoxLayout(this);
     layout->addWidget(value);

@@ -149,7 +149,7 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         writeSettings();
     }
 
-    LOG_INFO(QString("Recived button: %1, value:2%").arg(azsButton.button, azsButton.value));
+    LOG_INFO(QString("Recived button: %1, value:%2").arg(azsButton.button, azsButton.value));
 }
 
 void Tazs::keyPressEvent(QKeyEvent* event)
@@ -264,6 +264,8 @@ void Tazs::updateStateOfBtn()
     using ClickedBtnState = ReceivedData::ClickedBtnState;
     switch (comPortController->getReceivedData().isClickedBtn)
     {
+        case ClickedBtnState::Normal:
+            break;
         case ClickedBtnState::ShowServiceMode:
             showServiceMenu();
             LOG_INFO("Pressed: show service mode");
@@ -280,6 +282,7 @@ void Tazs::updateStateOfBtn()
             clickedSecondHWBtn();
             LOG_INFO("Pressed: button 2");
             break;
+
         default:
             LOG_ERROR(
                 QString("Pressed: unknown %1 button").arg((int)comPortController->getReceivedData().isClickedBtn));

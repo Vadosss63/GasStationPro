@@ -41,7 +41,7 @@ struct ResponseData
     };
 
     uint8_t  header{0x7F};
-    Command  command{0x01};
+    Command  command{Command::defaultVal};
     uint32_t data{0};
     uint8_t  checksum{0};
 
