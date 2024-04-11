@@ -5,7 +5,7 @@ set -u
 SCRIPT_PATH="$(dirname "$0")"
 source "$SCRIPT_PATH/install_helper.sh"
 
-INSTALL_DIR="/opt/GasStationPro/log_uploader"
+PROJECT_DIR="/opt/GasStationPro/log_uploader"
 SERVICE_NAME="log-uploader.service"
 SERVICE_FILE_LINK_PATH="/etc/systemd/user/$SERVICE_NAME"
 
@@ -38,7 +38,8 @@ while getopts ":fh" opt; do
 done
 
 disable_user_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH} ${COMPONENT_USER}
-remove_directories ${INSTALL_DIR}
+remove_directories ${PROJECT_DIR}
+remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR} true
 
 if [ "$force" = true ]; then
     remove_directories ${WORK_DIR}

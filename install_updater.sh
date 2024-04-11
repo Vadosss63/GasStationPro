@@ -49,5 +49,5 @@ install_service_file "$SERVICE_FILE_TEMPLATE" "$SERVICE_FILE_PATH"
 create_symbolic_link ${SERVICE_FILE_PATH} ${SERVICE_FILE_LINK_PATH}
 
 enable_service ${SERVICE_NAME}
-add_service_to_autostart ${SERVICE_NAME} ${HOME_DIR}
+add_service_to_autostart ${SERVICE_NAME} ${HOME_DIR} false
 verify_service ${SERVICE_NAME} ${COMPONENT_USER}
