@@ -227,6 +227,7 @@ function restore_backup() {
     local BACKUP_PROJECT_DIR="$2"
     local SERVICE_NAME="$3"
     local USER_NAME="$4"
+    local IS_USER="$5"
 
     if [ "$EXIT_CODE" = 0 ]; then
         exit 0
@@ -238,7 +239,13 @@ function restore_backup() {
     cleanup_directory "$INSTALL_PROJECT_DIR"
 
     copy_dir_content "$BACKUP_PROJECT_DIR" "$INSTALL_PROJECT_DIR"
-    enable_service "$SERVICE_NAME" "$USER_NAME"
+
+    if $IS_USER; then
+        enable_user_service "$SERVICE_NAME" "$USER_NAME"
+    else
+        enable_service "$SERVICE_NAME"
+    fi
+
     remove_directories "$BACKUP_PROJECT_DIR"
     exit $EXIT_CODE
 }

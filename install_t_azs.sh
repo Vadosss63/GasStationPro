@@ -37,7 +37,7 @@ build_project ${BUILD_DIR} ${SOURCE_DIR}
 
 BACKUP_DIR=$(mktemp -d)
 if backup_project_if_exist "$INSTALL_DIR" "$BACKUP_DIR"; then
-    trap 'restore_backup "$INSTALL_DIR" "$BACKUP_DIR" "$SERVICE_NAME" "$COMPONENT_USER"' EXIT
+    trap 'restore_backup "$INSTALL_DIR" "$BACKUP_DIR" "$SERVICE_NAME" "$COMPONENT_USER" true' EXIT
     echo "Backup was saved to $BACKUP_DIR"
 fi
 
