@@ -49,11 +49,13 @@ private:
 
     void setAzsNode(const AzsNodeSettings& azsNodes);
 
-    void updateStateOfBtn();
+    void updateStateOfBtn(uint8_t isClickedBtn);
 
     void clickedFirstHWBtn() const;
     void clickedSecondHWBtn() const;
     void closeServiceMenu();
+
+    void syncAzs();
 
     void      saveReceipt(int numOfAzsNode) const;
     bool      isBalanceValid() const;

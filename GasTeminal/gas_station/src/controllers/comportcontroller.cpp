@@ -28,6 +28,12 @@ void ComPortController::sendToPort(const std::string& data)
 
 void ComPortController::getCmd()
 {
+    if (receiveData.command != sendData.command)
+    {
+        LOG_ERROR(QString("Command %1 isn't sent. Retry sending").arg(sendData.command));
+        return;
+    }
+
     if (cmdList.empty())
     {
         sendData.command = ResponseData::Command::defaultVal;
@@ -37,7 +43,7 @@ void ComPortController::getCmd()
     const auto& [cmd, data] = cmdList.front();
     sendData.command        = cmd;
     sendData.data           = data;
-    cmdList.pop_back();
+    cmdList.pop_front();
 }
 
 void ComPortController::sendResponse()
@@ -57,11 +63,13 @@ void ComPortController::readDataFromPort()
         LOG_ERROR("ReceivedData is invalid");
         return;
     }
-    getReceivedData() = *tmp;
+    receiveData = *tmp;
     emit readyData();
+
+    sendResponse();
 }
 
-ReceivedData& ComPortController::getReceivedData()
+const ReceivedData& ComPortController::getReceivedData()
 {
     return receiveData;
 }

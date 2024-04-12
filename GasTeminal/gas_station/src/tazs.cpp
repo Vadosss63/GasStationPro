@@ -40,6 +40,7 @@ Tazs::Tazs(QObject* parent) : QObject{parent}
     connect(timer, SIGNAL(timeout()), this, SLOT(sendToServer()));
     timer->start(10000);
     updateData();
+    syncAzs();
 }
 
 Tazs::~Tazs()
@@ -195,35 +196,42 @@ void Tazs::setupSecondPrice()
     }
 }
 
+void Tazs::syncAzs()
+{
+    comPortController->setCommand(ResponseData::Command::setGasType1, currentAzsNodes.nodes[firstNodeId].gasType);
+    comPortController->setCommand(ResponseData::Command::setGasType2, currentAzsNodes.nodes[secondNodeId].gasType);
+
+    comPortController->setCommand(ResponseData::Command::setPriceCash1, currentAzsNodes.nodes[firstNodeId].priceCash);
+    comPortController->setCommand(ResponseData::Command::setPriceCash2, currentAzsNodes.nodes[secondNodeId].priceCash);
+
+    comPortController->setCommand(ResponseData::Command::setPriceCashless1,
+                                  currentAzsNodes.nodes[firstNodeId].priceCashless);
+    comPortController->setCommand(ResponseData::Command::setPriceCashless2,
+                                  currentAzsNodes.nodes[secondNodeId].priceCashless);
+
+    comPortController->setCommand(ResponseData::Command::setLockFuelValue1,
+                                  currentAzsNodes.nodes[firstNodeId].lockFuelValue);
+    comPortController->setCommand(ResponseData::Command::setLockFuelValue2,
+                                  currentAzsNodes.nodes[secondNodeId].lockFuelValue);
+
+    comPortController->setCommand(ResponseData::Command::setFuelArrival1,
+                                  currentAzsNodes.nodes[firstNodeId].fuelArrival);
+    comPortController->setCommand(ResponseData::Command::setFuelArrival2,
+                                  currentAzsNodes.nodes[secondNodeId].fuelArrival);
+}
+
 void Tazs::setAzsNode(const AzsNodeSettings& azsNodes)
 {
     currentAzsNodes = azsNodes;
-
-    comPortController->setCommand(ResponseData::Command::setGasType1, azsNodes.nodes[firstNodeId].gasType);
-    comPortController->setCommand(ResponseData::Command::setGasType2, azsNodes.nodes[secondNodeId].gasType);
-
-    comPortController->setCommand(ResponseData::Command::setPriceCash1, azsNodes.nodes[firstNodeId].priceCash);
-    comPortController->setCommand(ResponseData::Command::setPriceCash2, azsNodes.nodes[secondNodeId].priceCash);
-
-    comPortController->setCommand(ResponseData::Command::setPriceCashless1, azsNodes.nodes[firstNodeId].priceCashless);
-    comPortController->setCommand(ResponseData::Command::setPriceCashless2, azsNodes.nodes[secondNodeId].priceCashless);
-
-    comPortController->setCommand(ResponseData::Command::setLockFuelValue1, azsNodes.nodes[firstNodeId].lockFuelValue);
-    comPortController->setCommand(ResponseData::Command::setLockFuelValue2, azsNodes.nodes[secondNodeId].lockFuelValue);
-
-    comPortController->setCommand(ResponseData::Command::setFuelArrival1, azsNodes.nodes[firstNodeId].fuelArrival);
-    comPortController->setCommand(ResponseData::Command::setFuelArrival2, azsNodes.nodes[secondNodeId].fuelArrival);
-
     mainWindowController->setAzsNode(azsNodes, configure.showSecondPrice);
 }
 
 void Tazs::updateData()
 {
-    updateStateOfBtn();
     const ReceivedData& data = comPortController->getReceivedData();
+    updateStateOfBtn(data.isClickedBtn);
     mainWindowController->setShowData(data);
     mainWindowController->setCountOfLitres(currentAzsNodes);
-    comPortController->sendResponse();
 }
 
 AzsReport Tazs::getReport() const
@@ -272,10 +280,10 @@ void Tazs::setupPrice()
     handleAzsBtn(serviceMenuController->getAzsButton());
 }
 
-void Tazs::updateStateOfBtn()
+void Tazs::updateStateOfBtn(uint8_t isClickedBtn)
 {
     using ClickedBtnState = ReceivedData::ClickedBtnState;
-    switch (comPortController->getReceivedData().isClickedBtn)
+    switch (isClickedBtn)
     {
         case ClickedBtnState::Normal:
             break;
