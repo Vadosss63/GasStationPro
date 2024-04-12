@@ -3,8 +3,18 @@
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <cerrno>
+#include <cstring>
+#include <stdlib.h>
 
 #include "logging.h"
+
+namespace
+{
+constexpr auto fullPermission = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup |
+                                QFile::WriteGroup | QFile::ExeGroup | QFile::ReadOther | QFile::WriteOther |
+                                QFile::ExeOther;
+}
 
 std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mode)
 {
@@ -16,6 +26,45 @@ std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mod
     }
 
     return file;
+}
+
+std::unique_ptr<QIODevice> openFileWithFullPermissions(const QString& path, QIODevice::OpenMode mode)
+{
+    std::unique_ptr<QFile> file = std::make_unique<QFile>(path);
+    if (!file->open(mode))
+    {
+        LOG_ERROR("Error open file: " + path);
+        return {};
+    }
+
+    if (!file->setPermissions(fullPermission))
+    {
+        LOG_ERROR("Failed to set permissions for file: " + path);
+    }
+
+    return file;
+}
+
+bool createDirWithFullPermission(const QString& dirPath)
+{
+    QDir directory(dirPath);
+    if (!directory.exists())
+    {
+        if (!QDir().mkpath(dirPath))
+        {
+            LOG_ERROR("Failed to create directory: " + dirPath);
+            return false;
+        }
+    }
+
+    if (!QFile(dirPath).setPermissions(fullPermission))
+    {
+        LOG_ERROR("Failed to set permissions for directory: " + dirPath);
+        removeDirectory(dirPath);
+        return false;
+    }
+
+    return true;
 }
 
 bool createDirIfNeeded(const QString& dirPath)
@@ -184,4 +233,18 @@ bool unpackArchive(const QString& archivePath, const QString& srcFolder)
     }
 
     return true;
+}
+
+QString createTmpUniqueDir()
+{
+    char dirTemplate[] = "/tmp/XXXXXX";
+
+    char* uniqueDir = mkdtemp(dirTemplate);
+    if (!uniqueDir)
+    {
+        LOG_ERROR(QString("Failed to create unique tmp dir, errno:") + strerror(errno));
+        return {};
+    }
+
+    return {dirTemplate};
 }

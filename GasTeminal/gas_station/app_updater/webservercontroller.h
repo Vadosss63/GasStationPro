@@ -14,9 +14,9 @@ class WebServerController : public QObject
 public:
     WebServerController(Configure config, QObject* parent = nullptr);
 
-    std::optional<Answer> readServerCmd();
+    std::optional<Answer> readServerCmd() const;
 
-    std::optional<QByteArray> downloadFile(const QString& url);
+    std::optional<QByteArray> downloadFile(const QString& url) const;
 
     bool resetServerCmd() const;
 
@@ -25,8 +25,8 @@ private:
 
     Configure configure;
 
-    constexpr static auto resetCmdApi  = "/reset_app_update_button";
-    constexpr static auto getGetCmdApi = "/get_app_update_button";
+    constexpr static auto resetCmdApi = "/reset_app_update_button";
+    constexpr static auto getCmdApi   = "/get_app_update_button";
 };
 
 }

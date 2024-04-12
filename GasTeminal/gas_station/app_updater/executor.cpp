@@ -4,9 +4,9 @@
 
 #include "logging.h"
 
-ExecuteResult executeProcessWithArgs(const QString&                   program,
-                                     const QStringList&               arguments,
-                                     const std::chrono::milliseconds& timeout)
+ExecuteResult executeProcessWithArgs(const QString&            program,
+                                     const QStringList&        arguments,
+                                     std::chrono::milliseconds timeout)
 {
     QProcess process{};
     process.start(program, arguments);

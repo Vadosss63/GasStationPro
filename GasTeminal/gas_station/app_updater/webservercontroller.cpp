@@ -21,9 +21,10 @@ QUrlQuery loguploader::WebServerController::getUrlQuery() const
 
 bool WebServerController::resetServerCmd() const
 {
-    QUrlQuery params = getUrlQuery();
+    QUrlQuery     params    = getUrlQuery();
+    const QString getCmdUrl = configure.host + resetCmdApi;
 
-    Answer answer = sendPost(configure.host + resetCmdApi, params);
+    Answer answer = sendPost(getCmdUrl, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
@@ -31,11 +32,12 @@ bool WebServerController::resetServerCmd() const
     return answer.isOk;
 }
 
-std::optional<Answer> WebServerController::readServerCmd()
+std::optional<Answer> WebServerController::readServerCmd() const
 {
-    QUrlQuery params = getUrlQuery();
+    QUrlQuery     params    = getUrlQuery();
+    const QString getCmdUrl = configure.host + getCmdApi;
 
-    Answer answer = sendPost(configure.host + getGetCmdApi, params);
+    Answer answer = sendPost(getCmdUrl, params);
     if (!answer.isOk)
     {
         LOG_ERROR(answer.msg);
@@ -45,7 +47,7 @@ std::optional<Answer> WebServerController::readServerCmd()
     return answer;
 }
 
-std::optional<QByteArray> WebServerController::downloadFile(const QString& url)
+std::optional<QByteArray> WebServerController::downloadFile(const QString& url) const
 {
     return downloadData(url);
 }
