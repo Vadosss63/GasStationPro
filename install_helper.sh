@@ -4,7 +4,7 @@ function run_systemd_command_by_user() {
     local USER_NAME="$1"
     local COMMAND="$2"
 
-    systemd-run --machine="$USER_NAME"@ --quiet --user --collect --pipe --wait systemctl --user $COMMAND
+    sudo -u ${USER_NAME}  XDG_RUNTIME_DIR=/run/user/$(id -u ${USER_NAME}) systemctl --user $COMMAND
 }
 
 function check_if_service_exists() {
@@ -163,7 +163,7 @@ function build_project() {
 
     cleanup_directory "$BUILD_DIR"
 
-    qmake -o "$BUILD_DIR" -r "$SOURCE_DIR"
+    qmake -o ${BUILD_DIR}/Makefile -r ${SOURCE_DIR}
     make -C "$BUILD_DIR"
 
     if [ $? -ne 0 ]; then
