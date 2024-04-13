@@ -2,8 +2,6 @@
 
 apt install -y \
     g++ \
-    qmake \
-    qt5 \
     qt5-qmake \
     qt5-qmake-bin \
     build-essential \

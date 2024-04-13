@@ -39,7 +39,7 @@ done
 
 disable_user_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH} ${COMPONENT_USER}
 remove_directories ${PROJECT_DIR}
-remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR} true
+remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR}
 
 if [ "$force" = true ]; then
     remove_directories ${WORK_DIR}

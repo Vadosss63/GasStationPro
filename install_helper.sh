@@ -55,13 +55,8 @@ function disable_service() {
 function add_service_to_autostart() {
     local SERVICE_NAME="$1"
     local HOME_DIR="$2"
-    local IS_USER="$3"
     local AUTOSTART_FILE="$HOME_DIR/.config/lxsession/Lubuntu/autostart"
-
-    local LINE_TO_ADD="systemctl start $SERVICE_NAME"
-    if $IS_USER; then
-        LINE_TO_ADD="systemctl --user start $SERVICE_NAME"
-    fi
+    local LINE_TO_ADD="systemctl --user start $SERVICE_NAME"
 
     if [ -f "$AUTOSTART_FILE" ]; then
         if ! grep -q "$LINE_TO_ADD" "$AUTOSTART_FILE"; then
@@ -74,13 +69,8 @@ function add_service_to_autostart() {
 function remove_service_from_autostart() {
     local SERVICE_NAME="$1"
     local HOME_DIR="$2"
-    local IS_USER="$3"
     local AUTOSTART_FILE="$HOME_DIR/.config/lxsession/Lubuntu/autostart"
-
-    local LINE_TO_REMOVE="systemctl start $SERVICE_NAME"
-    if $IS_USER; then
-        LINE_TO_REMOVE="systemctl --user start $SERVICE_NAME"
-    fi
+    local LINE_TO_REMOVE="systemctl --user start $SERVICE_NAME"
 
     if [ -f "$AUTOSTART_FILE" ]; then
         sed -i "/$LINE_TO_REMOVE/d" "$AUTOSTART_FILE"
@@ -123,7 +113,7 @@ function enable_user_service() {
     run_systemd_command_by_user "$USER_NAME" "daemon-reload"
     run_systemd_command_by_user "$USER_NAME" "restart $SERVICE_NAME"
 
-    add_service_to_autostart $SERVICE_NAME "/home/$USER_NAME" true
+    add_service_to_autostart $SERVICE_NAME "/home/$USER_NAME"
 }
 
 function enable_service() {

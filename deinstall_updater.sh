@@ -39,7 +39,6 @@ done
 
 disable_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH}
 remove_directories ${PROJECT_DIR}
-remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR} false
 
 if [ "$force" = true ]; then
     remove_directories ${WORK_DIR}
