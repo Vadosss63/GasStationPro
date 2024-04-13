@@ -60,13 +60,13 @@ function add_service_to_autostart() {
 
     local LINE_TO_ADD="systemctl start $SERVICE_NAME"
     if $IS_USER; then
-        LINE_TO_ADD="systemctl --user start gas-station.service"
+        LINE_TO_ADD="systemctl --user start $SERVICE_NAME"
     fi
 
     if [ -f "$AUTOSTART_FILE" ]; then
-        if ! grep -q "$SERVICE_NAME" "$AUTOSTART_FILE"; then
+        if ! grep -q "$LINE_TO_ADD" "$AUTOSTART_FILE"; then
             echo "$LINE_TO_ADD" >> "$AUTOSTART_FILE"
-            echo "Line was added"
+            echo "Service $SERVICE_NAME was added to autostart"
         fi
     fi
 }
@@ -79,7 +79,7 @@ function remove_service_from_autostart() {
 
     local LINE_TO_REMOVE="systemctl start $SERVICE_NAME"
     if $IS_USER; then
-        LINE_TO_REMOVE="systemctl --user start gas-station.service"
+        LINE_TO_REMOVE="systemctl --user start $SERVICE_NAME"
     fi
 
     if [ -f "$AUTOSTART_FILE" ]; then
