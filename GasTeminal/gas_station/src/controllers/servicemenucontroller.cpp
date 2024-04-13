@@ -117,6 +117,10 @@ void ServiceMenuController::showServiceMenu(const AzsReport& azsReport)
 void ServiceMenuController::setAzsNodes(const AzsNodeSettings& azsNodes)
 {
     azsNodeSettings = azsNodes;
+
+    azsNodeSettings.nodes[0].fuelArrival = 0;
+    azsNodeSettings.nodes[1].fuelArrival = 0;
+
     setButtonValue();
 }
 

@@ -13,6 +13,8 @@ struct ReceivedData
         Normal           = 0x00,
         Button1Pressed   = 0x01,
         Button2Pressed   = 0x02,
+        Unblock          = 0xF0,
+        Block            = 0xF1,
         CloseServiceMode = 0xFE,
         ShowServiceMode  = 0xFF
     };

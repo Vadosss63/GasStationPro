@@ -105,12 +105,6 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         case State::setPriceCashless2:
             currentAzsNodes.nodes[secondNodeId].priceCashless = azsButton.value;
             break;
-        case State::setFuelArrival1:
-            currentAzsNodes.nodes[firstNodeId].fuelArrival = azsButton.value;
-            break;
-        case State::setFuelArrival2:
-            currentAzsNodes.nodes[secondNodeId].fuelArrival = azsButton.value;
-            break;
         case State::setLockFuelValue1:
             currentAzsNodes.nodes[firstNodeId].lockFuelValue = azsButton.value;
             break;
@@ -129,6 +123,10 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         case State::unblockAzsNode:
             mainWindowController->disableAzs(false);
             break;
+        case State::setFuelArrival1:
+            [[fallthrough]];
+        case State::setFuelArrival2:
+            [[fallthrough]];
         case State::isPressedServiceBtn1:
             [[fallthrough]];
         case State::isPressedServiceBtn2:
@@ -302,6 +300,12 @@ void Tazs::updateStateOfBtn(uint8_t isClickedBtn)
         case ClickedBtnState::Button2Pressed:
             clickedSecondHWBtn();
             LOG_INFO("Pressed: button 2");
+            break;
+        case ClickedBtnState::Unblock:
+            break;
+        case ClickedBtnState::Block:
+            mainWindowController->disableAzs(true);
+            LOG_INFO("Pressed: block azs");
             break;
 
         default:

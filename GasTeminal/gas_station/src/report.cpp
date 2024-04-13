@@ -48,7 +48,7 @@ QString getJsonReport(const AzsReport& azsReport)
         jsonAzsNode.insert("price", static_cast<int>(azsNode.nodes[i].priceCash));
         jsonAzsNode.insert("priceCashless", static_cast<int>(azsNode.nodes[i].priceCashless));
         jsonAzsNode.insert("lockFuelValue", static_cast<int>(azsNode.nodes[i].lockFuelValue));
-        jsonAzsNode.insert("fuelArrival", static_cast<int>(azsNode.nodes[i].fuelArrival));
+        jsonAzsNode.insert("fuelArrival", 0);
 
         jsonAzsNode.insert("fuelVolume", convertFromDouble(rec.azsNodes[i].fuelVolume));
         jsonAzsNode.insert("fuelVolumePerc", convertFromDouble(rec.azsNodes[i].fuelVolumePerc));
