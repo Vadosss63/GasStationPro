@@ -8,6 +8,8 @@ source "$SCRIPT_PATH/install_helper.sh"
 PROJECT_DIR="/opt/GasStationPro"
 SERVICE_NAME="gas_station.service"
 SERVICE_FILE_LINK_PATH="/etc/systemd/user/$SERVICE_NAME"
+EXECUTION_OBJ_PATH=${PROJECT_DIR}/gas_station
+ORIGINAL_SERVICE_PATH=${PROJECT_DIR}/${SERVICE_NAME}
 
 COMPONENT_USER=$(get_user)
 HOME_DIR="/home/$COMPONENT_USER"
@@ -38,7 +40,8 @@ while getopts ":fh" opt; do
 done
 
 disable_user_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH} ${COMPONENT_USER}
-remove_directories ${PROJECT_DIR}
+rm -rf ${EXECUTION_OBJ_PATH}
+rm -rf ${ORIGINAL_SERVICE_PATH}
 remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR}
 
 if [ "$force" = true ]; then
