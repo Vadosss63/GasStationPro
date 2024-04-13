@@ -211,11 +211,6 @@ void Tazs::syncAzs()
                                   currentAzsNodes.nodes[firstNodeId].lockFuelValue);
     comPortController->setCommand(ResponseData::Command::setLockFuelValue2,
                                   currentAzsNodes.nodes[secondNodeId].lockFuelValue);
-
-    comPortController->setCommand(ResponseData::Command::setFuelArrival1,
-                                  currentAzsNodes.nodes[firstNodeId].fuelArrival);
-    comPortController->setCommand(ResponseData::Command::setFuelArrival2,
-                                  currentAzsNodes.nodes[secondNodeId].fuelArrival);
 }
 
 void Tazs::setAzsNode(const AzsNodeSettings& azsNodes)
