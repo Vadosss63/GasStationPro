@@ -22,22 +22,21 @@
 #include <assert.h>
 #include <iostream>
 
-#include "filesystemutilities.h"
 #include "utilities.h"
 
-Logger::Logger(const QString& logDir,
-               const QString& fileNamePrefix,
-               qint64         maxLogFileSize,
-               qint64         maxLogFiles,
-               LogLevel       initLogLevel)
-    : logDirectory(logDir)
-    , baseFileName(fileNamePrefix)
-    , maxFileSize(maxLogFileSize)
-    , maxFiles(maxLogFiles)
-    , initialLogLevel(initLogLevel)
+namespace
 {
-    assert(maxLogFileSize && "Maximum log file size could not be equal to zero");
-    assert(maxLogFiles && "Maximum log files could not be equal to zero");
+QString formatMessage(LogLevel logLevel, const QString& message, const QString& funcName)
+{
+    static constexpr auto messageTempl = "%1 %2/%3: %4\n";
+    return QString(messageTempl).arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message.trimmed());
+}
+}
+
+Logger::Logger(LoggerSettings settings) : settings(std::move(settings))
+{
+    assert(settings.maxFileSize && "Maximum log file size could not be equal to zero");
+    assert(settings.maxFileNumber && "Maximum log files could not be equal to zero");
     if (!tryToOpenLatestLogFile())
     {
         changeLogFile();
@@ -46,54 +45,28 @@ Logger::Logger(const QString& logDir,
 
 void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& funcName)
 {
-    if (logLevel < initialLogLevel)
+    if (logLevel < settings.logLevel)
     {
         return;
     }
 
-    if (!isLogFileValid())
+    if (!isLogStreamValid())
     {
         return;
     }
 
-    const QString formatedMsg =
-        QString("%1 %2/%3: %4\n").arg(getCurrentTimestamp(), logLevelToString(logLevel), funcName, message.trimmed());
+    const QString     formatedMsg = formatMessage(logLevel, message, funcName);
     const std::string dataToWrite{formatedMsg.toUtf8().constData()};
 
-    constexpr qint64 writeError{-1};
-    auto             writedBytes = logFileStream->write(dataToWrite.c_str());
+    const qint64            writedBytes = logFileStream->writeData(dataToWrite.c_str(), dataToWrite.size());
+    static constexpr qint64 writeError{-1};
     if (writedBytes == writeError)
     {
         std::cerr << logFileStream->errorString().toStdString() << std::endl;
-        return;
     }
 }
 
-void Logger::changeLogFile()
-{
-    if (!createDirIfNeeded(logDirectory))
-    {
-        std::cerr << "Failed to create directory for log files" << std::endl;
-        return;
-    }
-
-    const QString newLogFile = QString("%1%2_%3.log").arg(logDirectory).arg(baseFileName).arg(getCurrentTimestamp());
-
-    logFileStream = openFile(newLogFile, QIODevice::WriteOnly);
-
-    if (!logFileStream)
-    {
-        std::cerr << "Fail to open log file" << std::endl;
-        return;
-    }
-
-    if (const int numberOfFiles = getNumberOfFilesInDir(logDirectory); numberOfFiles >= maxFiles)
-    {
-        removeOlderFilesInDir(logDirectory, maxFiles);
-    }
-}
-
-bool Logger::isLogFileValid()
+bool Logger::isLogStreamValid()
 {
     if (!logFileStream)
     {
@@ -101,9 +74,13 @@ bool Logger::isLogFileValid()
         return false;
     }
 
-    if (logFileStream->size() >= maxFileSize)
+    if (logFileStream->size() >= settings.maxFileSize)
     {
-        changeLogFile();
+        if (changeLogFile(); !logFileStream)
+        {
+            std::cerr << "Failed to change a log file" << std::endl;
+            return false;
+        }
     }
 
     if (!logFileStream->isOpen())
@@ -115,13 +92,39 @@ bool Logger::isLogFileValid()
     return true;
 }
 
+void Logger::changeLogFile()
+{
+    if (!createDirIfNeeded(settings.directory))
+    {
+        std::cerr << "Failed to create directory for log files" << std::endl;
+        return;
+    }
+
+    logFileStream = FileWriter::openFile(getNewFilePath(), QIODevice::WriteOnly);
+
+    cleanupDirIfRequired();
+}
+
 bool Logger::tryToOpenLatestLogFile()
 {
-    if (!isDirectoryExist(logDirectory))
+    if (!isDirectoryExist(settings.directory))
     {
         return false;
     }
 
-    logFileStream = tryToOpenLatestFileInDir(logDirectory, QIODevice::WriteOnly | QIODevice::Append);
-    return logFileStream ? isLogFileValid() : false;
+    logFileStream = FileWriter::openLatestFileInDir(settings.directory, QIODevice::WriteOnly | QIODevice::Append);
+    return logFileStream ? isLogStreamValid() : false;
+}
+
+void Logger::cleanupDirIfRequired()
+{
+    if (const int numberOfFiles = getNumberOfFilesInDir(settings.directory); numberOfFiles >= settings.maxFileNumber)
+    {
+        removeOlderFilesInDir(settings.directory, settings.maxFileNumber);
+    }
+}
+
+QString Logger::getNewFilePath()
+{
+    return QString(fileNameTempl).arg(settings.directory).arg(settings.filePrefix).arg(getCurrentTimestamp());
 }

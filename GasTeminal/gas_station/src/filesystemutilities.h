@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
+#include <QFile>
 #include <QIODevice>
 #include <memory>
 #include <optional>
@@ -54,3 +56,21 @@ bool archiveFolder(const QString& folderPath, const QString& archivePath);
 bool unpackArchive(const QString& archivePath, const QString& srcFolder);
 
 QString createTmpUniqueDir();
+
+class FileWriter
+{
+public:
+    bool    isOpen() const;
+    qint64  size() const;
+    qint64  writeData(const char* data, qint64 len);
+    QString errorString() const;
+
+    static std::unique_ptr<FileWriter> openFile(const QString& path, QIODevice::OpenMode mode);
+    static std::unique_ptr<FileWriter> openLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode);
+
+private:
+    explicit FileWriter(const QString& fileName);
+    bool open(QIODevice::OpenMode mode);
+
+    QFile file{};
+};

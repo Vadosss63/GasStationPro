@@ -21,16 +21,22 @@
 #include <QString>
 #include <memory>
 
+#include "filesystemutilities.h"
 #include "logger_defs.h"
+
+struct LoggerSettings
+{
+    QString  directory{"."};
+    QString  filePrefix{};
+    qint64   maxFileSize{1};
+    qint64   maxFileNumber{1};
+    LogLevel logLevel{LogLevel::DEBUG};
+};
 
 class Logger
 {
 public:
-    Logger(const QString& logDir,
-           const QString& fileNamePrefix,
-           qint64         maxLogFileSize,
-           qint64         maxLogFiles,
-           LogLevel       initLogLevel);
+    explicit Logger(LoggerSettings settings);
     ~Logger() = default;
 
     Logger(const Logger&)            = delete;
@@ -41,14 +47,14 @@ public:
     void writeLog(LogLevel logLevel, const QString& message, const QString& funcName = "");
 
 private:
-    void changeLogFile();
-    bool isLogFileValid();
-    bool tryToOpenLatestLogFile();
+    void    cleanupDirIfRequired();
+    QString getNewFilePath();
+    bool    tryToOpenLatestLogFile();
+    void    changeLogFile();
+    bool    isLogStreamValid();
 
-    QString                    logDirectory;
-    QString                    baseFileName;
-    qint64                     maxFileSize;
-    qint64                     maxFiles;
-    LogLevel                   initialLogLevel;
-    std::unique_ptr<QIODevice> logFileStream{};
+    LoggerSettings              settings;
+    std::unique_ptr<FileWriter> logFileStream{};
+
+    static constexpr auto fileNameTempl = "%1%2_%3.log";
 };

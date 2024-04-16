@@ -10,3 +10,4 @@ SOURCES +=  \
 
 HEADERS += \
     $${SOURCE_PATH}/logger.h \
+    $${SOURCE_PATH}/filesystemutilities.h

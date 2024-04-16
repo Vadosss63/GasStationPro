@@ -267,3 +267,63 @@ QString createTmpUniqueDir()
 
     return {dirTemplate};
 }
+
+FileWriter::FileWriter(const QString& fileName) : file(fileName) {}
+
+bool FileWriter::isOpen() const
+{
+    return file.isOpen();
+}
+qint64 FileWriter::size() const
+{
+    return file.size();
+}
+
+qint64 FileWriter::writeData(const char* data, qint64 len)
+{
+    const qint64            writedBytes = file.write(data, len);
+    static constexpr qint64 writeError{-1};
+
+    return file.flush() ? writedBytes : writeError;
+}
+
+QString FileWriter::errorString() const
+{
+    return file.errorString();
+}
+
+bool FileWriter::open(QIODevice::OpenMode mode)
+{
+    return file.open(mode);
+}
+
+std::unique_ptr<FileWriter> FileWriter::openFile(const QString& path, QIODevice::OpenMode mode)
+{
+    auto file = std::unique_ptr<FileWriter>(new FileWriter(path));
+    if (!file->open(mode))
+    {
+        LOG_ERROR("Failed to open file: " + path);
+        return {};
+    }
+
+    return file;
+}
+
+std::unique_ptr<FileWriter> FileWriter::openLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode)
+{
+    const QDir directory{dirPath};
+    if (!directory.exists())
+    {
+        return {};
+    }
+
+    const QFileInfoList fileList = directory.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Time);
+    if (fileList.isEmpty())
+    {
+        return {};
+    }
+
+    const QFileInfo lastFile = fileList.first();
+
+    return openFile(lastFile.absoluteFilePath(), mode);
+}

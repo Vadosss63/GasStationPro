@@ -11,34 +11,56 @@
 
 #include "logger.h"
 
-class MockFileDevice : public QIODevice
+FileWriter::FileWriter(const QString&) {}
+
+bool FileWriter::open(QIODevice::OpenMode)
 {
-public:
-    qint64 size() const override
-    {
-        return mock("MockFileDevice").actualCall("size").returnLongLongIntValueOrDefault(0);
-    }
+    return true;
+}
 
-    qint64 readData(char* data, qint64 maxlen) override
-    {
-        return mock("MockFileDevice")
-            .actualCall("readData")
-            .withParameter("data", data)
-            .withParameter("maxlen", maxlen)
-            .returnLongLongIntValueOrDefault(0);
-    }
+bool FileWriter::isOpen() const
+{
+    return mock("FileWriter").actualCall("isOpen").returnBoolValueOrDefault(true);
+}
 
-    void setMode(QIODevice::OpenMode mode) { QIODevice::setOpenMode(mode); }
+qint64 FileWriter::size() const
+{
+    return mock("FileWriter").actualCall("size").returnLongLongIntValueOrDefault(0);
+}
 
-    qint64 writeData(const char* data, qint64 len) override
-    {
-        return mock("MockFileDevice")
-            .actualCall("writeData")
-            .withStringParameter("data", data)
-            .withParameter("len", len)
-            .returnLongLongIntValueOrDefault(0);
-    }
-};
+qint64 FileWriter::writeData(const char* data, qint64 len)
+{
+    return mock("FileWriter")
+        .actualCall("writeData")
+        .withStringParameter("data", data)
+        .withParameter("len", len)
+        .returnLongLongIntValueOrDefault(0);
+}
+
+QString FileWriter::errorString() const
+{
+    return {};
+}
+
+std::unique_ptr<FileWriter> FileWriter::openFile(const QString& path, QIODevice::OpenMode mode)
+{
+    mock("FileWriter")
+        .actualCall("openFile")
+        .withStringParameter("dirPath", path.toStdString().c_str())
+        .withParameter("OpenMode", mode);
+
+    return std::unique_ptr<FileWriter>(new FileWriter(""));
+}
+
+std::unique_ptr<FileWriter> FileWriter::openLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode)
+{
+    mock("FileWriter")
+        .actualCall("openLatestFileInDir")
+        .withStringParameter("dirPath", dirPath.toStdString().c_str())
+        .withParameter("OpenMode", mode);
+
+    return std::unique_ptr<FileWriter>(new FileWriter(""));
+}
 
 bool createDirIfNeeded(const QString& dirPath)
 {
@@ -54,30 +76,6 @@ bool isDirectoryExist(const QString& dirPath)
         .actualCall("isDirectoryExist")
         .withStringParameter("dirPath", dirPath.toStdString().c_str())
         .returnBoolValueOrDefault(true);
-}
-
-std::unique_ptr<QIODevice> openFile(const QString& path, QIODevice::OpenMode mode)
-{
-    mock("filesystemutilities")
-        .actualCall("openFile")
-        .withStringParameter("dirPath", path.toStdString().c_str())
-        .withParameter("OpenMode", mode);
-
-    auto device = std::make_unique<MockFileDevice>();
-    device->setMode(mode);
-    return device;
-}
-
-std::unique_ptr<QIODevice> tryToOpenLatestFileInDir(const QString& dirPath, QIODevice::OpenMode mode)
-{
-    mock("filesystemutilities")
-        .actualCall("tryToOpenLatestFileInDir")
-        .withStringParameter("dirPath", dirPath.toStdString().c_str())
-        .withParameter("OpenMode", mode);
-
-    auto device = std::make_unique<MockFileDevice>();
-    device->setMode(mode);
-    return device;
 }
 
 int getNumberOfFilesInDir(const QString& dirPath)
@@ -141,14 +139,19 @@ protected:
         mock("utilities").expectOneCall("getCurrentTimestamp").andReturnValue(expectedTimestamp);
     }
 
+    static void expectIsOpen(bool retValue = true)
+    {
+        mock("FileWriter").expectOneCall("isOpen").andReturnValue(retValue);
+    }
+
     static void expectSize(qint64 retValue = 0)
     {
-        mock("MockFileDevice").expectOneCall("size").andReturnValue(retValue);
+        mock("FileWriter").expectOneCall("size").andReturnValue(retValue);
     }
 
     static void expectWriteData(const QByteArray& expectedData, qint64 retValue = 0)
     {
-        mock("MockFileDevice")
+        mock("FileWriter")
             .expectOneCall("writeData")
             .withStringParameter("data", expectedData.constData())
             .withParameter("len", expectedData.size())
@@ -157,16 +160,16 @@ protected:
 
     static void expectOpenFile(const std::string& expectedPath, QIODevice::OpenMode expectedMmode)
     {
-        mock("filesystemutilities")
+        mock("FileWriter")
             .expectOneCall("openFile")
             .withStringParameter("dirPath", expectedPath.c_str())
             .withParameter("OpenMode", expectedMmode);
     }
 
-    static void expectTryToOpenLatestFileInDir(const std::string& expectedPath, QIODevice::OpenMode expectedMmode)
+    static void expectOpenLatestFileInDir(const std::string& expectedPath, QIODevice::OpenMode expectedMmode)
     {
-        mock("filesystemutilities")
-            .expectOneCall("tryToOpenLatestFileInDir")
+        mock("FileWriter")
+            .expectOneCall("openLatestFileInDir")
             .withStringParameter("dirPath", expectedPath.c_str())
             .withParameter("OpenMode", expectedMmode);
     }
@@ -183,7 +186,8 @@ TEST (LoggerTest, FailedToCreateDir)
     expectIsDirectoryExist(expectedLogDir, false);
     expectCreateDirIfNeeded(expectedLogDir, false);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 }
 
 TEST (LoggerTest, FilesLessThenMaxInDIr)
@@ -202,7 +206,8 @@ TEST (LoggerTest, FilesLessThenMaxInDIr)
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
     expectGetNumberOfFilesInDir(expectedLogDir, 0);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 }
 
 TEST (LoggerTest, FilesMoreThenMaxInDIr)
@@ -222,7 +227,8 @@ TEST (LoggerTest, FilesMoreThenMaxInDIr)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 1);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 }
 
 TEST (LoggerTest, WriteLog)
@@ -242,10 +248,12 @@ TEST (LoggerTest, WriteLog)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 1);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::INFO};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 
     const QByteArray expectedLogToWrite{"1980-12-31_13:42:11 DBG/: Hello world!\n"};
     expectSize(5);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedLogToWrite, 1);
     logger.writeLog(LogLevel::DEBUG, "Hello world!");
@@ -268,12 +276,14 @@ TEST (LoggerTest, WriteLogExpectChangeFile)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 4);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 
     constexpr const char* expectedNewTimestamp{"2222-02-11_19:42:11"};
     const std::string     expectedNewFile{"./dir/AZS_2222-02-11_19:42:11.log"};
     const QByteArray      expectedLogToWrite{"2222-02-11_19:42:11 WRN/foo: Hello world!\n"};
     expectSize(5);
+    expectIsOpen();
     expectCreateDirIfNeeded(expectedLogDir, true);
     expectGetCurrentTimestamp(expectedNewTimestamp);
     expectOpenFile(expectedNewFile, QIODevice::WriteOnly);
@@ -303,13 +313,15 @@ TEST (LoggerTest, setInfoPrinDifferentLevels)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 4);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::INFO};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::INFO};
+    Logger         logger{std::move(setting)};
 
     const QString printMsg{"Print Message"};
     logger.writeLog(LogLevel::DEBUG, printMsg);
 
     const QByteArray expectedInfLogToWrite{"1980-12-31_13:42:11 INF/: Print Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedInfLogToWrite, 1);
 
@@ -317,6 +329,7 @@ TEST (LoggerTest, setInfoPrinDifferentLevels)
 
     const QByteArray expectedWrnLogToWrite{"1980-12-31_13:42:11 WRN/main: Print Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedWrnLogToWrite, 1);
 
@@ -324,6 +337,7 @@ TEST (LoggerTest, setInfoPrinDifferentLevels)
 
     const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/: Print Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedErrLogToWrite, 1);
 
@@ -347,7 +361,8 @@ TEST (LoggerTest, setWrnPrinDifferentLevels)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 4);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::WARNING};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::WARNING};
+    Logger         logger{std::move(setting)};
 
     const QString printMsg{"Print Message"};
     const QString printFunc{"test"};
@@ -356,6 +371,7 @@ TEST (LoggerTest, setWrnPrinDifferentLevels)
 
     const QByteArray expectedWrnLogToWrite{"1980-12-31_13:42:11 WRN/: Print Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedWrnLogToWrite, 1);
 
@@ -363,6 +379,7 @@ TEST (LoggerTest, setWrnPrinDifferentLevels)
 
     const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/test: Print Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedErrLogToWrite, 1);
 
@@ -386,7 +403,8 @@ TEST (LoggerTest, setErrPrinDifferentLevels)
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 4);
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::ERROR};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::ERROR};
+    Logger         logger{std::move(setting)};
 
     const QString printMsg{"Print Message"};
     logger.writeLog(LogLevel::DEBUG, printMsg);
@@ -396,6 +414,7 @@ TEST (LoggerTest, setErrPrinDifferentLevels)
     const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/main: Print Message\n"};
     expectSize(15);
     expectGetCurrentTimestamp(expectedTimestamp);
+    expectIsOpen();
     expectWriteData(expectedErrLogToWrite, 1);
 
     logger.writeLog(LogLevel::ERROR, printMsg, "main");
@@ -410,10 +429,12 @@ TEST (LoggerTest, OpenExistedFileOnStartup)
     const std::string expectedLogDir{"111"};
 
     expectIsDirectoryExist(expectedLogDir, true);
-    expectTryToOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
+    expectOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
     expectSize(35);
+    expectIsOpen();
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 }
 
 TEST (LoggerTest, OpenExistedFileOnStartupSizeMoreThenMax)
@@ -425,7 +446,7 @@ TEST (LoggerTest, OpenExistedFileOnStartupSizeMoreThenMax)
     const std::string expectedLogDir{"./111/"};
 
     expectIsDirectoryExist(expectedLogDir, true);
-    expectTryToOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
+    expectOpenLatestFileInDir(expectedLogDir, QIODevice::WriteOnly | QIODevice::Append);
     expectSize(300);
     constexpr const char* expectedTimestamp{"1980-12-31_13:42:11"};
     const std::string     expectedFilePath{"./111/prefix_1980-12-31_13:42:11.log"};
@@ -434,12 +455,15 @@ TEST (LoggerTest, OpenExistedFileOnStartupSizeMoreThenMax)
     expectOpenFile(expectedFilePath, QIODevice::WriteOnly);
     expectGetNumberOfFilesInDir(expectedLogDir, 15);
     expectRemoveOlderFilesInDir(expectedLogDir, 2);
+    expectIsOpen();
 
-    Logger logger{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    LoggerSettings setting{logDir, filePref, maxLogSize, maxLogFiles, LogLevel::DEBUG};
+    Logger         logger{std::move(setting)};
 
     const QString    printMsg{"1234 Message"};
     const QByteArray expectedErrLogToWrite{"1980-12-31_13:42:11 ERR/main: 1234 Message\n"};
     expectSize(15);
+    expectIsOpen();
     expectGetCurrentTimestamp(expectedTimestamp);
     expectWriteData(expectedErrLogToWrite, 1);
 

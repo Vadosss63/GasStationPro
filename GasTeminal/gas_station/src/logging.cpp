@@ -26,11 +26,13 @@
 
 void printLog(LogLevel logLevel, const QString& msg, const QString& funcName)
 {
-    constexpr const char* logDirectory = "./azs_logs/gas_station/";
-    constexpr const char* fileNamePrefix{"azs_log_file"};
-    constexpr qint64      maxLogFileSize{202400};
-    constexpr qint64      maxLogFiles{4};
-    static Logger         logger{logDirectory, fileNamePrefix, maxLogFileSize, maxLogFiles, LogLevel::DEBUG};
+    constexpr auto   logDirectory{"./azs_logs/gas_station/"};
+    constexpr auto   fileNamePrefix{"azs_log_file"};
+    constexpr qint64 maxLogFileSize{202400};
+    constexpr qint64 maxLogFiles{4};
+
+    static LoggerSettings settings{logDirectory, fileNamePrefix, maxLogFileSize, maxLogFiles, LogLevel::DEBUG};
+    static Logger         logger{std::move(settings)};
     logger.writeLog(logLevel, msg, funcName);
 }
 
