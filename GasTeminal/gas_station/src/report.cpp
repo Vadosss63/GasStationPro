@@ -69,7 +69,8 @@ QString getJsonReport(const AzsReport& azsReport)
         jsonAzsNode.insert("lockFuelValue", static_cast<int>(azsNode.nodes[i].lockFuelValue));
         jsonAzsNode.insert("fuelArrival", 0);
 
-        jsonAzsNode.insert("fuelVolume", convertFromDouble(rec.azsNodes[i].fuelVolume));
+        int fuelVolume = static_cast<int>(rec.azsNodes[i].fuelVolume * 1000);
+        jsonAzsNode.insert("fuelVolume", QString::number(fuelVolume));
         jsonAzsNode.insert("fuelVolumePerc", convertFromDouble(rec.azsNodes[i].fuelVolumePerc));
         jsonAzsNode.insert("density", convertFromDouble(rec.azsNodes[i].density));
         jsonAzsNode.insert("averageTemperature", convertFromDouble(rec.azsNodes[i].averageTemperature));
