@@ -97,7 +97,6 @@ Answer uploadFile(const QString& fileName, std::unique_ptr<QIODevice> file, cons
 
     auto funcReq = [multiPart](QNetworkAccessManager& mgr, QNetworkRequest& req) -> std::unique_ptr<QNetworkReply>
     {
-        req.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + multiPart->boundary());
         auto reply = mgr.post(req, multiPart);
         // Ensure multiPart is deleted with reply
         multiPart->setParent(reply);
