@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -u
+
 SCRIPT_PATH="$(dirname "$0")"
 BUILD_DIR=${SCRIPT_PATH}/build
 UT_RESULTS=${BUILD_DIR}/results
@@ -47,6 +49,7 @@ for ut_dir_path in ${BUILD_DIR}/ut_*; do
             fi
         else
             echo_error "Cannot find executable file: $ut_exec"
+            exit 1
         fi
     fi
 done
