@@ -41,6 +41,7 @@ Logger::Logger(LoggerSettings settings) : settings(std::move(settings))
     {
         changeLogFile();
     }
+    connect(&logLvlFilter, SIGNAL(receivedData(QByteArray)), this, SLOT(handleSetLogLevelEvent(QByteArray)));
 }
 
 void Logger::writeLog(LogLevel logLevel, const QString& message, const QString& funcName)
@@ -127,4 +128,32 @@ void Logger::cleanupDirIfRequired()
 QString Logger::getNewFilePath()
 {
     return QString(fileNameTempl).arg(settings.directory).arg(settings.filePrefix).arg(getCurrentTimestamp());
+}
+
+void Logger::setLogLevel(LogLevel logLevel)
+{
+    settings.logLevel = logLevel;
+}
+
+void Logger::handleSetLogLevelEvent(const QByteArray& receivedData)
+{
+    static_assert((LogLevel::ERROR > LogLevel::WARNING) && (LogLevel::WARNING > LogLevel::INFO) &&
+                  (LogLevel::INFO > LogLevel::DEBUG) && "Logger severity ordering was changed");
+    if (receivedData.size() > static_cast<int>(sizeof(LogLevel)))
+    {
+        std::cerr << "Failed to convert received data to logger severity level, wrong data size was received: "
+                  << receivedData.size() << std::endl;
+        return;
+    }
+
+    bool isConverted{};
+    auto newLogLevel = receivedData.toUShort(&isConverted);
+    if (!isConverted || (newLogLevel > static_cast<ushort>(LogLevel::ERROR)))
+    {
+        std::cerr << "Failed to converted received data to logger severity level" << std::endl;
+        return;
+    }
+    std::cout << "Loglvl changed to: " << logLevelToString(static_cast<LogLevel>(newLogLevel)).toStdString()
+              << std::endl;
+    setLogLevel(static_cast<LogLevel>(newLogLevel));
 }

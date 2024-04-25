@@ -18,10 +18,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 #include <QIODevice>
+#include <QObject>
 #include <QString>
 #include <memory>
 
 #include "filesystemutilities.h"
+#include "ipstorage.h"
 #include "logger_defs.h"
 
 struct LoggerSettings
@@ -33,8 +35,9 @@ struct LoggerSettings
     LogLevel logLevel{LogLevel::DEBUG};
 };
 
-class Logger
+class Logger : public QObject
 {
+    Q_OBJECT
 public:
     explicit Logger(LoggerSettings settings);
     ~Logger() = default;
@@ -45,6 +48,10 @@ public:
     Logger& operator=(Logger&&)      = delete;
 
     void writeLog(LogLevel logLevel, const QString& message, const QString& funcName = "");
+    void setLogLevel(LogLevel logLevel);
+
+private slots:
+    void handleSetLogLevelEvent(const QByteArray& receivedData);
 
 private:
     void    cleanupDirIfRequired();
@@ -55,6 +62,8 @@ private:
 
     LoggerSettings              settings;
     std::unique_ptr<FileWriter> logFileStream{};
+
+    IPStorageReader logLvlFilter{loggerLvlStorage};
 
     static constexpr auto fileNameTempl = "%1%2_%3.log";
 };
