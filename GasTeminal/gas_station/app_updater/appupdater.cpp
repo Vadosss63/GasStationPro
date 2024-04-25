@@ -174,7 +174,7 @@ bool AppUpdater::updateApp(const QString& updateDir)
     const QString     pathToUpdateScript = QString(pathToScript).arg(updateDir);
     const QStringList arguments{"-c", pathToUpdateScript};
     using namespace std::chrono_literals;
-    constexpr auto timeout{120s};
+    constexpr auto timeout{10min};
 
     const auto [exitCode, output] = executeProcessWithArgs(processToExecute, arguments, timeout);
 

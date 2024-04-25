@@ -21,8 +21,6 @@ SETTINGS_DEST=${WORK_DIR}/settings.json
 
 SERVICE_FILE_TEMPLATE="[Unit]
 Description=log uploader service
-Requires=gas-station.service
-After=gas-station.service
 
 [Service]
 ExecStart=$INSTALL_DIR/bin/log_uploader
