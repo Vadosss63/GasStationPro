@@ -51,6 +51,7 @@ SOURCES += \
     src/dataprotocol/volumeconvertor.cpp \
     src/filesystemutilities.cpp \
     src/httprequest.cpp \
+    src/ipstorage.cpp \
     src/logger.cpp \
     src/logging.cpp \
     src/main.cpp \
@@ -90,6 +91,7 @@ HEADERS += \
     src/httprequest.h \
     src/interfaces/azsbuttonhandler.h \
     src/interfaces/ikeypressevent.h \
+    src/ipstorage.h \
     src/logger.h \
     src/logger_defs.h \
     src/logging.h \

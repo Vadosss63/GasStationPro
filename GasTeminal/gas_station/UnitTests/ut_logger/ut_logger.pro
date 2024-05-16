@@ -3,6 +3,9 @@ TARGET = ut_logger
 
 include(../include.pri)
 
+QT       += core network
+QT       += serialport
+
 SOURCES +=  \
     ../main.cpp \
     $${SOURCE_PATH}/logger.cpp \
@@ -10,4 +13,5 @@ SOURCES +=  \
 
 HEADERS += \
     $${SOURCE_PATH}/logger.h \
-    $${SOURCE_PATH}/filesystemutilities.h
+    $${SOURCE_PATH}/filesystemutilities.h \
+    $${SOURCE_PATH}/ipstorage.h

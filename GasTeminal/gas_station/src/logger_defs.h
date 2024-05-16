@@ -19,8 +19,11 @@
  */
 #include <QString>
 #include <cstdint>
+#include <optional>
 
-enum class LogLevel : uint8_t
+inline constexpr auto loggerLvlStorage = "log_level_storage";
+
+enum class LogLevel : ushort
 {
     DEBUG = 0,
     INFO,
@@ -43,4 +46,18 @@ inline QString logLevelToString(LogLevel level)
         default:
             return "UNKNOWN";
     }
+}
+
+inline std::optional<LogLevel> logLevelFromString(const QString& levelStr)
+{
+    if (levelStr == "DEBUG")
+        return LogLevel::DEBUG;
+    else if (levelStr == "INFO")
+        return LogLevel::INFO;
+    else if (levelStr == "WARNING")
+        return LogLevel::WARNING;
+    else if (levelStr == "ERROR")
+        return LogLevel::ERROR;
+    else
+        return std::nullopt;
 }
