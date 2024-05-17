@@ -38,12 +38,15 @@ private slots:
     void pollServer();
 
 private:
+    bool handleServerCommandRequest();
     bool sendLogsToServer();
+    void resetServerCommand();
 
     WebServerController   webServerController;
-    QTimer                timer;
+    QTimer                timer{};
     constexpr static auto folderPath          = "azs_logs";
     constexpr static auto archivePathTemplate = "%1_azsLogs.tar.gz";
+    constexpr static auto journalFileTemplate = "%1/%2_journal.log";
 };
 
 }

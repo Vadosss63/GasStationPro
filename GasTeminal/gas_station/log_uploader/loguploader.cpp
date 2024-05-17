@@ -19,11 +19,52 @@
 #include "loguploader.h"
 
 #include <QObject>
+#include <chrono>
 
+#include "executor.h"
 #include "filesystemutilities.h"
 #include "logcommand.h"
 #include "logging.h"
 #include "utilities.h"
+
+namespace
+{
+bool writeOutputToFile(const std::string& result, const QString& filePath)
+{
+    auto fileStream = openFileWithFullPermissions(filePath, QIODevice::WriteOnly);
+    if (!fileStream)
+    {
+        LOG_WARNING("Fail to open file: " + filePath);
+        return false;
+    }
+
+    constexpr qint64 writeError{-1};
+    if (fileStream->write(result.c_str()) == writeError)
+    {
+        LOG_WARNING(fileStream->errorString());
+        return false;
+    }
+
+    return true;
+}
+
+bool writeSystemJournalToFile(const QString& filePath)
+{
+    QString                        processToExecute{"/bin/journalctl"};
+    QStringList                    arguments{"-b", "-n 10000"};
+    constexpr std::chrono::seconds timeout{10};
+
+    const auto [exitCode, output] = executeProcessWithArgs(std::move(processToExecute), std::move(arguments), timeout);
+    if (exitCode)
+    {
+        LOG_WARNING("Fail to read system journal, eror: " + QString::number(exitCode));
+        LOG_WARNING("Output : " + output);
+        return false;
+    }
+
+    return writeOutputToFile(output.toStdString(), filePath);
+}
+}
 
 namespace loguploader
 {
@@ -34,8 +75,8 @@ LogUploader::LogUploader(Configure config, QObject* parent) : QObject(parent), w
 
 void LogUploader::run()
 {
-    constexpr int defaultTimeoutMillSec{10000};
-    timer.start(defaultTimeoutMillSec);
+    constexpr std::chrono::seconds timerInterval{10};
+    timer.start(timerInterval);
 }
 
 void LogUploader::stop()
@@ -45,57 +86,70 @@ void LogUploader::stop()
 
 void LogUploader::pollServer()
 {
+    if (!handleServerCommandRequest())
+    {
+        return;
+    }
+
+    sendLogsToServer();
+
+    resetServerCommand();
+}
+
+bool LogUploader::handleServerCommandRequest()
+{
     std::optional<Answer> answer = webServerController.readServerCmd();
     if (!answer)
     {
         LOG_ERROR("Error to read serverCmd");
-        return;
+        return false;
     }
 
-    std::optional<LogCommand> logCommand = LogCommand::readCommand(answer.value().msg);
-
+    std::optional<LogCommand> logCommand = LogCommand::readCommand(answer->msg);
     if (!logCommand)
     {
-        LOG_ERROR(QString("Error to read msg: %1").arg(answer.value().msg));
-        return;
+        LOG_ERROR(QString("Error to read msg: %1").arg(answer->msg));
+        return false;
     }
 
-    if (!logCommand.value().download)
-    {
-        return;
-    }
-
-    if (!LogUploader::sendLogsToServer())
-    {
-        return;
-    }
-
-    if (!webServerController.resetServerCmd())
-    {
-        LOG_ERROR("Error to reset server cmd");
-        return;
-    }
+    return logCommand->download;
 }
 
 bool LogUploader::sendLogsToServer()
 {
-    const auto    archivePath = QString(archivePathTemplate).arg(getCurrentTimestamp());
-    const QString currentDir  = currentPath();
-    if (!archiveFolder(currentDir + "/" + folderPath, currentDir + "/" + archivePath))
+    const auto    archivePath   = QString(archivePathTemplate).arg(getCurrentTimestamp());
+    const QString currentDir    = currentPath();
+    const QString logFolderPath = currentDir + "/" + folderPath;
+    const auto    journalPath   = QString(journalFileTemplate).arg(logFolderPath).arg(getCurrentTimestamp());
+
+    if (!writeSystemJournalToFile(journalPath))
+    {
+        LOG_WARNING("Failed to write system journal to file");
+    }
+
+    if (!archiveFolder(logFolderPath, currentDir + "/" + archivePath))
     {
         LOG_ERROR(QString("Error to create %1").arg(archivePath));
         return false;
     }
 
-    const bool ok = webServerController.sendLogsToServer(archivePath);
-
-    if (!ok)
+    const bool isOk = webServerController.sendLogsToServer(archivePath);
+    if (!isOk)
     {
         LOG_ERROR(QString("Error to upload %1").arg(archivePath));
     }
 
     removeFile(archivePath);
+    removeFile(journalPath);
 
-    return ok;
+    return isOk;
+}
+
+void LogUploader::resetServerCommand()
+{
+    if (!webServerController.resetServerCmd())
+    {
+        LOG_ERROR("Error to reset server cmd");
+    }
 }
 }
