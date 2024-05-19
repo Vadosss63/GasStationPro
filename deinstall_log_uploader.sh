@@ -7,7 +7,7 @@ source "$SCRIPT_PATH/install_helper.sh"
 
 PROJECT_DIR="/opt/GasStationPro/log_uploader"
 SERVICE_NAME="log-uploader.service"
-SERVICE_FILE_LINK_PATH="/etc/systemd/user/$SERVICE_NAME"
+SERVICE_FILE_LINK_PATH="/etc/systemd/system/$SERVICE_NAME"
 
 COMPONENT_USER=$(get_user)
 HOME_DIR="/home/$COMPONENT_USER"
@@ -37,9 +37,8 @@ while getopts ":fh" opt; do
     esac
 done
 
-disable_user_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH} ${COMPONENT_USER}
+disable_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH}
 remove_directories ${PROJECT_DIR}
-remove_service_from_autostart ${SERVICE_NAME} ${HOME_DIR}
 
 if [ "$force" = true ]; then
     remove_directories ${WORK_DIR}

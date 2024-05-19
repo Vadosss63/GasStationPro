@@ -12,7 +12,7 @@ SERVICE_NAME="log-uploader.service"
 BUILD_DIR="$SOURCE_DIR/build"
 SERVICE_FILE_DIR="$INSTALL_DIR/service"
 SERVICE_FILE_PATH="$SERVICE_FILE_DIR/$SERVICE_NAME"
-SERVICE_FILE_LINK_PATH="/etc/systemd/user/$SERVICE_NAME"
+SERVICE_FILE_LINK_PATH="/etc/systemd/system/$SERVICE_NAME"
 
 COMPONENT_USER=$(get_user)
 HOME_DIR="/home/$COMPONENT_USER"
@@ -28,7 +28,7 @@ WorkingDirectory=$WORK_DIR
 Restart=always
 
 [Install]
-WantedBy=graphical-session.target"
+WantedBy=multi-user.target"
 
 build_project ${BUILD_DIR} ${SOURCE_DIR}
 
@@ -38,7 +38,7 @@ if backup_project_if_exist "$INSTALL_DIR" "$BACKUP_DIR"; then
     echo "Backup was saved to $BACKUP_DIR"
 fi
 
-disable_user_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH} ${COMPONENT_USER}
+disable_service ${SERVICE_NAME} ${SERVICE_FILE_LINK_PATH}
 
 install_project ${INSTALL_DIR} ${BUILD_DIR}
 create_directories ${WORK_DIR} ${SERVICE_FILE_DIR}
@@ -48,5 +48,5 @@ change_folder_owner ${COMPONENT_USER} ${WORK_DIR}
 install_service_file "$SERVICE_FILE_TEMPLATE" "$SERVICE_FILE_PATH"
 create_symbolic_link ${SERVICE_FILE_PATH} ${SERVICE_FILE_LINK_PATH}
 
-enable_user_service ${SERVICE_NAME} ${COMPONENT_USER} 
-verify_user_service ${SERVICE_NAME} ${COMPONENT_USER}
+enable_service ${SERVICE_NAME}
+verify_service ${SERVICE_NAME} ${COMPONENT_USER}
