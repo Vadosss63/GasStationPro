@@ -14,4 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Run UT
-      run: docker run -it --volume .:/var/work/GasStationPro --entrypoint /var/work/GasStationPro/GasTeminal/gas_station/UnitTests/build_run_ut.sh  t-azs
+      run: docker run --volume .:/var/work/GasStationPro --entrypoint /var/work/GasStationPro/GasTeminal/gas_station/UnitTests/build_run_ut.sh  t-azs
