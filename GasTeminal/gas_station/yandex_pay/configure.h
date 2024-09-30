@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the GasStationPro project.
  *
@@ -16,33 +17,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-#include "utilities.h"
-
-#include <QDateTime>
 #include <QString>
+#include <optional>
 
-QString getCurrentTimestamp()
+struct Configure
 {
-    return QDateTime::currentDateTime().toString("yyyy-MM-dd_HH:mm:ss");
-}
+    QString id       = "11111111";
+    QString token    = "";
+    QString host     = "http://t-azs.ru:8085";
+    QString comPort  = "/dev/ttyS4";
+    int     baudRate = 115200;
+};
 
-int currentSecsSinceEpoch()
-{
-    return static_cast<int>(QDateTime::currentSecsSinceEpoch());
-}
-
-QString currentDateTime()
-{
-    return QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm");
-}
-
-QString getCurrentTimestampYaPayFormat()
-{
-    QDateTime current           = QDateTime::currentDateTime();
-    QString   formattedDateTime = current.toString("yyyy-MM-ddTHH:mm:ss");
-    int       offsetSeconds     = current.offsetFromUtc();
-    QString   offset            = QString::asprintf("%+.2d:%.2d", offsetSeconds / 3600, (offsetSeconds % 3600) / 60);
-    formattedDateTime += offset;
-    return formattedDateTime;
-}
+std::optional<Configure> readConfigure(const QString& fileName);

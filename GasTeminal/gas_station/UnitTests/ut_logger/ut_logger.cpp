@@ -2,8 +2,6 @@
 #include <QBuffer>
 // clang-on
 
-#include "logger.h"
-
 #include <CppUTest/TestHarness.h>
 
 #include <CppUTestExt/MockSupport.h>
@@ -11,15 +9,20 @@
 #include <memory>
 #include <string>
 
-IPStorageReader::IPStorageReader(QString /*name*/, QObject* /*parent*/){}
+#include "logger.h"
 
-void IPStorageReader::handleConnection(){}
+IPStorageReader::IPStorageReader(QString /*name*/, QObject* /*parent*/) {}
 
-void IPStorageReader::handleData(){}
+void IPStorageReader::handleConnection() {}
 
-IPStorageWriter::IPStorageWriter(QString /*name*/, QObject* /*parent*/){}
+void IPStorageReader::handleData() {}
 
-qint64 IPStorageWriter::writeData(const QByteArray& /*data*/){ return 0; }
+IPStorageWriter::IPStorageWriter(QString /*name*/, QObject* /*parent*/) {}
+
+qint64 IPStorageWriter::writeData(const QByteArray& /*data*/)
+{
+    return 0;
+}
 
 FileWriter::FileWriter(const QString&) {}
 

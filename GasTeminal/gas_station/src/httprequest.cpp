@@ -21,6 +21,8 @@
 
 #include <QEventLoop>
 #include <QHttpMultiPart>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -61,6 +63,19 @@ Answer sendGet(const QString& urlStr)
 {
     auto funcReq = [](QNetworkAccessManager& mgr, const QNetworkRequest& req)
     { return std::unique_ptr<QNetworkReply>(mgr.get(req)); };
+
+    auto [data, ok] = sendReq(urlStr, funcReq);
+
+    return {data, ok};
+}
+
+Answer sendPostJson(const QString& urlStr, const QByteArray& jsonData)
+{
+    auto funcReq = [&](QNetworkAccessManager& mgr, QNetworkRequest& req)
+    {
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        return std::unique_ptr<QNetworkReply>(mgr.post(req, jsonData));
+    };
 
     auto [data, ok] = sendReq(urlStr, funcReq);
 
@@ -121,4 +136,23 @@ std::optional<QByteArray> downloadData(const QString& urlStr)
     }
 
     return data;
+}
+
+MsgResp getMsgResp(const QByteArray& jsonData)
+{
+    MsgResp msgResp;
+
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+
+    if (!jsonDoc.isObject())
+    {
+        LOG_ERROR("Invalid JSON format");
+        return msgResp;
+    }
+
+    QJsonObject jsonObj = jsonDoc.object();
+
+    msgResp.status = jsonObj["status"].toString();
+    msgResp.msg    = jsonObj["msg"].toString();
+    return msgResp;
 }

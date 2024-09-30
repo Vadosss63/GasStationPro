@@ -19,7 +19,6 @@
 
 #include "configure.h"
 
-#include <QDebug>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>

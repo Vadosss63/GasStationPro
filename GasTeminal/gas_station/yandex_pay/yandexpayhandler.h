@@ -17,31 +17,35 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-#include <QIODevice>
-#include <QUrlQuery>
+
+#include <QObject>
 #include <memory>
-#include <optional>
+#include <vector>
 
-struct Answer
+#include "comportcontroller.h"
+#include "webservercontroller.h"
+
+class YandexPayHandler : public QObject
 {
-    QString msg  = "";
-    bool    isOk = false;
+    Q_OBJECT
+public:
+    YandexPayHandler(const Configure& conf);
+    ~YandexPayHandler();
+
+    void setTestData(const QByteArray& data) { comPortController->setTestData(data); }
+
+public slots:
+    void handleComPort();
+
+private:
+    void handleOrder();
+    void handleCancel();
+    void handleAccept();
+    void handleFueling();
+    void handleCompleted();
+
+    std::unique_ptr<ComPortController>   comPortController{nullptr};
+    std::unique_ptr<WebServerController> webServerController{nullptr};
+
+    std::vector<OrderRes> orders{2};
 };
-
-struct MsgResp
-{
-    QString status;
-    QString msg;
-};
-
-Answer sendGet(const QString& urlStr);
-
-Answer sendPostJson(const QString& urlStr, const QByteArray& jsonData);
-
-Answer sendPost(const QString& urlStr, const QUrlQuery& params);
-
-Answer uploadFile(const QString& fileName, std::unique_ptr<QIODevice> file, const QString& serverUrl);
-
-std::optional<QByteArray> downloadData(const QString& urlStr);
-
-MsgResp getMsgResp(const QByteArray& urlStr);

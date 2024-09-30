@@ -21,6 +21,8 @@
 
 QString getCurrentTimestamp();
 
+QString getCurrentTimestampYaPayFormat();
+
 int currentSecsSinceEpoch();
 
 QString currentDateTime();

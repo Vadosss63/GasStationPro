@@ -18,7 +18,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 #include <QString>
-#include <cstdint>
 #include <optional>
 
 inline constexpr auto loggerLvlStorage = "log_level_storage";
