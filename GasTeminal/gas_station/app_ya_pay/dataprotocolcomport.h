@@ -106,7 +106,7 @@ struct CanceledComReq
     enum ReasonType : uint8_t
     {
         other = 0,
-        ivalidPrice,
+        invalidPrice,
     };
 
     uint8_t    columnId;
@@ -174,8 +174,8 @@ inline QString getReason(CanceledComReq::ReasonType reason)
     {
         case CanceledComReq::ReasonType::other:
             return "Other";
-        case CanceledComReq::ReasonType::ivalidPrice:
-            return "Ivalid price";
+        case CanceledComReq::ReasonType::invalidPrice:
+            return "Invalid price";
         default:
             return "Unknown";
     }

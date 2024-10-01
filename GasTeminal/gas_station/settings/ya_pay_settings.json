@@ -1,0 +1,7 @@
+{
+    "Id": "10111920",
+    "Token": "expecting_token",
+    "Host": "http://127.0.0.1:8086",
+    "ComPort": "/dev/ttyS4",
+    "BaudRate": 115200
+}

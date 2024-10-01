@@ -37,13 +37,13 @@ public:
         uint8_t* ptr = reinterpret_cast<uint8_t*>(receiveData.data());
         if (!validateHead(*ptr))
         {
-            LOG_ERROR("invalid head)");
+            LOG_ERROR("Invalid head)");
             return {};
         }
 
         if (!validateChecksum(ptr, receiveData.size()))
         {
-            LOG_ERROR("invalid checksum)");
+            LOG_ERROR("Invalid checksum)");
             return {};
         }
 

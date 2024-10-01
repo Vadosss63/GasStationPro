@@ -37,17 +37,17 @@ int main(int argc, char* argv[])
 
     YandexPayHandler yandexPayHandler(conf.value());
 
-    uint8_t              colId = 0;
-    Package<OrderComReq> orderComReqPackage{};
-    orderComReqPackage.dataType.columnId = colId;
-    orderComReqPackage.dataType.status   = 0;
-    orderComReqPackage.addChecksum();
-    yandexPayHandler.setTestData(orderComReqPackage.getData());
-    yandexPayHandler.handleComPort();
+    // uint8_t              colId = 0;
+    // Package<OrderComReq> orderComReqPackage{};
+    // orderComReqPackage.dataType.columnId = colId;
+    // orderComReqPackage.dataType.status   = 0;
+    // orderComReqPackage.addChecksum();
+    // yandexPayHandler.setTestData(orderComReqPackage.getData());
+    // yandexPayHandler.handleComPort();
 
     // Package<CanceledComReq> canceledComReqPackage{};
     // canceledComReqPackage.dataType.columnId = colId;
-    // canceledComReqPackage.dataType.reason   = CanceledComReq::ReasonType::ivalidPrice;
+    // canceledComReqPackage.dataType.reason   = CanceledComReq::ReasonType::invalidPrice;
     // canceledComReqPackage.addChecksum();
     // yandexPayHandler.setTestData(canceledComReqPackage.getData());
     // yandexPayHandler.handleComPort();
@@ -71,6 +71,6 @@ int main(int argc, char* argv[])
     // yandexPayHandler.setTestData(completedComReqPackage.getData());
     // yandexPayHandler.handleComPort();
 
-    return 0;
-    // return a.exec();
+    // return 0;
+    return a.exec();
 }

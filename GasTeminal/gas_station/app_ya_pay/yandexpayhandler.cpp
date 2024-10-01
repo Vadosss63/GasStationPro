@@ -75,7 +75,7 @@ void YandexPayHandler::handleCancel()
 
     if (req.columnId >= orders.size())
     {
-        LOG_ERROR(QString("Ivalid columnId %1 for cancel").arg(req.columnId));
+        LOG_ERROR(QString("Invalid columnId %1 for cancel").arg(req.columnId));
         comPortController->sendToPort(CanceledComResp{.columnId = req.columnId, .status = StatusResp::invalidReq});
         return;
     }
@@ -106,7 +106,7 @@ void YandexPayHandler::handleAccept()
 
     if (req.columnId >= orders.size())
     {
-        LOG_ERROR(QString("Ivalid columnId %1 for accept").arg(req.columnId));
+        LOG_ERROR(QString("Invalid columnId %1 for accept").arg(req.columnId));
         comPortController->sendToPort(AcceptComResp{.columnId = req.columnId, .status = StatusResp::invalidReq});
         return;
     }
@@ -136,7 +136,7 @@ void YandexPayHandler::handleFueling()
 
     if (req.columnId >= orders.size())
     {
-        LOG_ERROR(QString("Ivalid columnId %1 for accept").arg(req.columnId));
+        LOG_ERROR(QString("Invalid columnId %1 for accept").arg(req.columnId));
         comPortController->sendToPort(FuelingComResp{.columnId = req.columnId, .status = StatusResp::invalidReq});
         return;
     }
@@ -166,7 +166,7 @@ void YandexPayHandler::handleCompleted()
 
     if (req.columnId >= orders.size())
     {
-        LOG_ERROR(QString("Ivalid columnId %1 for completed").arg(req.columnId));
+        LOG_ERROR(QString("Invalid columnId %1 for completed").arg(req.columnId));
         comPortController->sendToPort(CompletedComResp{.columnId = req.columnId, .status = StatusResp::invalidReq});
         return;
     }
