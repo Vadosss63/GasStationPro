@@ -89,7 +89,7 @@ void YandexPayHandler::handleCancel()
         return;
     }
 
-    if (!webServerController->cancelOrder(order.id, getReason(req.reason)))
+    if (!webServerController->cancelOrder(req.columnId, order.id, getReason(req.reason)))
     {
         LOG_ERROR(QString("Error update cancel order status"));
         comPortController->sendToPort(CanceledComResp{.columnId = req.columnId, .status = StatusResp::serverError});
@@ -120,7 +120,7 @@ void YandexPayHandler::handleAccept()
         return;
     }
 
-    if (!webServerController->acceptOrder(order.id))
+    if (!webServerController->acceptOrder(req.columnId, order.id))
     {
         LOG_ERROR(QString("Error update accept order status"));
         comPortController->sendToPort(AcceptComResp{.columnId = req.columnId, .status = StatusResp::serverError});
@@ -150,7 +150,7 @@ void YandexPayHandler::handleFueling()
         return;
     }
 
-    if (!webServerController->fuelingOrder(order.id))
+    if (!webServerController->fuelingOrder(req.columnId, order.id))
     {
         LOG_ERROR(QString("Error update fueling order status"));
         comPortController->sendToPort(FuelingComResp{.columnId = req.columnId, .status = StatusResp::serverError});
@@ -181,6 +181,7 @@ void YandexPayHandler::handleCompleted()
     }
 
     CompletedReq completedReq{};
+    completedReq.columnId        = req.columnId;
     completedReq.orderId         = order.id;
     completedReq.litre           = req.litres;
     completedReq.extendedOrderId = order.id;

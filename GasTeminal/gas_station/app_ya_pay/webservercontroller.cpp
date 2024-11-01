@@ -56,9 +56,10 @@ std::optional<OrderRes> WebServerController::getOrderFromServer(int columnId, in
     return order;
 }
 
-bool WebServerController::cancelOrder(const QString& orderId, const QString& reason)
+bool WebServerController::cancelOrder(int columnId, const QString& orderId, const QString& reason)
 {
-    CanceledReq canceledReq{.id = getAzsId(), .token = configure.token, .orderId = orderId, .reason = reason};
+    CanceledReq canceledReq{
+        .id = getAzsId(), .token = configure.token, .columnId = columnId, .orderId = orderId, .reason = reason};
 
     QByteArray canceledReqJson = canceledReqToJson(canceledReq);
 
@@ -73,9 +74,9 @@ bool WebServerController::cancelOrder(const QString& orderId, const QString& rea
     return true;
 }
 
-bool WebServerController::acceptOrder(const QString& orderId)
+bool WebServerController::acceptOrder(int columnId, const QString& orderId)
 {
-    AcceptReq acceptReq{.id = getAzsId(), .token = configure.token, .orderId = orderId};
+    AcceptReq acceptReq{.id = getAzsId(), .token = configure.token, .columnId = columnId, .orderId = orderId};
 
     QByteArray acceptReqJson = acceptReqToJson(acceptReq);
 
@@ -90,9 +91,9 @@ bool WebServerController::acceptOrder(const QString& orderId)
     return true;
 }
 
-bool WebServerController::fuelingOrder(const QString& orderId)
+bool WebServerController::fuelingOrder(int columnId, const QString& orderId)
 {
-    FuelingReq fuelingReq{.id = getAzsId(), .token = configure.token, .orderId = orderId};
+    FuelingReq fuelingReq{.id = getAzsId(), .token = configure.token, .columnId = columnId, .orderId = orderId};
 
     QByteArray fuelingReqJson = fuelingReqToJson(fuelingReq);
 

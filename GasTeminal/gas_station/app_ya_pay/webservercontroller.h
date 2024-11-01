@@ -32,9 +32,9 @@ public:
 
     std::optional<OrderRes> getOrderFromServer(int columnId, int status) const;
 
-    bool cancelOrder(const QString& orderId, const QString& reason);
-    bool acceptOrder(const QString& orderId);
-    bool fuelingOrder(const QString& orderId);
+    bool cancelOrder(int columnId, const QString& orderId, const QString& reason);
+    bool acceptOrder(int columnId, const QString& orderId);
+    bool fuelingOrder(int columnId, const QString& orderId);
     bool completedOrder(CompletedReq completedReq);
 
 private:

@@ -42,6 +42,7 @@ struct CanceledReq
 {
     int     id;
     QString token;
+    int     columnId;
     QString orderId;
     QString reason;
 };
@@ -50,6 +51,7 @@ struct AcceptReq
 {
     int     id;
     QString token;
+    int     columnId;
     QString orderId;
 };
 
@@ -57,6 +59,7 @@ struct FuelingReq
 {
     int     id;
     QString token;
+    int     columnId;
     QString orderId;
 };
 
@@ -64,6 +67,7 @@ struct CompletedReq
 {
     int     id;
     QString token;
+    int     columnId;
     QString orderId;
     float   litre;
     QString extendedOrderId;

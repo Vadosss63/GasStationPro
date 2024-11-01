@@ -37,13 +37,15 @@ int main(int argc, char* argv[])
 
     YandexPayHandler yandexPayHandler(conf.value());
 
-    // uint8_t              colId = 0;
+    // uint8_t              colId = 1;
     // Package<OrderComReq> orderComReqPackage{};
     // orderComReqPackage.dataType.columnId = colId;
-    // orderComReqPackage.dataType.status   = 0;
+    // orderComReqPackage.dataType.status   = 1;
     // orderComReqPackage.addChecksum();
     // yandexPayHandler.setTestData(orderComReqPackage.getData());
     // yandexPayHandler.handleComPort();
+
+    // 0x59 0x81 0xa 0x0 0x2 0x0 0x0 0x48 0x43 0x48 0xe1 0x5c 0x42 0x38
 
     // Package<CanceledComReq> canceledComReqPackage{};
     // canceledComReqPackage.dataType.columnId = colId;

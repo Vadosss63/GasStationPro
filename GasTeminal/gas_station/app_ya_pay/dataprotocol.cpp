@@ -71,10 +71,11 @@ QByteArray orderReqToJson(const OrderReq& orderReq)
 QByteArray canceledReqToJson(const CanceledReq& canceledReq)
 {
     QJsonObject jsonObj;
-    jsonObj["Id"]      = canceledReq.id;
-    jsonObj["Token"]   = canceledReq.token;
-    jsonObj["OrderId"] = canceledReq.orderId;
-    jsonObj["Reason"]  = canceledReq.reason;
+    jsonObj["Id"]       = canceledReq.id;
+    jsonObj["Token"]    = canceledReq.token;
+    jsonObj["columnId"] = canceledReq.columnId;
+    jsonObj["OrderId"]  = canceledReq.orderId;
+    jsonObj["Reason"]   = canceledReq.reason;
 
     return getJsonData(jsonObj);
 }
@@ -82,9 +83,10 @@ QByteArray canceledReqToJson(const CanceledReq& canceledReq)
 QByteArray acceptReqToJson(const AcceptReq& acceptReq)
 {
     QJsonObject jsonObj;
-    jsonObj["Id"]      = acceptReq.id;
-    jsonObj["Token"]   = acceptReq.token;
-    jsonObj["OrderId"] = acceptReq.orderId;
+    jsonObj["Id"]       = acceptReq.id;
+    jsonObj["Token"]    = acceptReq.token;
+    jsonObj["columnId"] = acceptReq.columnId;
+    jsonObj["OrderId"]  = acceptReq.orderId;
 
     return getJsonData(jsonObj);
 }
@@ -92,9 +94,10 @@ QByteArray acceptReqToJson(const AcceptReq& acceptReq)
 QByteArray fuelingReqToJson(const FuelingReq& fuelingReq)
 {
     QJsonObject jsonObj;
-    jsonObj["Id"]      = fuelingReq.id;
-    jsonObj["Token"]   = fuelingReq.token;
-    jsonObj["OrderId"] = fuelingReq.orderId;
+    jsonObj["Id"]       = fuelingReq.id;
+    jsonObj["Token"]    = fuelingReq.token;
+    jsonObj["columnId"] = fuelingReq.columnId;
+    jsonObj["OrderId"]  = fuelingReq.orderId;
 
     return getJsonData(jsonObj);
 }
@@ -104,6 +107,7 @@ QByteArray completedReqToJson(const CompletedReq& completedReq)
     QJsonObject jsonObj;
     jsonObj["Id"]              = completedReq.id;
     jsonObj["Token"]           = completedReq.token;
+    jsonObj["columnId"]        = completedReq.columnId;
     jsonObj["OrderId"]         = completedReq.orderId;
     jsonObj["Litre"]           = completedReq.litre;
     jsonObj["ExtendedOrderId"] = completedReq.extendedOrderId;
