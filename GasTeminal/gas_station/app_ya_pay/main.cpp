@@ -37,13 +37,13 @@ int main(int argc, char* argv[])
 
     YandexPayHandler yandexPayHandler(conf.value());
 
-    // uint8_t              colId = 1;
-    // Package<OrderComReq> orderComReqPackage{};
-    // orderComReqPackage.dataType.columnId = colId;
-    // orderComReqPackage.dataType.status   = 1;
-    // orderComReqPackage.addChecksum();
-    // yandexPayHandler.setTestData(orderComReqPackage.getData());
-    // yandexPayHandler.handleComPort();
+    uint8_t              colId = 0;
+    Package<OrderComReq> orderComReqPackage{};
+    orderComReqPackage.dataType.columnId = colId;
+    orderComReqPackage.dataType.status   = 1;
+    orderComReqPackage.addChecksum();
+    yandexPayHandler.setTestData(orderComReqPackage.getData());
+    yandexPayHandler.handleComPort();
 
     // 0x59 0x81 0xa 0x0 0x2 0x0 0x0 0x48 0x43 0x48 0xe1 0x5c 0x42 0x38
 
@@ -54,24 +54,24 @@ int main(int argc, char* argv[])
     // yandexPayHandler.setTestData(canceledComReqPackage.getData());
     // yandexPayHandler.handleComPort();
 
-    // Package<AcceptComReq> acceptComReqPackage{};
-    // acceptComReqPackage.dataType.columnId = colId;
-    // acceptComReqPackage.addChecksum();
-    // yandexPayHandler.setTestData(acceptComReqPackage.getData());
-    // yandexPayHandler.handleComPort();
+    Package<AcceptComReq> acceptComReqPackage{};
+    acceptComReqPackage.dataType.columnId = colId;
+    acceptComReqPackage.addChecksum();
+    yandexPayHandler.setTestData(acceptComReqPackage.getData());
+    yandexPayHandler.handleComPort();
 
-    // Package<FuelingComReq> fuelingComReqPackage{};
-    // fuelingComReqPackage.dataType.columnId = colId;
-    // fuelingComReqPackage.addChecksum();
-    // yandexPayHandler.setTestData(fuelingComReqPackage.getData());
-    // yandexPayHandler.handleComPort();
+    Package<FuelingComReq> fuelingComReqPackage{};
+    fuelingComReqPackage.dataType.columnId = colId;
+    fuelingComReqPackage.addChecksum();
+    yandexPayHandler.setTestData(fuelingComReqPackage.getData());
+    yandexPayHandler.handleComPort();
 
-    // Package<CompletedComReq> completedComReqPackage{};
-    // completedComReqPackage.dataType.columnId = colId;
-    // completedComReqPackage.dataType.litres   = 1.54;
-    // completedComReqPackage.addChecksum();
-    // yandexPayHandler.setTestData(completedComReqPackage.getData());
-    // yandexPayHandler.handleComPort();
+    Package<CompletedComReq> completedComReqPackage{};
+    completedComReqPackage.dataType.columnId = colId;
+    completedComReqPackage.dataType.litres   = 1.54;
+    completedComReqPackage.addChecksum();
+    yandexPayHandler.setTestData(completedComReqPackage.getData());
+    yandexPayHandler.handleComPort();
 
     // return 0;
     return a.exec();

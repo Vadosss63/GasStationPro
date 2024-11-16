@@ -1,4 +1,4 @@
-VERSION = 1.0.2
+VERSION = 1.1.0
 
 QT       += core gui network
 QT       += serialport
@@ -41,6 +41,8 @@ SOURCES += \
     src/appsettings.cpp \
     src/azsbutton.cpp \
     src/azsnodesettings.cpp \
+    src/azsstatistics.cpp \
+    src/azsstatisticshandler.cpp \
     src/configure.cpp \
     src/controllers/comportcontroller.cpp \
     src/controllers/mainwindowcontroller.cpp \
@@ -74,6 +76,8 @@ SOURCES += \
 
 HEADERS += \
     src/azsbutton.h \
+    src/azsstatistics.h \
+    src/azsstatisticshandler.h \
     src/dataprotocol/constants.h \
     src/dataprotocol/fuelutility.h \
     src/dataprotocol/receiveddata.h \

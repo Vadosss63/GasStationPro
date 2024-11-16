@@ -150,7 +150,7 @@ std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath)
     return receipt;
 }
 
-QStringList getListReciptFiles()
+QStringList getListReceiptFiles()
 {
     const QString folderPath = AppSettings::instance().getReceiptFolderName();
 

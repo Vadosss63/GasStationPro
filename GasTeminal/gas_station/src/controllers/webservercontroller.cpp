@@ -104,13 +104,27 @@ AzsButton WebServerController::getServerBtn() const
 
 bool WebServerController::sendReceipt(const Receipt& receipt) const
 {
-    QUrlQuery params;
+    constexpr auto apiPath = "/azs_receipt";
+    QUrlQuery      params;
     params.addQueryItem("id", configure.id);
     params.addQueryItem("token", configure.token);
     params.addQueryItem("receipt", receipt.getReceiptJson());
-    Answer answer = sendPost(configure.host + "/azs_receipt", params);
+    Answer answer = sendPost(configure.host + apiPath, params);
     LOG_INFO(answer.msg);
 
+    return answer.isOk;
+}
+
+bool WebServerController::sendAzsStatistics(AzsStatistics& statistics) const
+{
+    constexpr auto apiPath = "/azs/statistics/add";
+    statistics.id = configure.id.toInt();
+    QUrlQuery params;
+    params.addQueryItem("id", configure.id);
+    params.addQueryItem("token", configure.token);
+    params.addQueryItem("statistics", statistics.getStatisticsJson());
+    Answer answer = sendPost(configure.host + apiPath, params);
+    LOG_INFO(answer.msg);
     return answer.isOk;
 }
 
@@ -122,13 +136,13 @@ void WebServerController::setConfigure(const Configure& newConfigure)
 
 void WebServerController::sendReceiptFiles() const
 {
-    const QString     folderName      = AppSettings::instance().getReceiptFolderName();
-    const QStringList listReciptFiles = getListReciptFiles();
+    const QString     folderName       = AppSettings::instance().getReceiptFolderName();
+    const QStringList listReceiptFiles = getListReceiptFiles();
 
-    for (const QString& fileName : listReciptFiles)
+    for (const QString& fileName : listReceiptFiles)
     {
         const QString fileReceiptPath{folderName + fileName};
-        if (!sendReciptFromFile(fileReceiptPath))
+        if (!sendReceiptFromFile(fileReceiptPath))
         {
             LOG_ERROR(QString("Failed to send %1 receipt from file").arg(fileName));
             return;
@@ -138,7 +152,7 @@ void WebServerController::sendReceiptFiles() const
     }
 }
 
-bool WebServerController::sendReciptFromFile(const QString& fileReceiptPath) const
+bool WebServerController::sendReceiptFromFile(const QString& fileReceiptPath) const
 {
     std::optional<Receipt> receipt = readReceiptFromFile(fileReceiptPath);
 

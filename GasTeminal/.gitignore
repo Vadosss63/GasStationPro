@@ -48,3 +48,6 @@ build/
 *.out
 *.LST
 *.OBJ
+
+# Visual Studio Code
+.vscode/

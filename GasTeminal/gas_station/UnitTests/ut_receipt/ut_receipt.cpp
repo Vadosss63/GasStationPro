@@ -151,7 +151,7 @@ TEST (ReceiptTest, listReciptFilesEmpty)
 {
     expectGetDirectoryFileList();
 
-    QStringList retFileList = getListReciptFiles();
+    QStringList retFileList = getListReceiptFiles();
     CHECK_TRUE(retFileList.empty());
 }
 
@@ -162,7 +162,7 @@ TEST (ReceiptTest, listReciptFilesNoMatches)
     const QStringList list{"123.", "dad.son", "d321.txt", ".ss", "17019122121.json"};
     setDirectoryFileList(std::move(list));
 
-    QStringList retFileList = getListReciptFiles();
+    QStringList retFileList = getListReceiptFiles();
     CHECK_TRUE(retFileList.empty());
 }
 
@@ -181,7 +181,7 @@ TEST (ReceiptTest, listReciptFilesMatches)
     const QStringList expectedList{"1701612275.json", "1701912212.json"};
     setDirectoryFileList(std::move(inputList));
 
-    QStringList retFileList = getListReciptFiles();
+    QStringList retFileList = getListReceiptFiles();
 
     CHECK_FALSE(retFileList.empty());
     CHECK_TRUE(expectedList == retFileList);

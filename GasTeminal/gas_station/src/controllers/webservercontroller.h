@@ -20,6 +20,7 @@
 #include <QObject>
 
 #include "azsbuttonhandler.h"
+#include "azsstatistics.h"
 #include "configure.h"
 #include "receipt.h"
 
@@ -35,6 +36,8 @@ public:
     void sendReceiptFiles() const;
     bool sendReceipt(const Receipt& receipt) const;
 
+    bool sendAzsStatistics(AzsStatistics &statistics) const;
+
     void setBtnFromServer(const AzsButton& azsButton);
 
     void setAzsBtnHandler(AzsBtnHandler* newAzsBtnHandler);
@@ -46,7 +49,7 @@ private:
 
     bool resetServerBtn() const;
 
-    bool sendReciptFromFile(const QString& fileReceipt) const;
+    bool sendReceiptFromFile(const QString& fileReceipt) const;
 
     Configure configure{};
     uint8_t   countAzsNode{2};

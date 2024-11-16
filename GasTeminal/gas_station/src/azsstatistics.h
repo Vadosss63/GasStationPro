@@ -17,26 +17,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include <QString>
-#include <QStringList>
-#include <optional>
 
-struct Receipt
+struct AzsStatistics
 {
-    int     time;
-    QString date;
-    int     numOfAzsNode;
-    QString gasType;
-    double  countLitres;
-    double  cash;
-    double  cashless;
-    double  online;
-    double  sum;
+    int     id{0};
+    int     time{0};
+    QString date{""};
+    float   dailyCash{0};
+    float   dailyCashless{0};
+    float   dailyOnline{0};
+    float   dailyLitersCol1{0};
+    float   dailyLitersCol2{0};
+    float   fuelArrivalCol1{0};
+    float   fuelArrivalCol2{0};
 
-    QString getReceipt() const;
-    QString getReceiptJson() const;
+    QString getStatisticsJson() const;
 };
-
-void                   writeReceiptToFile(const Receipt& receipt);
-std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath);
-QStringList            getListReceiptFiles();

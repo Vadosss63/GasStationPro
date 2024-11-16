@@ -24,6 +24,7 @@
 #include <QKeyEvent>
 
 #include "appsettings.h"
+#include "azsstatisticshandler.h"
 #include "logging.h"
 
 Tazs::Tazs(QObject* parent) : QObject{parent}
@@ -159,6 +160,16 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
             return;
     }
 
+    std::optional<AzsStatistics> azsStatistics = handleAzsStatistics(azsButton, getReport());
+
+    if (azsStatistics)
+    {
+        if (!webServerController->sendAzsStatistics(azsStatistics.value()))
+        {
+            LOG_WARNING(QString("Failed to send statistics to server: %1").arg(azsStatistics.value().getStatisticsJson()));
+        }
+    }
+
     comPortController->setCommand(static_cast<ResponseData::Command>(azsButton.button), azsButton.value);
 
     if (azsButton.value)
@@ -167,7 +178,7 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         writeSettings();
     }
 
-    LOG_INFO(QString("Recived button: %1, value:%2").arg(azsButton.button, azsButton.value));
+    LOG_INFO(QString("Received button: %1, value:%2").arg(azsButton.button, azsButton.value));
 }
 
 void Tazs::keyPressEvent(QKeyEvent* event)
@@ -341,7 +352,8 @@ void Tazs::getCounters()
 
 void Tazs::resetCounters()
 {
-    comPortController->setCommand(ResponseData::resetCounters);
+    handleAzsBtn({.idAzs = 0, .value = 0, .button = ResponseData::resetCounters});
+    //comPortController->setCommand(ResponseData::resetCounters);
 }
 
 void Tazs::saveReceipt(int numOfAzsNode) const

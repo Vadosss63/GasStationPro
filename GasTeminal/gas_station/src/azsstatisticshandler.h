@@ -17,26 +17,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-#include <QString>
-#include <QStringList>
+
 #include <optional>
 
-struct Receipt
-{
-    int     time;
-    QString date;
-    int     numOfAzsNode;
-    QString gasType;
-    double  countLitres;
-    double  cash;
-    double  cashless;
-    double  online;
-    double  sum;
+#include "azsbutton.h"
+#include "azsstatistics.h"
+#include "report.h"
 
-    QString getReceipt() const;
-    QString getReceiptJson() const;
-};
-
-void                   writeReceiptToFile(const Receipt& receipt);
-std::optional<Receipt> readReceiptFromFile(const QString& fileReceiptPath);
-QStringList            getListReceiptFiles();
+std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton, const AzsReport& azsReport);
