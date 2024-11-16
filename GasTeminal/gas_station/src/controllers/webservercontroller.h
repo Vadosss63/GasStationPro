@@ -36,7 +36,7 @@ public:
     void sendReceiptFiles() const;
     bool sendReceipt(const Receipt& receipt) const;
 
-    bool sendAzsStatistics(AzsStatistics &statistics) const;
+    bool sendAzsStatistics(AzsStatistics& statistics) const;
 
     void setBtnFromServer(const AzsButton& azsButton);
 

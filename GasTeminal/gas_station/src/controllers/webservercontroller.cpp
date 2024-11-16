@@ -118,7 +118,7 @@ bool WebServerController::sendReceipt(const Receipt& receipt) const
 bool WebServerController::sendAzsStatistics(AzsStatistics& statistics) const
 {
     constexpr auto apiPath = "/azs/statistics/add";
-    statistics.id = configure.id.toInt();
+    statistics.id          = configure.id.toInt();
     QUrlQuery params;
     params.addQueryItem("id", configure.id);
     params.addQueryItem("token", configure.token);

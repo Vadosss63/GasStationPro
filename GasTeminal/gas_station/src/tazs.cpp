@@ -166,7 +166,8 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
     {
         if (!webServerController->sendAzsStatistics(azsStatistics.value()))
         {
-            LOG_WARNING(QString("Failed to send statistics to server: %1").arg(azsStatistics.value().getStatisticsJson()));
+            LOG_WARNING(
+                QString("Failed to send statistics to server: %1").arg(azsStatistics.value().getStatisticsJson()));
         }
     }
 
