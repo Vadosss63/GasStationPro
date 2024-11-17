@@ -25,11 +25,15 @@
 
 namespace
 {
-AzsStatistics getResetAzsStatistics(const AzsReport& azsReport)
+std::optional<AzsStatistics> getResetAzsStatistics(const AzsReport& azsReport)
 {
-    const auto countNode = azsReport.countNode;
-
     const auto& rec = azsReport.rec;
+    if (rec.dailyCashSum == 0 && rec.dailyCoinsSum == 0 && rec.dailyCashlessSum == 0 && rec.dailyOnlineSum == 0)
+    {
+        return std::nullopt;
+    }
+
+    const auto countNode = azsReport.countNode;
 
     auto dailyCash     = static_cast<float>(rec.dailyCashSum + rec.dailyCoinsSum);
     auto dailyCashless = static_cast<float>(rec.dailyCashlessSum);
@@ -50,8 +54,13 @@ AzsStatistics getResetAzsStatistics(const AzsReport& azsReport)
     return azsStatistics;
 }
 
-AzsStatistics getFuelArrival1Statistics(const AzsButton& azsButton, bool isFirstColumn)
+std::optional<AzsStatistics> getFuelArrival1Statistics(const AzsButton& azsButton, bool isFirstColumn)
 {
+    if (azsButton.value == 0)
+    {
+        return std::nullopt;
+    }
+
     AzsStatistics azsStatistics;
     azsStatistics.time = currentSecsSinceEpoch();
     azsStatistics.date = currentDateTime();
