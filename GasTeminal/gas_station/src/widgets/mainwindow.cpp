@@ -74,10 +74,15 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 void MainWindow::updateVisibleBtns()
 {
-    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
-    {
-        azsNodeWidgets[nodeId].startBtn->setVisible(isVisibleBtns);
-    }
+    constexpr int btn1Idx = 0;
+
+    constexpr int btn2Idx = 1;
+
+    azsNodeWidgets[btn1Idx].startBtn->setVisible(isVisibleBtns);
+
+    bool isVisibleBtn2 = azsNodeWidgets[btn2Idx].gasTypeLable->isVisible() && isVisibleBtns;
+
+    azsNodeWidgets[btn2Idx].startBtn->setVisible(isVisibleBtn2);
 }
 
 void MainWindow::disableAzs(bool disable)
