@@ -19,13 +19,20 @@
 
 #include "mainwindow.h"
 
-MainWindow::MainWindow() {}
+#include <QKeyEvent>
+
+#include "azsnodesettings.h"
+
+MainWindow::MainWindow()
+{
+    isVisibleBtns = readVisibleBtns();
+}
 
 MainWindow::~MainWindow() {}
 
 void MainWindow::setSupportPhone(const QString& phone)
 {
-    phoneOfSupportLable->setText(phone);
+    supportPhoneLabel->setText(phone);
 }
 
 void MainWindow::setVisibleSecondBtn(bool isVisible, bool showSecondPrice)
@@ -40,20 +47,37 @@ void MainWindow::setVisibleSecondBtn(bool isVisible, bool showSecondPrice)
     {
         azsNodeWidgets[index].pricePerLitreLableCashless->setVisible(isVisible);
     }
+    updateVisibleBtns();
 }
 
 void MainWindow::setBalance(double balance)
 {
-    balanceLable->setText(QString("%1Р").arg(balance, 0, 'f', 2));
+    balanceLabel->setText(QString("%1Р").arg(balance, 0, 'f', 2));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
+    if (event->key() == Qt::Key_0)
+    {
+        isVisibleBtns = !isVisibleBtns;
+        writeVisibleBtns(isVisibleBtns);
+        updateVisibleBtns();
+        return;
+    }
+
     if (iKeyPressEvent)
     {
         iKeyPressEvent->keyPressEvent(event);
     }
     QWidget::keyPressEvent(event);
+}
+
+void MainWindow::updateVisibleBtns()
+{
+    for (int nodeId = 0; nodeId < maxAzsNodeCount; ++nodeId)
+    {
+        azsNodeWidgets[nodeId].startBtn->setVisible(isVisibleBtns);
+    }
 }
 
 void MainWindow::disableAzs(bool disable)
@@ -145,15 +169,15 @@ void MainWindow::createWidget(bool showSecondPrice)
         azsNodeWidgets[indexWidget].pricePerLitreLableCash->setGeometry(918, 664, 335, 36);
     }
 
-    balanceLable = new LabelWidget(this);
-    balanceLable->setStyleSheet("color: #003EC9; font: 210px 'Arial Black';");
-    balanceLable->setGeometry(47, 315, 1178, 270);
-    balanceLable->setAlignment(Qt::AlignCenter);
+    balanceLabel = new LabelWidget(this);
+    balanceLabel->setStyleSheet("color: #003EC9; font: 210px 'Arial Black';");
+    balanceLabel->setGeometry(47, 315, 1178, 270);
+    balanceLabel->setAlignment(Qt::AlignCenter);
 
-    phoneOfSupportLable = new LabelWidget(this);
-    phoneOfSupportLable->setGeometry(386, 932, 506, 78);
-    phoneOfSupportLable->setStyleSheet("color: #003EC9; font: 34px 'Arial Black';");
-    phoneOfSupportLable->setAlignment(Qt::AlignCenter);
+    supportPhoneLabel = new LabelWidget(this);
+    supportPhoneLabel->setGeometry(386, 932, 506, 78);
+    supportPhoneLabel->setStyleSheet("color: #003EC9; font: 34px 'Arial Black';");
+    supportPhoneLabel->setAlignment(Qt::AlignCenter);
 
     QPixmap  bkgnd(":/images/image/background.png");
     QPalette palette;
@@ -165,6 +189,7 @@ void MainWindow::createWidget(bool showSecondPrice)
 
     connect(azsNodeWidgets[0].startBtn, SIGNAL(clicked()), this, SIGNAL(startFirstAzsNode()));
     connect(azsNodeWidgets[1].startBtn, SIGNAL(clicked()), this, SIGNAL(startSecondAzsNode()));
+    updateVisibleBtns();
 }
 
 void MainWindow::setKeyPressEvent(IKeyPressEvent* newIKeyPressEvent)

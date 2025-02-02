@@ -28,7 +28,7 @@ struct Configure
     QString token           = "";
     QString host            = "http://t-azs.ru:8080";
     QString phoneOfSupport  = "8(000)111-66-77";
-    int     activeBtn2      = true;
+    int     activeBtn2      = 2;
     QString comPort         = "/dev/ttyS4";
     int     baudRate        = 115200;
     int     showSecondPrice = false;

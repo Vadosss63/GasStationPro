@@ -38,3 +38,7 @@ struct AzsNodeSettings
 void writeAzsNodeSettings(const AzsNodeSettings& azsNodes);
 
 AzsNodeSettings readAzsNodeSettings();
+
+bool readVisibleBtns();
+
+void writeVisibleBtns(bool isVisible);

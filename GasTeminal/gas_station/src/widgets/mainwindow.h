@@ -79,12 +79,16 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 private:
+    void updateVisibleBtns();
+
     TemporarilyUnavailableWidget* temporarilyUnavailableWidget{nullptr};
 
     IKeyPressEvent* iKeyPressEvent{nullptr};
 
-    LabelWidget* balanceLable{nullptr};
-    LabelWidget* phoneOfSupportLable{nullptr};
+    LabelWidget* balanceLabel{nullptr};
+    LabelWidget* supportPhoneLabel{nullptr};
 
     std::array<AzsNodeWidget, maxAzsNodeCount> azsNodeWidgets{};
+
+    bool isVisibleBtns{true};
 };

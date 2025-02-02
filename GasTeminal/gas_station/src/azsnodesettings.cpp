@@ -31,6 +31,8 @@ constexpr auto priceCashTemplate     = "priceCash%1";
 constexpr auto priceCashlessTemplate = "priceCashless%1";
 constexpr auto lockFuelValueTemplate = "lockFuelValue%1";
 
+constexpr auto visibleBtns = "visibleBtns";
+
 }
 
 void writeAzsNodeSettings(const AzsNodeSettings& azsNodes)
@@ -65,4 +67,16 @@ AzsNodeSettings readAzsNodeSettings()
     settings.endGroup();
 
     return azsNodes;
+}
+
+bool readVisibleBtns()
+{
+    QSettings settings(appName);
+    return settings.value(visibleBtns, true).toBool();
+}
+
+void writeVisibleBtns(bool isVisible)
+{
+    QSettings settings(appName);
+    settings.setValue(visibleBtns, isVisible);
 }
