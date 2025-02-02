@@ -24,4 +24,6 @@
 #include "azsstatistics.h"
 #include "report.h"
 
-std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton, const AzsReport& azsReport);
+std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton);
+
+std::optional<AzsStatistics> getResetAzsStatistics(const ReceivedData& rec, size_t countNode);

@@ -25,35 +25,6 @@
 
 namespace
 {
-std::optional<AzsStatistics> getResetAzsStatistics(const AzsReport& azsReport)
-{
-    const auto& rec = azsReport.rec;
-    if (rec.dailyCashSum == 0 && rec.dailyCoinsSum == 0 && rec.dailyCashlessSum == 0 && rec.dailyOnlineSum == 0)
-    {
-        return std::nullopt;
-    }
-
-    const auto countNode = azsReport.countNode;
-
-    auto dailyCash     = static_cast<float>(rec.dailyCashSum + rec.dailyCoinsSum);
-    auto dailyCashless = static_cast<float>(rec.dailyCashlessSum);
-    auto dailyOnline   = static_cast<float>(rec.dailyOnlineSum);
-
-    AzsStatistics azsStatistics;
-    azsStatistics.time            = currentSecsSinceEpoch();
-    azsStatistics.date            = currentDateTime();
-    azsStatistics.dailyCash       = dailyCash;
-    azsStatistics.dailyCashless   = dailyCashless;
-    azsStatistics.dailyOnline     = dailyOnline;
-    azsStatistics.dailyLitersCol1 = convertIntToLiter(rec.azsNodes[0].daily);
-
-    if (countNode == 2)
-    {
-        azsStatistics.dailyLitersCol2 = convertIntToLiter(rec.azsNodes[1].daily);
-    }
-    return azsStatistics;
-}
-
 std::optional<AzsStatistics> getFuelArrival1Statistics(const AzsButton& azsButton, bool isFirstColumn)
 {
     if (azsButton.value == 0)
@@ -76,7 +47,7 @@ std::optional<AzsStatistics> getFuelArrival1Statistics(const AzsButton& azsButto
 }
 } // namespace
 
-std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton, const AzsReport& azsReport)
+std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton)
 {
     using State = ResponseData::Command;
 
@@ -86,9 +57,33 @@ std::optional<AzsStatistics> handleAzsStatistics(const AzsButton& azsButton, con
             return getFuelArrival1Statistics(azsButton, true);
         case State::setFuelArrival2:
             return getFuelArrival1Statistics(azsButton, false);
-        case State::resetCounters:
-            return getResetAzsStatistics(azsReport);
     }
 
     return std::nullopt;
+}
+
+std::optional<AzsStatistics> getResetAzsStatistics(const ReceivedData& rec, size_t countNode)
+{
+    if (rec.dailyCashSum == 0 && rec.dailyCoinsSum == 0 && rec.dailyCashlessSum == 0 && rec.dailyOnlineSum == 0)
+    {
+        return std::nullopt;
+    }
+
+    auto dailyCash     = static_cast<float>(rec.dailyCashSum + rec.dailyCoinsSum);
+    auto dailyCashless = static_cast<float>(rec.dailyCashlessSum);
+    auto dailyOnline   = static_cast<float>(rec.dailyOnlineSum);
+
+    AzsStatistics azsStatistics;
+    azsStatistics.time            = currentSecsSinceEpoch();
+    azsStatistics.date            = currentDateTime();
+    azsStatistics.dailyCash       = dailyCash;
+    azsStatistics.dailyCashless   = dailyCashless;
+    azsStatistics.dailyOnline     = dailyOnline;
+    azsStatistics.dailyLitersCol1 = convertIntToLiter(rec.azsNodes[0].daily);
+
+    if (countNode == 2)
+    {
+        azsStatistics.dailyLitersCol2 = convertIntToLiter(rec.azsNodes[1].daily);
+    }
+    return azsStatistics;
 }

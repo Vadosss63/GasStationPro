@@ -79,6 +79,8 @@ private:
     bool      isBalanceValid() const;
     AzsReport getReport() const;
 
+    void checkResetCounters(const ReceivedData& data);
+
     std::unique_ptr<MainWindowController>     mainWindowController{nullptr};
     std::unique_ptr<ComPortController>        comPortController{nullptr};
     std::unique_ptr<ServiceMenuController>    serviceMenuController{nullptr};
@@ -91,4 +93,6 @@ private:
     uint8_t   countAzsNode{2};
 
     AzsNodeSettings currentAzsNodes{};
+
+    ReceivedData oldRecData{};
 };

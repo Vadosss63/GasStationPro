@@ -114,35 +114,55 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
     switch (azsButton.button)
     {
         case State::setPriceCash1:
+        {
             currentAzsNodes.nodes[firstNodeId].priceCash = azsButton.value;
             break;
+        }
         case State::setPriceCash2:
+        {
             currentAzsNodes.nodes[secondNodeId].priceCash = azsButton.value;
             break;
+        }
         case State::setPriceCashless1:
+        {
             currentAzsNodes.nodes[firstNodeId].priceCashless = azsButton.value;
             break;
+        }
         case State::setPriceCashless2:
+        {
             currentAzsNodes.nodes[secondNodeId].priceCashless = azsButton.value;
             break;
+        }
         case State::setLockFuelValue1:
+        {
             currentAzsNodes.nodes[firstNodeId].lockFuelValue = azsButton.value;
             break;
+        }
         case State::setLockFuelValue2:
+        {
             currentAzsNodes.nodes[secondNodeId].lockFuelValue = azsButton.value;
             break;
+        }
         case State::setGasType1:
+        {
             currentAzsNodes.nodes[firstNodeId].gasType = azsButton.value;
             break;
+        }
         case State::setGasType2:
+        {
             currentAzsNodes.nodes[secondNodeId].gasType = azsButton.value;
             break;
+        }
         case State::blockAzsNode:
+        {
             mainWindowController->disableAzs(true);
             break;
+        }
         case State::unblockAzsNode:
+        {
             mainWindowController->disableAzs(false);
             break;
+        }
         case State::setFuelArrival1:
             [[fallthrough]];
         case State::setFuelArrival2:
@@ -154,13 +174,17 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         case State::isPressedServiceBtn3:
             [[fallthrough]];
         case State::resetCounters:
+        {
             break;
+        }
         default:
+        {
             LOG_ERROR(QString("Press unknown btn: %1").arg(azsButton.button));
             return;
+        }
     }
 
-    std::optional<AzsStatistics> azsStatistics = handleAzsStatistics(azsButton, getReport());
+    std::optional<AzsStatistics> azsStatistics = handleAzsStatistics(azsButton);
 
     if (azsStatistics)
     {
@@ -187,21 +211,29 @@ void Tazs::keyPressEvent(QKeyEvent* event)
     switch (event->key())
     {
         case Qt::Key_1:
+        {
             showServiceMenu();
             LOG_INFO("Pressed: show service mode");
             break;
+        }
         case Qt::Key_2:
+        {
             resetCounters();
             LOG_INFO("Pressed: reset counters");
             break;
+        }
         case Qt::Key_3:
+        {
             receiptHistoryController->showDialog();
             LOG_INFO("Pressed: history receipt");
             break;
+        }
         case Qt::Key_Escape:
+        {
             LOG_INFO("Pressed: exit app");
             qApp->exit(0);
             break;
+        }
         default:
             break;
     }
@@ -256,6 +288,31 @@ void Tazs::updateData()
     updateStateOfBtn(data.isClickedBtn);
     mainWindowController->setShowData(data);
     mainWindowController->setCountOfLitres(currentAzsNodes);
+
+    checkResetCounters(data);
+}
+
+void Tazs::checkResetCounters(const ReceivedData& data)
+{
+    if (data.dailyCashSum == 0 && data.dailyCoinsSum == 0 && data.dailyCashlessSum == 0 && data.dailyOnlineSum == 0)
+    {
+        if (oldRecData.dailyCashSum != 0 && oldRecData.dailyCoinsSum != 0 && oldRecData.dailyCashlessSum != 0 &&
+            oldRecData.dailyOnlineSum != 0)
+        {
+            std::optional<AzsStatistics> azsStatistics = getResetAzsStatistics(oldRecData, countAzsNode);
+
+            if (azsStatistics)
+            {
+                if (!webServerController->sendAzsStatistics(azsStatistics.value()))
+                {
+                    LOG_WARNING(QString("Failed to send statistics to server: %1")
+                                    .arg(azsStatistics.value().getStatisticsJson()));
+                }
+            }
+        }
+    }
+
+    oldRecData = data;
 }
 
 AzsReport Tazs::getReport() const
@@ -310,34 +367,49 @@ void Tazs::updateStateOfBtn(uint8_t isClickedBtn)
     switch (isClickedBtn)
     {
         case ClickedBtnState::Normal:
+        {
             break;
+        }
         case ClickedBtnState::ShowServiceMode:
+        {
             showServiceMenu();
             LOG_INFO("Pressed: show service mode");
             break;
+        }
         case ClickedBtnState::CloseServiceMode:
+        {
             closeServiceMenu();
             LOG_INFO("Pressed: close service mode");
             break;
+        }
         case ClickedBtnState::Button1Pressed:
+        {
             clickedFirstHWBtn();
             LOG_INFO("Pressed: button 1");
             break;
+        }
         case ClickedBtnState::Button2Pressed:
+        {
             clickedSecondHWBtn();
             LOG_INFO("Pressed: button 2");
             break;
+        }
         case ClickedBtnState::Unblock:
+        {
             break;
+        }
         case ClickedBtnState::Block:
+        {
             mainWindowController->disableAzs(true);
             LOG_INFO("Pressed: block azs");
             break;
-
+        }
         default:
+        {
             LOG_ERROR(
                 QString("Pressed: unknown %1 button").arg((int)comPortController->getReceivedData().isClickedBtn));
             break;
+        }
     }
 }
 
@@ -354,7 +426,6 @@ void Tazs::getCounters()
 void Tazs::resetCounters()
 {
     handleAzsBtn({.idAzs = 0, .value = 0, .button = ResponseData::resetCounters});
-    //comPortController->setCommand(ResponseData::resetCounters);
 }
 
 void Tazs::saveReceipt(int numOfAzsNode) const
