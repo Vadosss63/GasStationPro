@@ -296,7 +296,7 @@ void Tazs::checkResetCounters(const ReceivedData& data)
 {
     if (data.dailyCashSum == 0 && data.dailyCoinsSum == 0 && data.dailyCashlessSum == 0 && data.dailyOnlineSum == 0)
     {
-        if (oldRecData.dailyCashSum != 0 && oldRecData.dailyCoinsSum != 0 && oldRecData.dailyCashlessSum != 0 &&
+        if (oldRecData.dailyCashSum != 0 || oldRecData.dailyCoinsSum != 0 || oldRecData.dailyCashlessSum != 0 ||
             oldRecData.dailyOnlineSum != 0)
         {
             std::optional<AzsStatistics> azsStatistics = getResetAzsStatistics(oldRecData, countAzsNode);
