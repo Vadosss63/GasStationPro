@@ -117,3 +117,72 @@ inline QString convertGasTypeToString(ResponseData::GasType gasType)
     }
     return result;
 }
+
+inline QString convertCommandBtn(ResponseData::Command btn)
+{
+    QString result;
+    switch (btn)
+    {
+        case ResponseData::Command::defaultVal:
+            result = "Default Command";
+            break;
+        case ResponseData::Command::isPressedServiceBtn1:
+            result = "Service Button 1 Pressed";
+            break;
+        case ResponseData::Command::isPressedServiceBtn2:
+            result = "Service Button 2 Pressed";
+            break;
+        case ResponseData::Command::isPressedServiceBtn3:
+            result = "Service Button 3 Pressed";
+            break;
+        case ResponseData::Command::resetCounters:
+            result = "Reset Counters";
+            break;
+        case ResponseData::Command::blockAzsNode:
+            result = "Block AZS Node";
+            break;
+        case ResponseData::Command::unblockAzsNode:
+            result = "Unblock AZS Node";
+            break;
+        case ResponseData::Command::isPressedFirstBtn:
+            result = "First Button Pressed";
+            break;
+        case ResponseData::Command::isPressedSecondBtn:
+            result = "Second Button Pressed";
+            break;
+        case ResponseData::Command::setGasType1:
+            result = "Set Gas Type 1";
+            break;
+        case ResponseData::Command::setGasType2:
+            result = "Set Gas Type 2";
+            break;
+        case ResponseData::Command::setPriceCash1:
+            result = "Set Cash Price 1";
+            break;
+        case ResponseData::Command::setPriceCash2:
+            result = "Set Cash Price 2";
+            break;
+        case ResponseData::Command::setPriceCashless1:
+            result = "Set Cashless Price 1";
+            break;
+        case ResponseData::Command::setPriceCashless2:
+            result = "Set Cashless Price 2";
+            break;
+        case ResponseData::Command::setLockFuelValue1:
+            result = "Set Lock Fuel Value 1";
+            break;
+        case ResponseData::Command::setLockFuelValue2:
+            result = "Set Lock Fuel Value 2";
+            break;
+        case ResponseData::Command::setFuelArrival1:
+            result = "Set Fuel Arrival 1";
+            break;
+        case ResponseData::Command::setFuelArrival2:
+            result = "Set Fuel Arrival 2";
+            break;
+        default:
+            result = QString("Unknown Command: %1").arg(static_cast<int>(btn));
+            break;
+    }
+    return result;
+}

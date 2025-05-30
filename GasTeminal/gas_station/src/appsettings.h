@@ -32,14 +32,18 @@ public:
     Settings& getSettings();
 
     QStringList readLogFile();
-    void        addTextToLogFile(const QString& text);
+
+    void addTextToLogFile(const QString& text);
 
     const QString& getReceiptFolderName() const;
+
+    const QString& getAzsStatsFolderName() const;
 
 private:
     AppSettings();
     Settings      settings;
-    const QString logsName          = "logs.log";
-    const QString receiptFolderName = "./receiptCache/";
-    const QString splitter          = "\n####\n";
+    const QString logsName           = "logs.log";
+    const QString receiptFolderName  = "./receiptCache/";
+    const QString azsStatsFolderName = "./azsStatistics/";
+    const QString splitter           = "\n####\n";
 };

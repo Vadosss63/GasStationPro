@@ -25,6 +25,7 @@
 
 #include "appsettings.h"
 #include "azsstatisticshandler.h"
+#include "filesystemutilities.h"
 #include "logging.h"
 
 Tazs::Tazs(QObject* parent) : QObject{parent}
@@ -61,6 +62,9 @@ Tazs::Tazs(QObject* parent) : QObject{parent}
     timer->start(10000);
     updateData();
     syncAzs();
+
+    sendAzsStatisticsFiles();
+    webServerController->sendReceiptFiles();
 }
 
 Tazs::~Tazs()
@@ -184,18 +188,15 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         }
     }
 
-    std::optional<AzsStatistics> azsStatistics = handleAzsStatistics(azsButton);
+    ResponseData::Command cmd = static_cast<ResponseData::Command>(azsButton.button);
+
+    comPortController->setCommand(cmd, azsButton.value);
+    azsStatistics = handleAzsStatistics(azsButton);
 
     if (azsStatistics)
     {
-        if (!webServerController->sendAzsStatistics(azsStatistics.value()))
-        {
-            LOG_WARNING(
-                QString("Failed to send statistics to server: %1").arg(azsStatistics.value().getStatisticsJson()));
-        }
+        sendAzsStatisticsFiles();
     }
-
-    comPortController->setCommand(static_cast<ResponseData::Command>(azsButton.button), azsButton.value);
 
     if (azsButton.value)
     {
@@ -203,7 +204,9 @@ void Tazs::handleAzsBtn(const AzsButton& azsButton)
         writeSettings();
     }
 
-    LOG_INFO(QString("Received button: %1, value:%2").arg(azsButton.button, azsButton.value));
+    QString logMsg = QString("Received button: %1, value: %2").arg(convertCommandBtn(cmd)).arg(azsButton.value);
+
+    LOG_INFO(logMsg);
 }
 
 void Tazs::keyPressEvent(QKeyEvent* event)
@@ -289,7 +292,73 @@ void Tazs::updateData()
     mainWindowController->setShowData(data);
     mainWindowController->setCountOfLitres(currentAzsNodes);
 
+    checkFuelArrival(data);
     checkResetCounters(data);
+
+    oldRecData = data;
+}
+
+void Tazs::checkFuelArrival(const ReceivedData& data)
+{
+    if (!azsStatistics)
+    {
+        return;
+    }
+
+    if (azsStatistics.value().fuelArrivalCol1 > 0)
+    {
+        LOG_INFO(QString("Fuel arrival for first azs node: %1 l. Old val: %2 l, New val: %3 l")
+                     .arg(azsStatistics.value().fuelArrivalCol1)
+                     .arg(oldRecData.azsNodes[firstNodeId].fuelVolume * 1000)
+                     .arg(data.azsNodes[firstNodeId].fuelVolume * 1000));
+    }
+
+    if (azsStatistics.value().fuelArrivalCol2 > 0)
+    {
+        LOG_INFO(QString("Fuel arrival for second azs node: %1 l. Old val: %2 l, New val: %3 l")
+                     .arg(azsStatistics.value().fuelArrivalCol2)
+                     .arg(oldRecData.azsNodes[secondNodeId].fuelVolume * 1000)
+                     .arg(data.azsNodes[secondNodeId].fuelVolume * 1000));
+    }
+
+    if (!webServerController->sendAzsStatistics(azsStatistics.value()))
+    {
+        LOG_WARNING(QString("Failed to send statistics to server: %1").arg(azsStatistics.value().getStatisticsJson()));
+        writeAzsStatisticsToFile(azsStatistics.value());
+    }
+
+    azsStatistics = std::nullopt;
+}
+
+void Tazs::sendAzsStatisticsFiles() const
+{
+    const QString     folderName    = AppSettings::instance().getAzsStatsFolderName();
+    const QStringList listNameFiles = getListAzsStatisticsFiles();
+
+    for (const QString& fileName : listNameFiles)
+    {
+        const QString filePath{folderName + fileName};
+        if (!sendAzsStatisticsFromFile(filePath))
+        {
+            LOG_ERROR(QString("Failed to send %1 azs statistics from file").arg(fileName));
+            return;
+        }
+
+        removeFile(filePath);
+    }
+}
+
+bool Tazs::sendAzsStatisticsFromFile(const QString& filePath) const
+{
+    std::optional<AzsStatistics> statistics = readAzsStatisticsFromFile(filePath);
+
+    if (!statistics.has_value())
+    {
+        removeFile(filePath);
+        return false;
+    }
+
+    return webServerController->sendAzsStatistics(statistics.value());
 }
 
 void Tazs::checkResetCounters(const ReceivedData& data)
@@ -299,20 +368,19 @@ void Tazs::checkResetCounters(const ReceivedData& data)
         if (oldRecData.dailyCashSum != 0 || oldRecData.dailyCoinsSum != 0 || oldRecData.dailyCashlessSum != 0 ||
             oldRecData.dailyOnlineSum != 0)
         {
-            std::optional<AzsStatistics> azsStatistics = getResetAzsStatistics(oldRecData, countAzsNode);
+            std::optional<AzsStatistics> azsStats = getResetAzsStatistics(oldRecData, countAzsNode);
 
-            if (azsStatistics)
+            if (azsStats)
             {
-                if (!webServerController->sendAzsStatistics(azsStatistics.value()))
+                if (!webServerController->sendAzsStatistics(azsStats.value()))
                 {
-                    LOG_WARNING(QString("Failed to send statistics to server: %1")
-                                    .arg(azsStatistics.value().getStatisticsJson()));
+                    LOG_WARNING(
+                        QString("Failed to send statistics to server: %1").arg(azsStats.value().getStatisticsJson()));
+                    writeAzsStatisticsToFile(azsStats.value());
                 }
             }
         }
     }
-
-    oldRecData = data;
 }
 
 AzsReport Tazs::getReport() const

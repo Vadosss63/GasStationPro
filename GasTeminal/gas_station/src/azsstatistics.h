@@ -19,6 +19,7 @@
  */
 
 #include <QString>
+#include <optional>
 
 struct AzsStatistics
 {
@@ -35,3 +36,9 @@ struct AzsStatistics
 
     QString getStatisticsJson() const;
 };
+
+QStringList getListAzsStatisticsFiles();
+
+void writeAzsStatisticsToFile(const AzsStatistics& statistics);
+
+std::optional<AzsStatistics> readAzsStatisticsFromFile(const QString& fileStatisticsPath);

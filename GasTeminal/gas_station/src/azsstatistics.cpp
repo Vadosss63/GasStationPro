@@ -19,8 +19,13 @@
 
 #include "azsstatistics.h"
 
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "appsettings.h"
+#include "filesystemutilities.h"
+#include "logging.h"
 
 namespace
 {
@@ -53,4 +58,86 @@ QString AzsStatistics::getStatisticsJson() const
 
     QString statisticsJson = QString::fromUtf8(QJsonDocument(statistics).toJson());
     return statisticsJson;
+}
+
+QStringList getListAzsStatisticsFiles()
+{
+    const QString folderPath = AppSettings::instance().getAzsStatsFolderName();
+
+    const QRegExp     expr{"^\\d{10}\\.json$"};
+    const QStringList allFiles{getDirectoryFileList(folderPath)};
+
+    return allFiles.filter(expr);
+}
+
+void writeAzsStatisticsToFile(const AzsStatistics& statistics)
+{
+    const QString folderPath = AppSettings::instance().getAzsStatsFolderName();
+    const QString filePath   = QString("%1%2.json").arg(folderPath).arg(statistics.time);
+
+    if (!createDirIfNeeded(folderPath))
+    {
+        LOG_ERROR("Failed to create directory: " + folderPath);
+        return;
+    }
+
+    std::unique_ptr<QIODevice> fileStats = openFile(filePath, QIODevice::WriteOnly);
+    if (!fileStats)
+    {
+        LOG_ERROR("Failed to open file for writing statistics");
+        return;
+    }
+
+    const std::string dataTowrite{statistics.getStatisticsJson().toStdString()};
+
+    fileStats->write(dataTowrite.c_str());
+    fileStats->close();
+
+    LOG_INFO(QString("Statistics written to file: %1").arg(filePath));
+}
+
+std::optional<AzsStatistics> readAzsStatisticsFromFile(const QString& fileStatisticsPath)
+{
+    std::unique_ptr<QIODevice> fileStats = openFile(fileStatisticsPath, QIODevice::ReadOnly | QIODevice::Text);
+
+    if (!fileStats)
+    {
+        LOG_ERROR("Can not open json file");
+        return std::nullopt;
+    }
+
+    const QString jsonData = fileStats->readAll();
+    fileStats->close();
+    const QJsonDocument doc  = QJsonDocument::fromJson(jsonData.toUtf8());
+    const QJsonObject   json = doc.object();
+
+    const QStringList requiredFields = {idToken,
+                                        timeToken,
+                                        dateToken,
+                                        dailyCashToken,
+                                        dailyCashlessToken,
+                                        dailyOnlineToken,
+                                        dailyLitersCol1Token,
+                                        dailyLitersCol2Token,
+                                        fuelArrivalCol1Token,
+                                        fuelArrivalCol2Token};
+    for (const auto& field : requiredFields)
+    {
+        if (!json.contains(field))
+        {
+            LOG_ERROR("Missing or invalid field in settings: " + QString(field));
+            return std::nullopt;
+        }
+    }
+    AzsStatistics statistics{.id              = json[idToken].toInt(),
+                             .time            = json[timeToken].toInt(),
+                             .date            = json[dateToken].toString(),
+                             .dailyCash       = static_cast<float>(json[dailyCashToken].toDouble()),
+                             .dailyCashless   = static_cast<float>(json[dailyCashlessToken].toDouble()),
+                             .dailyOnline     = static_cast<float>(json[dailyOnlineToken].toDouble()),
+                             .dailyLitersCol1 = static_cast<float>(json[dailyLitersCol1Token].toDouble()),
+                             .dailyLitersCol2 = static_cast<float>(json[dailyLitersCol2Token].toDouble()),
+                             .fuelArrivalCol1 = static_cast<float>(json[fuelArrivalCol1Token].toDouble()),
+                             .fuelArrivalCol2 = static_cast<float>(json[fuelArrivalCol2Token].toDouble())};
+    return statistics;
 }

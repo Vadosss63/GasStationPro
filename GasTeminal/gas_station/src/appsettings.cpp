@@ -32,6 +32,11 @@ const QString& AppSettings::getReceiptFolderName() const
     return receiptFolderName;
 }
 
+const QString& AppSettings::getAzsStatsFolderName() const
+{
+    return azsStatsFolderName;
+}
+
 AppSettings& AppSettings::instance()
 {
     static AppSettings settings;

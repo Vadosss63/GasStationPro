@@ -75,11 +75,17 @@ private:
 
     void syncAzs();
 
-    void      saveReceipt(int numOfAzsNode) const;
-    bool      isBalanceValid() const;
+    void saveReceipt(int numOfAzsNode) const;
+    bool isBalanceValid() const;
+
     AzsReport getReport() const;
 
     void checkResetCounters(const ReceivedData& data);
+    void checkFuelArrival(const ReceivedData& data);
+
+    void sendAzsStatisticsFiles() const;
+
+    bool sendAzsStatisticsFromFile(const QString& filePath) const;
 
     std::unique_ptr<MainWindowController>     mainWindowController{nullptr};
     std::unique_ptr<ComPortController>        comPortController{nullptr};
@@ -95,4 +101,6 @@ private:
     AzsNodeSettings currentAzsNodes{};
 
     ReceivedData oldRecData{};
+
+    std::optional<AzsStatistics> azsStatistics{};
 };
